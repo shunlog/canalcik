@@ -4,5 +4,6 @@ export type DocumentRow = {
   id: string;
   kind: DocKind;
   title: string;
+  documentDate: string;
   createdAt: string;
 };

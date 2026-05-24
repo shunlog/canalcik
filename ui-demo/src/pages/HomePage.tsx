@@ -35,42 +35,49 @@ const MOCK_DOCS: DocumentRow[] = [
     id: '1',
     kind: 'comanda_materiale',
     title: 'Comandă cablu electric — șantier Pipera',
+    documentDate: '2026-05-22',
     createdAt: '2026-05-22T10:14:00',
   },
   {
     id: '2',
     kind: 'act_defectiune',
     title: 'Defecțiune excavator CAT-320 (INV-1042)',
+    documentDate: '2026-05-20',
     createdAt: '2026-05-21T16:30:00',
   },
   {
     id: '3',
     kind: 'comanda_materiale',
     title: 'Comandă țevi PVC — depozit central',
+    documentDate: '2026-05-19',
     createdAt: '2026-05-19T09:02:00',
   },
   {
     id: '4',
     kind: 'act_defectiune',
     title: 'Pompă hidraulică — pierdere ulei',
+    documentDate: '2026-05-14',
     createdAt: '2026-05-15T14:48:00',
   },
   {
     id: '5',
     kind: 'comanda_materiale',
     title: 'Comandă consumabile întreținere',
+    documentDate: '2026-05-12',
     createdAt: '2026-05-12T11:25:00',
   },
   {
     id: '6',
     kind: 'act_defectiune',
     title: 'Generator diesel — pornire defectuoasă',
+    documentDate: '2026-05-07',
     createdAt: '2026-05-08T08:10:00',
   },
   {
     id: '7',
     kind: 'comanda_materiale',
     title: 'Comandă urgent: garnituri pompă',
+    documentDate: '2026-05-03',
     createdAt: '2026-05-03T17:55:00',
   },
 ];
@@ -83,6 +90,15 @@ function formatDate(iso: string) {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+  });
+}
+
+function formatDateOnly(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('ro-RO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   });
 }
 
@@ -240,7 +256,8 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
         <Table verticalSpacing="sm" horizontalSpacing="md" highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Dată</Table.Th>
+              <Table.Th>Data documentului</Table.Th>
+              <Table.Th>Data creării</Table.Th>
               <Table.Th>Tip</Table.Th>
               <Table.Th>Descriere</Table.Th>
             </Table.Tr>
@@ -252,6 +269,9 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
                 style={{ cursor: 'pointer' }}
                 onClick={() => onOpenDoc(doc)}
               >
+                <Table.Td>
+                  <Text size="sm">{formatDateOnly(doc.documentDate)}</Text>
+                </Table.Td>
                 <Table.Td>
                   <Text size="sm" c="dimmed">
                     {formatDate(doc.createdAt)}
@@ -274,7 +294,7 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
             ))}
             {filtered.length === 0 && (
               <Table.Tr>
-                <Table.Td colSpan={3}>
+                <Table.Td colSpan={4}>
                   <Text c="dimmed" ta="center" py="lg">
                     Niciun document găsit.
                   </Text>

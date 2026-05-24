@@ -26,6 +26,7 @@ the fields in the `.docx` template match the fields in the form.
 
 Generated documents:
 - *Comanda materiale* ("Comanda de materiale")
+    - Date
     - List of items:
         - *Denumirea materialului* `{name}`: str, *Denumire produs* from *Categorii produse*
         - *Specificația materialului*: str, *Nr. inmatriculare* from *Gestiune flota*
@@ -35,6 +36,8 @@ Generated documents:
 
 
 - *Act defectiune* ("Act de constatare a defectiunilor")
+    - Date
+    
 
 Data sources:
 - *Categorii produse* - spreadsheet of products
