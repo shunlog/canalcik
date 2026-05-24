@@ -1,0 +1,9 @@
+artiombn.duckdns.org {
+	# Basic auth — user "dan" (hashed with `caddy hash-password`)
+	basic_auth {
+		dan $2a$14$6lnGyNGCURO7JxPlJmgu7.E8nR2QOpv9iPOSIA/Xp6edE0aV6fWTK
+	}
+
+	# Reverse-proxy everything (including Vite's HMR websocket) to the dev server.
+	reverse_proxy 127.0.0.1:5173
+}
