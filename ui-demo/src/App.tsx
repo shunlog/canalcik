@@ -2,11 +2,13 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import {
   ActionIcon,
   Autocomplete,
+  Badge,
   Button,
   Card,
   Container,
   Group,
   NumberInput,
+  Select,
   Stack,
   Text,
   Title,
@@ -17,6 +19,7 @@ import {
   nrInmatriculareOptions,
   umOptions,
 } from './suggestions';
+import { PRIMARY_COLORS, type PrimaryColor } from './main';
 
 type Item = {
   denumire: string;
@@ -38,7 +41,12 @@ const emptyItem: Item = {
   nomenclator: '',
 };
 
-export function App() {
+type AppProps = {
+  primaryColor: PrimaryColor;
+  onPrimaryColorChange: (color: PrimaryColor) => void;
+};
+
+export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
   const { control, handleSubmit } = useForm<FormValues>({
     defaultValues: { items: [emptyItem] },
   });
@@ -52,31 +60,59 @@ export function App() {
 
   return (
     <Container size="md" py="xl">
-      <Title order={2} mb="xs">
-        Comandă materiale
-      </Title>
+      <Group justify="space-between" align="flex-start" mb="xs">
+        <Title order={2}>Comandă materiale</Title>
+        <Select
+          aria-label="Schemă de culori"
+          w={140}
+          value={primaryColor}
+          onChange={(v) => v && onPrimaryColorChange(v as PrimaryColor)}
+          data={PRIMARY_COLORS.map((c) => ({ value: c, label: c }))}
+          allowDeselect={false}
+          checkIconPosition="right"
+        />
+      </Group>
       <Text c="dimmed" mb="lg">
         Prototip UI — adaugă articole în comandă.
       </Text>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Stack gap="md">
+        <Stack gap="xl">
           {fields.map((field, index) => (
-            <Card key={field.id} withBorder padding="md" radius="md">
-              <Group justify="space-between" mb="sm">
-                <Text fw={600}>Articol {index + 1}</Text>
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                  aria-label="Șterge articolul"
-                >
-                  ✕
-                </ActionIcon>
-              </Group>
+            <Card
+              key={field.id}
+              withBorder
+              padding={0}
+              radius="md"
+              shadow="sm"
+              style={{ borderLeft: '4px solid var(--mantine-primary-color-filled)' }}
+            >
+              <Card.Section
+                withBorder
+                inheritPadding
+                py="sm"
+                bg="var(--mantine-primary-color-light)"
+              >
+                <Group justify="space-between" wrap="nowrap">
+                  <Group gap="sm" wrap="nowrap">
+                    <Badge size="lg" radius="sm" variant="filled">
+                      {index + 1}
+                    </Badge>
+                    <Text fw={600}>Articol</Text>
+                  </Group>
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    onClick={() => remove(index)}
+                    disabled={fields.length === 1}
+                    aria-label="Șterge articolul"
+                  >
+                    ✕
+                  </ActionIcon>
+                </Group>
+              </Card.Section>
 
-              <Stack gap="sm">
+              <Stack gap="sm" p="md">
                 <Controller
                   control={control}
                   name={`items.${index}.denumire`}
