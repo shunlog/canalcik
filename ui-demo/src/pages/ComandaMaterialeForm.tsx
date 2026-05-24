@@ -73,7 +73,7 @@ export function ComandaMaterialeForm() {
                 <TextInput
                   label="Data"
                   type="date"
-                  maw={220}
+                  w={180}
                   {...f}
                 />
               )}
@@ -121,38 +121,39 @@ export function ComandaMaterialeForm() {
                         label="Denumirea materialului"
                         placeholder="Denumire produs"
                         data={denumireProdusOptions}
+                        maw={400}
                         {...f}
                       />
                     )}
                   />
 
-                  <Controller
-                    control={control}
-                    name={`items.${index}.specificatie`}
-                    render={({ field: f }) => (
-                      <Autocomplete
-                        label="Specificația materialului"
-                        placeholder="Nr. înmatriculare"
-                        data={nrInmatriculareOptions}
-                        {...f}
-                      />
-                    )}
-                  />
-
-                  <Group grow align="flex-start">
+                  <Group align="flex-start" gap="sm">
+                    <Controller
+                      control={control}
+                      name={`items.${index}.specificatie`}
+                      render={({ field: f }) => (
+                        <Autocomplete
+                          label="Specificația materialului"
+                          placeholder="Nr. înmatriculare"
+                          data={nrInmatriculareOptions}
+                          w={200}
+                          {...f}
+                        />
+                      )}
+                    />
                     <Controller
                       control={control}
                       name={`items.${index}.um`}
                       render={({ field: f }) => (
                         <Autocomplete
                           label="UM"
-                          placeholder="buc, set, l..."
+                          placeholder="buc, set..."
                           data={umOptions}
+                          w={110}
                           {...f}
                         />
                       )}
                     />
-
                     <Controller
                       control={control}
                       name={`items.${index}.cantitate`}
@@ -162,6 +163,7 @@ export function ComandaMaterialeForm() {
                           placeholder="0"
                           decimalScale={3}
                           min={0}
+                          w={140}
                           value={f.value}
                           onChange={f.onChange}
                           onBlur={f.onBlur}
@@ -178,6 +180,7 @@ export function ComandaMaterialeForm() {
                         label="Nomenclator D365"
                         placeholder="Cod produs"
                         data={codProdusOptions}
+                        w={220}
                         {...f}
                       />
                     )}

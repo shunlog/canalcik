@@ -115,13 +115,13 @@ export function ActDefectiuneForm() {
               control={control}
               name="date"
               render={({ field: f }) => (
-                <TextInput label="Data" type="date" maw={220} {...f} />
+                <TextInput label="Data" type="date" w={180} {...f} />
               )}
             />
 
             <SectionCard title="Informație activ">
               <Stack gap="sm" p="md">
-                <Group grow align="flex-start">
+                <Group align="flex-start" gap="sm">
                   <Controller
                     control={control}
                     name="activ.nrInventar"
@@ -129,6 +129,7 @@ export function ActDefectiuneForm() {
                       <TextInput
                         label="Nr. inventar"
                         placeholder="ex. 42691696"
+                        w={180}
                         {...f}
                       />
                     )}
@@ -141,7 +142,24 @@ export function ActDefectiuneForm() {
                         label="Nr. de înregistrare"
                         placeholder="ex. CA 786"
                         data={nrInmatriculareOptions}
+                        w={180}
                         {...f}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="activ.anulProducerii"
+                    render={({ field: f }) => (
+                      <NumberInput
+                        label="Anul producerii"
+                        placeholder="ex. 1998"
+                        min={1900}
+                        max={2100}
+                        w={140}
+                        value={f.value}
+                        onChange={f.onChange}
+                        onBlur={f.onBlur}
                       />
                     )}
                   />
@@ -153,23 +171,8 @@ export function ActDefectiuneForm() {
                     <TextInput
                       label="Denumire conform datelor contabile"
                       placeholder="ex. Tractor MTZ-82"
+                      maw={400}
                       {...f}
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name="activ.anulProducerii"
-                  render={({ field: f }) => (
-                    <NumberInput
-                      label="Anul producerii"
-                      placeholder="ex. 1998"
-                      min={1900}
-                      max={2100}
-                      maw={220}
-                      value={f.value}
-                      onChange={f.onChange}
-                      onBlur={f.onBlur}
                     />
                   )}
                 />
@@ -237,39 +240,44 @@ export function ActDefectiuneForm() {
                     canRemove={pieseArr.fields.length > 1}
                   >
                     <Stack gap="sm">
-                      <Controller
-                        control={control}
-                        name={`piese.${index}.nomenclator`}
-                        render={({ field: f }) => (
-                          <Autocomplete
-                            label="Nr. nomenclator"
-                            placeholder="Cod produs"
-                            data={codProdusOptions}
-                            {...f}
-                          />
-                        )}
-                      />
-                      <Controller
-                        control={control}
-                        name={`piese.${index}.piesa`}
-                        render={({ field: f }) => (
-                          <Autocomplete
-                            label="Piesa de schimb / ansamblul component"
-                            placeholder="Denumire piesă"
-                            data={denumireProdusOptions}
-                            {...f}
-                          />
-                        )}
-                      />
-                      <Group grow align="flex-start">
+                      <Group align="flex-start" gap="sm">
+                        <Controller
+                          control={control}
+                          name={`piese.${index}.nomenclator`}
+                          render={({ field: f }) => (
+                            <Autocomplete
+                              label="Nr. nomenclator"
+                              placeholder="Cod produs"
+                              data={codProdusOptions}
+                              w={220}
+                              {...f}
+                            />
+                          )}
+                        />
+                        <Controller
+                          control={control}
+                          name={`piese.${index}.piesa`}
+                          render={({ field: f }) => (
+                            <Autocomplete
+                              label="Piesa de schimb / ansamblul component"
+                              placeholder="Denumire piesă"
+                              data={denumireProdusOptions}
+                              w={360}
+                              {...f}
+                            />
+                          )}
+                        />
+                      </Group>
+                      <Group align="flex-start" gap="sm">
                         <Controller
                           control={control}
                           name={`piese.${index}.um`}
                           render={({ field: f }) => (
                             <Autocomplete
                               label="UM"
-                              placeholder="buc, set, l..."
+                              placeholder="buc, set..."
                               data={umOptions}
+                              w={110}
                               {...f}
                             />
                           )}
@@ -283,17 +291,17 @@ export function ActDefectiuneForm() {
                               placeholder="0"
                               decimalScale={3}
                               min={0}
+                              w={140}
                               value={f.value}
                               onChange={f.onChange}
                               onBlur={f.onBlur}
                             />
                           )}
                         />
-                      </Group>
-                      <Group grow align="flex-start">
                         <CauzaSelect
                           control={control}
                           name={`piese.${index}.cauzaRand`}
+                          width={140}
                         />
                         <Controller
                           control={control}
@@ -346,19 +354,21 @@ export function ActDefectiuneForm() {
                           <TextInput
                             label="Denumirea lucrărilor"
                             placeholder="ex. de înlocuit ..."
+                            maw={400}
                             {...f}
                           />
                         )}
                       />
-                      <Group grow align="flex-start">
+                      <Group align="flex-start" gap="sm">
                         <Controller
                           control={control}
                           name={`lucrari.${index}.um`}
                           render={({ field: f }) => (
                             <Autocomplete
                               label="UM"
-                              placeholder="buc, set, l..."
+                              placeholder="buc, set..."
                               data={umOptions}
+                              w={110}
                               {...f}
                             />
                           )}
@@ -372,17 +382,19 @@ export function ActDefectiuneForm() {
                               placeholder="0"
                               decimalScale={3}
                               min={0}
+                              w={140}
                               value={f.value}
                               onChange={f.onChange}
                               onBlur={f.onBlur}
                             />
                           )}
                         />
+                        <CauzaSelect
+                          control={control}
+                          name={`lucrari.${index}.cauzaRand`}
+                          width={140}
+                        />
                       </Group>
-                      <CauzaSelect
-                        control={control}
-                        name={`lucrari.${index}.cauzaRand`}
-                      />
                     </Stack>
                   </RowCard>
                 ))}
@@ -500,10 +512,12 @@ function RowCard({
 function CauzaSelect({
   control,
   name,
+  width,
 }: {
   control: Control<FormValues>;
   // any path that resolves to the cauzaRand field
   name: `piese.${number}.cauzaRand` | `lucrari.${number}.cauzaRand`;
+  width?: number;
 }) {
   const defectiuni = useWatch({ control, name: 'defectiuni' }) ?? [];
   const options = defectiuni.map((_, i) => ({
@@ -524,6 +538,7 @@ function CauzaSelect({
           onChange={(v) => f.onChange(v ?? '')}
           onBlur={f.onBlur}
           clearable
+          w={width}
         />
       )}
     />
