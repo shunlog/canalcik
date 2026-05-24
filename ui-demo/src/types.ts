@@ -5,5 +5,4 @@ export type DocumentRow = {
   kind: DocKind;
   title: string;
   createdAt: string;
-  author: string;
 };

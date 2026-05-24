@@ -25,55 +25,53 @@ const KIND_COLOR: Record<DocKind, string> = {
   act_defectiune: 'orange',
 };
 
+const KIND_EMOJI: Record<DocKind, string> = {
+  comanda_materiale: '📦',
+  act_defectiune: '🛠️',
+};
+
 const MOCK_DOCS: DocumentRow[] = [
   {
     id: '1',
     kind: 'comanda_materiale',
     title: 'Comandă cablu electric — șantier Pipera',
     createdAt: '2026-05-22T10:14:00',
-    author: 'M. Popescu',
   },
   {
     id: '2',
     kind: 'act_defectiune',
     title: 'Defecțiune excavator CAT-320 (INV-1042)',
     createdAt: '2026-05-21T16:30:00',
-    author: 'A. Ionescu',
   },
   {
     id: '3',
     kind: 'comanda_materiale',
     title: 'Comandă țevi PVC — depozit central',
     createdAt: '2026-05-19T09:02:00',
-    author: 'M. Popescu',
   },
   {
     id: '4',
     kind: 'act_defectiune',
     title: 'Pompă hidraulică — pierdere ulei',
     createdAt: '2026-05-15T14:48:00',
-    author: 'D. Stoica',
   },
   {
     id: '5',
     kind: 'comanda_materiale',
     title: 'Comandă consumabile întreținere',
     createdAt: '2026-05-12T11:25:00',
-    author: 'I. Marinescu',
   },
   {
     id: '6',
     kind: 'act_defectiune',
     title: 'Generator diesel — pornire defectuoasă',
     createdAt: '2026-05-08T08:10:00',
-    author: 'A. Ionescu',
   },
   {
     id: '7',
     kind: 'comanda_materiale',
     title: 'Comandă urgent: garnituri pompă',
     createdAt: '2026-05-03T17:55:00',
-    author: 'M. Popescu',
   },
 ];
 
@@ -105,11 +103,7 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
     if (kindFilter !== 'all' && d.kind !== kindFilter) return false;
     if (search.trim()) {
       const s = search.toLowerCase();
-      if (
-        !d.title.toLowerCase().includes(s) &&
-        !d.author.toLowerCase().includes(s)
-      )
-        return false;
+      if (!d.title.toLowerCase().includes(s)) return false;
     }
     return true;
   }).sort((a, b) => {
@@ -179,7 +173,7 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
       <Card withBorder radius="md" padding="sm" shadow="sm">
         <Group gap="xs" wrap="wrap">
           <TextInput
-            placeholder="Caută după titlu sau autor..."
+            placeholder="Caută după titlu..."
             value={search}
             onChange={(e) => setSearch(e.currentTarget.value)}
             leftSection={<span aria-hidden>🔍</span>}
@@ -217,10 +211,16 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
               <Menu.Item onClick={() => setKindFilter('all')}>
                 Toate
               </Menu.Item>
-              <Menu.Item onClick={() => setKindFilter('comanda_materiale')}>
+              <Menu.Item
+                leftSection={<span aria-hidden>{KIND_EMOJI.comanda_materiale}</span>}
+                onClick={() => setKindFilter('comanda_materiale')}
+              >
                 {KIND_LABEL.comanda_materiale}
               </Menu.Item>
-              <Menu.Item onClick={() => setKindFilter('act_defectiune')}>
+              <Menu.Item
+                leftSection={<span aria-hidden>{KIND_EMOJI.act_defectiune}</span>}
+                onClick={() => setKindFilter('act_defectiune')}
+              >
                 {KIND_LABEL.act_defectiune}
               </Menu.Item>
             </Menu.Dropdown>
@@ -240,10 +240,9 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
         <Table verticalSpacing="sm" horizontalSpacing="md" highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Titlu</Table.Th>
-              <Table.Th>Tip</Table.Th>
-              <Table.Th>Autor</Table.Th>
               <Table.Th>Dată</Table.Th>
+              <Table.Th>Tip</Table.Th>
+              <Table.Th>Descriere</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -254,28 +253,28 @@ export function HomePage({ onOpenDoc, onCreate }: Props) {
                 onClick={() => onOpenDoc(doc)}
               >
                 <Table.Td>
-                  <Text fw={500}>{doc.title}</Text>
+                  <Text size="sm" c="dimmed">
+                    {formatDate(doc.createdAt)}
+                  </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Badge color={KIND_COLOR[doc.kind]} variant="light" radius="sm">
+                  <Badge
+                    color={KIND_COLOR[doc.kind]}
+                    variant="light"
+                    radius="sm"
+                    leftSection={<span aria-hidden>{KIND_EMOJI[doc.kind]}</span>}
+                  >
                     {KIND_LABEL[doc.kind]}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" c="dimmed">
-                    {doc.author}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" c="dimmed">
-                    {formatDate(doc.createdAt)}
-                  </Text>
+                  <Text fw={500}>{doc.title}</Text>
                 </Table.Td>
               </Table.Tr>
             ))}
             {filtered.length === 0 && (
               <Table.Tr>
-                <Table.Td colSpan={4}>
+                <Table.Td colSpan={3}>
                   <Text c="dimmed" ta="center" py="lg">
                     Niciun document găsit.
                   </Text>
