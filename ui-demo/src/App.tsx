@@ -1,13 +1,5 @@
 import { useState } from 'react';
-import {
-  ActionIcon,
-  Container,
-  Group,
-  Select,
-  Text,
-  Title,
-} from '@mantine/core';
-import { PRIMARY_COLORS, type PrimaryColor } from './main';
+import { ActionIcon, Container, Group, Text, Title } from '@mantine/core';
 import { HomePage } from './pages/HomePage';
 import { ComandaMaterialeForm } from './pages/ComandaMaterialeForm';
 import { ActDefectiuneForm } from './pages/ActDefectiuneForm';
@@ -22,12 +14,7 @@ const FORM_TITLE: Record<DocKind, string> = {
   act_defectiune: 'Act de constatare a defecțiunilor',
 };
 
-type AppProps = {
-  primaryColor: PrimaryColor;
-  onPrimaryColorChange: (color: PrimaryColor) => void;
-};
-
-export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
+export function App() {
   const [view, setView] = useState<View>({ name: 'home' });
 
   const goHome = () => setView({ name: 'home' });
@@ -50,15 +37,6 @@ export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
             {view.name === 'home' ? 'DEMO' : FORM_TITLE[view.kind]}
           </Title>
         </Group>
-        <Select
-          aria-label="Schemă de culori"
-          w={140}
-          value={primaryColor}
-          onChange={(v) => v && onPrimaryColorChange(v as PrimaryColor)}
-          data={PRIMARY_COLORS.map((c) => ({ value: c, label: c }))}
-          allowDeselect={false}
-          checkIconPosition="right"
-        />
       </Group>
 
       {view.name === 'home' && (
