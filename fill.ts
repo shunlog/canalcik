@@ -14,15 +14,18 @@ const doc = new Docxtemplater(zip, {
   linebreaks: true,
 });
 
-const data: Record<string, any> = {
-  materiale:
-    [
-      {
+const material = {
         nume: "Test material",
         spec: "Spec",
         um: "buc",
         cantitate: "42",
+        cod: "123456",
       }
+
+const data: Record<string, any> = {
+  materiale:
+    [
+      material, material, material, material, material, material, material, material, material,
     ]
 };
 
