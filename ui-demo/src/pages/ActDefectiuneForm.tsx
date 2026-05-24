@@ -1,4 +1,4 @@
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
 import {
   ActionIcon,
@@ -10,7 +10,6 @@ import {
   Group,
   NumberInput,
   SegmentedControl,
-  Select,
   Stack,
   Text,
   TextInput,
@@ -33,7 +32,7 @@ type Piesa = {
   piesa: string;
   um: string;
   cantitate: number | '';
-  cauzaRand: string;
+  cauzaRand: number | '';
   necesitaInlocuire: 'da' | 'nu';
 };
 
@@ -41,7 +40,7 @@ type Lucrare = {
   denumire: string;
   um: string;
   cantitate: number | '';
-  cauzaRand: string;
+  cauzaRand: number | '';
 };
 
 type FormValues = {
@@ -298,10 +297,10 @@ export function ActDefectiuneForm() {
                             />
                           )}
                         />
-                        <CauzaSelect
+                        <CauzaInput
                           control={control}
                           name={`piese.${index}.cauzaRand`}
-                          width={140}
+                          width={160}
                         />
                         <Controller
                           control={control}
@@ -389,10 +388,10 @@ export function ActDefectiuneForm() {
                             />
                           )}
                         />
-                        <CauzaSelect
+                        <CauzaInput
                           control={control}
                           name={`lucrari.${index}.cauzaRand`}
-                          width={140}
+                          width={160}
                         />
                       </Group>
                     </Stack>
@@ -509,36 +508,29 @@ function RowCard({
   );
 }
 
-function CauzaSelect({
+function CauzaInput({
   control,
   name,
   width,
 }: {
   control: Control<FormValues>;
-  // any path that resolves to the cauzaRand field
   name: `piese.${number}.cauzaRand` | `lucrari.${number}.cauzaRand`;
   width?: number;
 }) {
-  const defectiuni = useWatch({ control, name: 'defectiuni' }) ?? [];
-  const options = defectiuni.map((_, i) => ({
-    value: String(i + 1),
-    label: String(i + 1),
-  }));
-
   return (
     <Controller
       control={control}
       name={name}
       render={({ field: f }) => (
-        <Select
+        <NumberInput
           label="Cauza (rând din tab. 1)"
-          placeholder="Alege rând"
-          data={options}
-          value={f.value || null}
-          onChange={(v) => f.onChange(v ?? '')}
-          onBlur={f.onBlur}
-          clearable
+          placeholder="Nr."
+          min={1}
+          allowDecimal={false}
           w={width}
+          value={f.value}
+          onChange={f.onChange}
+          onBlur={f.onBlur}
         />
       )}
     />
