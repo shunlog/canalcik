@@ -1,0 +1,1 @@
+- Prefer: pnpm, TypeScript, jest
