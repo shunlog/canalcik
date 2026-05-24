@@ -23,6 +23,10 @@ For each document kind,
 the fields in the `.docx` template match the fields in the form.
 
 
+## To Do
+
+- Implement referential integrity. In doc *act defectiune*, there are two table fields that reference rows in another table by their index. Make it so once the user referenced a row, the reference is kept correctly (stay correct when rows get re-ordered, block deleting, warning on stale references)
+
 ## Data model
 
 The italics (\*\*) signifies a reference key (for documents/tables)
