@@ -1,2 +1,5 @@
+packages:
+  - "ui-demo"
+
 allowBuilds:
   esbuild: false
