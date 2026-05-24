@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   Container,
+  Grid,
   Group,
   NumberInput,
   Select,
@@ -20,6 +21,7 @@ import {
   umOptions,
 } from './suggestions';
 import { PRIMARY_COLORS, type PrimaryColor } from './main';
+import previewImg from '../img/preview/comanda_materiale.png';
 
 type Item = {
   denumire: string;
@@ -59,9 +61,9 @@ export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
   };
 
   return (
-    <Container size="md" py="xl">
+    <Container size="xl" py="xl">
       <Group justify="space-between" align="flex-start" mb="xs">
-        <Title order={2}>Comandă materiale</Title>
+        <Title order={2}>Comandă de materiale</Title>
         <Select
           aria-label="Schemă de culori"
           w={140}
@@ -76,7 +78,9 @@ export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
         Prototip UI — adaugă articole în comandă.
       </Text>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <Grid gutter="xl">
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <form onSubmit={handleSubmit(onSubmit)}>
         <Stack gap="xl">
           {fields.map((field, index) => (
             <Card
@@ -198,6 +202,32 @@ export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
           </Group>
         </Stack>
       </form>
+        </Grid.Col>
+
+        <Grid.Col span={{ base: 12, md: 4 }} visibleFrom="md">
+          <Card
+            withBorder
+            radius="md"
+            padding="xs"
+            shadow="sm"
+            style={{ position: 'sticky', top: 16 }}
+          >
+            <Text size="xs" c="dimmed" mb="xs" ta="center">
+              Previzualizare document
+            </Text>
+            <img
+              src={previewImg}
+              alt="Previzualizare Comandă de materiale"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                borderRadius: 4,
+              }}
+            />
+          </Card>
+        </Grid.Col>
+      </Grid>
     </Container>
   );
 }
