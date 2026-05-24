@@ -1,46 +1,25 @@
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import {
   ActionIcon,
-  Autocomplete,
-  Badge,
-  Button,
-  Card,
   Container,
-  Grid,
   Group,
-  NumberInput,
   Select,
-  Stack,
   Text,
   Title,
 } from '@mantine/core';
-import {
-  codProdusOptions,
-  denumireProdusOptions,
-  nrInmatriculareOptions,
-  umOptions,
-} from './suggestions';
 import { PRIMARY_COLORS, type PrimaryColor } from './main';
-import previewImg from '../img/preview/comanda_materiale.png';
+import { HomePage } from './pages/HomePage';
+import { ComandaMaterialeForm } from './pages/ComandaMaterialeForm';
+import { ActDefectiuneForm } from './pages/ActDefectiuneForm';
+import type { DocKind } from './types';
 
-type Item = {
-  denumire: string;
-  specificatie: string;
-  um: string;
-  cantitate: number | '';
-  nomenclator: string;
-};
+type View =
+  | { name: 'home' }
+  | { name: 'form'; kind: DocKind };
 
-type FormValues = {
-  items: Item[];
-};
-
-const emptyItem: Item = {
-  denumire: '',
-  specificatie: '',
-  um: '',
-  cantitate: '',
-  nomenclator: '',
+const FORM_TITLE: Record<DocKind, string> = {
+  comanda_materiale: 'Comandă de materiale',
+  act_defectiune: 'Act de constatare a defecțiunilor',
 };
 
 type AppProps = {
@@ -49,21 +28,28 @@ type AppProps = {
 };
 
 export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
-  const { control, handleSubmit } = useForm<FormValues>({
-    defaultValues: { items: [emptyItem] },
-  });
+  const [view, setView] = useState<View>({ name: 'home' });
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
-
-  const onSubmit = (data: FormValues) => {
-    console.log('Form submitted:', data);
-    alert(JSON.stringify(data, null, 2));
-  };
+  const goHome = () => setView({ name: 'home' });
 
   return (
     <Container size="xl" py="xl">
-      <Group justify="space-between" align="flex-start" mb="xs">
-        <Title order={2}>Comandă de materiale</Title>
+      <Group justify="space-between" align="center" mb="lg">
+        <Group gap="sm" align="center">
+          {view.name !== 'home' && (
+            <ActionIcon
+              variant="subtle"
+              size="lg"
+              aria-label="Înapoi la documente"
+              onClick={goHome}
+            >
+              ←
+            </ActionIcon>
+          )}
+          <Title order={2}>
+            {view.name === 'home' ? 'DEMO' : FORM_TITLE[view.kind]}
+          </Title>
+        </Group>
         <Select
           aria-label="Schemă de culori"
           w={140}
@@ -74,160 +60,31 @@ export function App({ primaryColor, onPrimaryColorChange }: AppProps) {
           checkIconPosition="right"
         />
       </Group>
-      <Text c="dimmed" mb="lg">
-        Prototip UI — adaugă articole în comandă.
-      </Text>
 
-      <Grid gutter="xl">
-        <Grid.Col span={{ base: 12, md: 8 }}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-        <Stack gap="xl">
-          {fields.map((field, index) => (
-            <Card
-              key={field.id}
-              withBorder
-              padding={0}
-              radius="md"
-              shadow="sm"
-              style={{ borderLeft: '4px solid var(--mantine-primary-color-filled)' }}
-            >
-              <Card.Section
-                withBorder
-                inheritPadding
-                py="sm"
-                bg="var(--mantine-primary-color-light)"
-              >
-                <Group justify="space-between" wrap="nowrap">
-                  <Group gap="sm" wrap="nowrap">
-                    <Badge size="lg" radius="sm" variant="filled">
-                      {index + 1}
-                    </Badge>
-                    <Text fw={600}>Articol</Text>
-                  </Group>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    onClick={() => remove(index)}
-                    disabled={fields.length === 1}
-                    aria-label="Șterge articolul"
-                  >
-                    ✕
-                  </ActionIcon>
-                </Group>
-              </Card.Section>
+      {view.name === 'home' && (
+        <HomePage
+          onOpenDoc={(doc) => setView({ name: 'form', kind: doc.kind })}
+          onCreate={(kind) => setView({ name: 'form', kind })}
+        />
+      )}
 
-              <Stack gap="sm" p="md">
-                <Controller
-                  control={control}
-                  name={`items.${index}.denumire`}
-                  render={({ field: f }) => (
-                    <Autocomplete
-                      label="Denumirea materialului"
-                      placeholder="Denumire produs"
-                      data={denumireProdusOptions}
-                      {...f}
-                    />
-                  )}
-                />
+      {view.name === 'form' && view.kind === 'comanda_materiale' && (
+        <>
+          <Text c="dimmed" mb="lg">
+            Prototip UI — adaugă articole în comandă.
+          </Text>
+          <ComandaMaterialeForm />
+        </>
+      )}
 
-                <Controller
-                  control={control}
-                  name={`items.${index}.specificatie`}
-                  render={({ field: f }) => (
-                    <Autocomplete
-                      label="Specificația materialului"
-                      placeholder="Nr. înmatriculare"
-                      data={nrInmatriculareOptions}
-                      {...f}
-                    />
-                  )}
-                />
-
-                <Group grow align="flex-start">
-                  <Controller
-                    control={control}
-                    name={`items.${index}.um`}
-                    render={({ field: f }) => (
-                      <Autocomplete
-                        label="UM"
-                        placeholder="buc, set, l..."
-                        data={umOptions}
-                        {...f}
-                      />
-                    )}
-                  />
-
-                  <Controller
-                    control={control}
-                    name={`items.${index}.cantitate`}
-                    render={({ field: f }) => (
-                      <NumberInput
-                        label="Cantitatea"
-                        placeholder="0"
-                        decimalScale={3}
-                        min={0}
-                        value={f.value}
-                        onChange={f.onChange}
-                        onBlur={f.onBlur}
-                      />
-                    )}
-                  />
-                </Group>
-
-                <Controller
-                  control={control}
-                  name={`items.${index}.nomenclator`}
-                  render={({ field: f }) => (
-                    <Autocomplete
-                      label="Nomenclator D365"
-                      placeholder="Cod produs"
-                      data={codProdusOptions}
-                      {...f}
-                    />
-                  )}
-                />
-              </Stack>
-            </Card>
-          ))}
-
-          <Group justify="space-between">
-            <Button
-              variant="light"
-              onClick={() => append(emptyItem)}
-              leftSection="+"
-            >
-              Adaugă articol
-            </Button>
-            <Button type="submit">Generează</Button>
-          </Group>
-        </Stack>
-      </form>
-        </Grid.Col>
-
-        <Grid.Col span={{ base: 12, md: 4 }} visibleFrom="md">
-          <Card
-            withBorder
-            radius="md"
-            padding="xs"
-            shadow="sm"
-            style={{ position: 'sticky', top: 16 }}
-          >
-            <Text size="xs" c="dimmed" mb="xs" ta="center">
-              Previzualizare document
-            </Text>
-            <img
-              src={previewImg}
-              alt="Previzualizare Comandă de materiale"
-              style={{
-                display: 'block',
-                width: '100%',
-                height: 'auto',
-                borderRadius: 4,
-              }}
-            />
-          </Card>
-        </Grid.Col>
-      </Grid>
+      {view.name === 'form' && view.kind === 'act_defectiune' && (
+        <>
+          <Text c="dimmed" mb="lg">
+            Prototip UI — descrie defecțiunea constatată.
+          </Text>
+          <ActDefectiuneForm />
+        </>
+      )}
     </Container>
   );
 }
