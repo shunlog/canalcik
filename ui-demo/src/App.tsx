@@ -34,7 +34,7 @@ export function App() {
             </ActionIcon>
           )}
           <Title order={2}>
-            {view.name === 'home' ? 'DEMO' : FORM_TITLE[view.kind]}
+            {view.name === 'home' ? 'Canalcik - Demo' : FORM_TITLE[view.kind]}
           </Title>
         </Group>
       </Group>
