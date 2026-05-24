@@ -10,6 +10,7 @@ import {
   NumberInput,
   Stack,
   Text,
+  TextInput,
 } from '@mantine/core';
 import {
   codProdusOptions,
@@ -28,8 +29,17 @@ type Item = {
 };
 
 type FormValues = {
+  date: string;
   items: Item[];
 };
+
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 const emptyItem: Item = {
   denumire: '',
@@ -41,7 +51,7 @@ const emptyItem: Item = {
 
 export function ComandaMaterialeForm() {
   const { control, handleSubmit } = useForm<FormValues>({
-    defaultValues: { items: [emptyItem] },
+    defaultValues: { date: todayISO(), items: [emptyItem] },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
@@ -56,6 +66,18 @@ export function ComandaMaterialeForm() {
       <Grid.Col span={{ base: 12, md: 8 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack gap="xl">
+            <Controller
+              control={control}
+              name="date"
+              render={({ field: f }) => (
+                <TextInput
+                  label="Data"
+                  type="date"
+                  maw={220}
+                  {...f}
+                />
+              )}
+            />
             {fields.map((field, index) => (
               <Card
                 key={field.id}
