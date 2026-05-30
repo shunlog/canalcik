@@ -106,7 +106,7 @@ and each such document is tied to 2-3 *act defectiune* documents.
 
 - "Act de constatare a defectiunilor" (*act defectiune*):
     - Date
-    - "Informatie activ":
+    - "Informatie activ" section:
         - "Nr. inventar": *inventory nr*
         - "nr. de înregistrare": *registration nr*
         - "Denumire conform datelor contabile": *vehicle type* + *vehicle model*
@@ -142,7 +142,6 @@ and each such document is tied to 2-3 *act defectiune* documents.
     - "Marca/model": *vehicle model*
     - "Nr. inmatriculare": *registration nr*
     - "Nr. inventar": *inventory nr*
-    - "Denumire configuratie"
     - "Sofer": list of names, separated by "/"
 
 
