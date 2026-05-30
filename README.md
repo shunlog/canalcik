@@ -1,27 +1,70 @@
+# Canalcik
+
+A web app made to facilitate the creation and management of documents 
+for the Apa Canal Moldova company.
+
+For a start, the website will provide forms for the creation of docx documents for 2 templates.
+It will have lots of suggestions and defaults, to minimize input from the user.
+
+We define a a physical data model for the documents and spreadsheets,
+and reverse-engineer the conceptual data model that the organization implicitly uses.
+
+The website will be used for:
+1. Filling forms (with suggestions, reference validation) and generate documents from them
+2. List and edit completed forms
+
+## MVP
+
+A home page with two big button links - pick which form you want to fill.
+
+A form page has a "Generate" button at the end, which generates the file and saves to user's Google Drive.
+
+Stateless, no data storage - fill the form, save, forget.
+
 ## Requirements
 
-""Platform"": hosted website for a single user.
-Needs to be accessible both from mobile phone (to introduce data on the go)
-and from the desktop, to view the Word docs, move them to usb and print them.
-The website will need basic HTTP auth, because it will be exposed.
+The website that will be used by a single user.
+Needs to be accessible both from mobile phone and desktop.
 
-Features:
-- View docs and excel sheets (or just open in Google docs?)
-- Upload document templates (using the templating language)
-    - Can updated template by uploading new one
-- Create documents by filling forms
-    - autocomplete fields
-    - search fields
-    - date, integer, validation, etc.
-- Generate and export document
-    - Save generated document version,
-    so that when the template is updated, the older generated versions are still available
-- Every edit is auto-saved
-    - Incomplete forms are in a "draft" state
+The website will need basic HTTP auth, so only the user can access it.
 
-For each document kind,
-the fields in the `.docx` template match the fields in the form.
 
+Form completion:
+- fields with suggestions
+    - e.g. look-up value from data source based on key from another field
+    - e.g. suggestions based on cross-reference between fields
+- sane defaults (e.g. today's date)
+- field type validation
+- quickly create one form from another
+    - e.g. create an *act defectiune* for a material from the current *comanda materiale* field
+- Every edit is auto-saved ("draft" state)
+
+
+Document management:
+- View completed forms
+    - "completed" and "draft" states
+    - group by date (maybe a calendar view)
+- Generate document from form
+    - each generation creates a new doc (in case if the user edited the older docs manually)
+    - (to-do?) if the template changed, the user will be informed he can re-generate
+
+
+Templates:
+- Stored on Google Drive as `.odt`
+- use `{{this_syntax}}` from docx-template for parameters
+- parameters must match the form fields
+
+
+### Data storage
+
+All the data will be stored on the user's Google Drive.
+The app will have its own folder, `canalcik`.
+
+Data to be stored:
+- Spreadsheets with source data: stored anywhere on the Drive, access through the "Publish CSV" feature, provide URL to the app through config
+- Form completion data: stored in app' `canalcik/data`
+- Generated documents:  stored in app's folder on Google Drive `canalcik/docs`
+    - all documents generated from a form will be grouped in folders (e.g. `./act_defectiune_<date_created>/act_defectiune-<date_doc>-<n>.odt`)
 
 ## To Do
 
@@ -48,6 +91,8 @@ These act as foreign keys, or are just conventional data types (e.g. unit of mea
 
 ### Generated documents
 
+The user creates the *comanda materiale* about 1/day,
+and each such document is tied to 2-3 *act defectiune* documents.
 
 - "Comanda de materiale" (*comanda materiale*)
     - Date
@@ -86,16 +131,29 @@ These act as foreign keys, or are just conventional data types (e.g. unit of mea
 
 ### Data sources
 
-- "Categorii produse" - spreadsheet of products:
+- "Categorii produse" (*categorii_produse*) - spreadsheet table:
     - column 1: Category (using MSWord hierarchy, 5 levels)
     - column 2: 
         - "Denumire produs": *material name*
         - "Cod produs": *material code*
 
-- "Gestiune flota" - spreadsheet
+- "Gestiune flota", tab "Vehicule" (*tabel_vehicule*) - spreadsheet table:
     - "Destinatia": *vehicle type*
     - "Marca/model": *vehicle model*
     - "Nr. inmatriculare": *registration nr*
     - "Nr. inventar": *inventory nr*
     - "Denumire configuratie"
     - "Sofer": list of names, separated by "/"
+
+
+# Existing solutions explored
+
+- [Docassemble](https://docassemble.org/)
+    - only asks one question at a time, but I want a form
+    - doesn't have document management
+- [Docupilot](https://www.docupilot.com/)
+    - has a template editor that uses syntax `{{like_this}}`
+    - don't see its document management capabilities
+- Interactive PDF Form (AcroForm)
+    - works in Firefox
+    - doesn't seem to have features for external data sources or validation
