@@ -18,6 +18,7 @@ generator erd {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================================================
@@ -29,10 +30,12 @@ datasource db {
 
 model Material {
   id            Int      @id @default(autoincrement())
+  syncedAt      DateTime @default(now())
+
   cod           String   @unique                      // "Cod produs" / "Nr. nomenclator"
   denumire      String                                // "Denumire produs"
+  unitateMasura String?                               // default UM from "Categorii produse" — "buc", "set", "l", ...
   caleCategorie String?                               // 5-level MSWord hierarchy from "Categorii produse"
-  syncedAt      DateTime @default(now())
 
   randuriComanda RandComanda[]
   pieseSchimb    PiesaSchimb[]
@@ -62,15 +65,15 @@ model Sofer {
 
 // ============================================================================
 // Documents (form-completion records)
-//   `stare` is "ciorna" while the form is being filled and auto-saved, then
-//   "finalizat" once validation passes. SQLite has no enum type, so it's
+//   `state` is "draft" while the form is being filled and auto-saved, then
+//   "completed" once validation passes. SQLite has no enum type, so it's
 //   modelled as a String — narrow it with a Zod/TS union at the app layer.
 // ============================================================================
 
 model ComandaMateriale {
   id        Int      @id @default(autoincrement())
   data      DateTime
-  stare     String   @default("ciorna")               // "ciorna" | "finalizat"
+  state     String   @default("draft")               // "draft" | "completed"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -99,7 +102,7 @@ model RandComanda {
 model ActDefectiune {
   id        Int      @id @default(autoincrement())
   data      DateTime
-  stare     String   @default("ciorna")               // "ciorna" | "finalizat"
+  state     String   @default("draft")               // "draft" | "completed"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -19,7 +19,11 @@ A home page with two big button links - pick which form you want to fill.
 
 A form page has a "Generate" button at the end, which generates the file and saves to user's Google Drive.
 
-Stateless, no data storage - fill the form, save, forget.
+Website is stateless, no view into the data storage - fill the form, generate, forget. Everything is lost on a page refresh.
+
+DB exists, but only for autocomplete and validation.
+
+The source data are taken from a csv stored locally for now.
 
 ## Requirements
 
