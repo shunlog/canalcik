@@ -6,3 +6,5 @@ token.json
 drive-config.json
 picker-config.json
 dist
+
+/test-data/

@@ -2,4 +2,7 @@ packages:
   - "ui-demo"
 
 allowBuilds:
+  '@prisma/engines': true
   esbuild: false
+  prisma: true
+  puppeteer: true
