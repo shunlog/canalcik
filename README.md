@@ -131,6 +131,16 @@ and each such document is tied to 2-3 *act defectiune* documents.
         - "Cantitate": number (default: same as in *tab 2*)
         - "Cauza (rând din tab. 1)": row index from *tab 1*
 
+At the end of the month, for each vehicle:
+- Fisa limita:
+    - Numele soferului (e.g. Celpan Ion)
+    - Nr. soferului (e.g. 4984) *driver code*
+    - Nr inregistrare (e.g. CBE 276) *registration nr*
+    - Data (luna, anul)
+    - Nr inventar (e.g. 45251200) *inventory nr*
+    - Lista materiale:
+        - Data (e.g. 26.05.2026)
+        - Nr. cartelei (e.g. 2111121795) *material code 2*
 
 
 ### Data sources
@@ -148,6 +158,9 @@ and each such document is tied to 2-3 *act defectiune* documents.
     - "Nr. inventar": *inventory nr*
     - "Sofer": list of names, separated by "/"
 
+- Gestiune flota, tab "Soferi":
+    - Nume, prenume
+    - Nr. de pontaj (e.g. 6832) *driver code*
 
 # Existing solutions explored
 

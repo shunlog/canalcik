@@ -4,6 +4,8 @@ packages:
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
+  '@swc/core': true
   esbuild: false
   prisma: true
   puppeteer: true
+  unrs-resolver: false

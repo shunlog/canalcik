@@ -8,4 +8,6 @@ picker-config.json
 dist
 
 /test-data/
+/test-output/
 /prisma/dev.db
+/coverage/

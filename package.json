@@ -6,7 +6,7 @@
   "scripts": {
     "serve": "tsx watch server/index.ts",
     "sync": "tsx -e \"import { syncFromCsv } from './server/sync.ts'; syncFromCsv().then(r => { console.log(r); process.exit(0) })\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +31,10 @@
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.15.0",
     "@prisma/client": "^6.19.3",
+    "@swc/core": "^1.15.41",
+    "@swc/jest": "^0.2.39",
     "@types/node": "^25.9.1",
+    "jest": "^30.4.2",
     "prisma": "^6.19.3",
     "prisma-erd-generator": "^2.4.3",
     "tsx": "^4.22.3",
