@@ -7,7 +7,10 @@ import { google } from "googleapis";
 
 const PORT = 53682;
 const REDIRECT_URI = `http://localhost:${PORT}/oauth2callback`;
-const SCOPES = ["https://www.googleapis.com/auth/drive.file"];
+const SCOPES = [
+  "https://www.googleapis.com/auth/drive.readonly", // read user-created template docs
+  "https://www.googleapis.com/auth/drive.file",     // create/upload generated docs
+];
 const TOKEN_PATH = path.resolve("token.json");
 const CONFIG_PATH = path.resolve("drive-config.json");
 const APP_FOLDER_NAME = "canalcik-data";

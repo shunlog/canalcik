@@ -6,6 +6,7 @@
   "scripts": {
     "serve": "tsx watch server/index.ts",
     "sync": "tsx -e \"import { syncFromCsv } from './server/sync.ts'; syncFromCsv().then(r => { console.log(r); process.exit(0) })\"",
+    "fetch": "tsx templates/fetchTemplates.ts",
     "test": "jest"
   },
   "keywords": [],
@@ -26,7 +27,8 @@
     "dotenv": "^17.4.2",
     "googleapis": "^172.0.0",
     "hono": "^4.12.23",
-    "pizzip": "^3.2.0"
+    "pizzip": "^3.2.0",
+    "xlsx-template": "^1.4.7"
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.15.0",

@@ -25,6 +25,26 @@ DB exists, but only for autocomplete and validation.
 
 The source data are taken from a csv stored locally for now.
 
+
+## Development plan
+
+### Step 1: Document templates and data types for them
+
+The first thing we need to have is a set of templates, 
+and a module for generating documents given data and templates.
+
+The module will have the following:
+- a data type for each template,
+- a function for each template that take the respective data type and fills it in (e.g. `renderActDefectiune(data: DataActDefectiune) -> binary`),
+- unit tests for these functions
+
+The unit tests should guarantee that the data types map correctly to the templates,
+so that we can use the data types as the module's contract.
+
+I'm editing the templates in Google Docs, so to not download them manually, use `pnpm run fetch`.
+
+I want to save the filled docs locally though, for now, just so I can visually inspect them.
+
 ## Requirements
 
 The website that will be used by a single user.

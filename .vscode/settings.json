@@ -1,3 +1,7 @@
 {
-    "jest.jestCommandLine": "pnpm run test"
+    "jest.jestCommandLine": "pnpm run test",
+    "files.exclude": {
+        ".vscode": true,
+        "node_modules": true
+    }
 }
