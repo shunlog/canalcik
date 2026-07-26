@@ -160,7 +160,7 @@ At the end of the month, for each vehicle:
     - Nr inventar (e.g. 45251200) *inventory nr*
     - Lista materiale:
         - Data (e.g. 26.05.2026)
-        - Nr. cartelei (e.g. 2111121795) *material code 2*
+        - Nr. cartelei (e.g. 2111121795) *material code 2* (from the bill, not the internal one)
 
 
 ### Data sources
