@@ -17,5 +17,6 @@ async function main() {
 
 main().catch((err) => {
   console.error(err);
+  console.error("You might need to run `pnpm run auth`");
   process.exit(1);
 });

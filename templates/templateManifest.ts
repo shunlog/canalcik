@@ -16,6 +16,7 @@ export type TemplateSpec = {
 
 export const TEMPLATES = {
   comandaMateriale: { driveName: "template_comanda_materiale" },
+  actDefectiune: { driveName: "template_act_defectiune" },
   fisaLimita: { driveName: "template_fisa_limita", kind: "xlsx" },
 } satisfies Record<string, TemplateSpec>;
 

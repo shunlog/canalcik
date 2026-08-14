@@ -4,6 +4,8 @@ import { describe, it, expect, beforeAll } from "@jest/globals";
 import {
   renderComandaMateriale,
   type DataComandaMateriale,
+  renderActDefectiune,
+  type DataActDefectiune,
   renderFisaLimita,
   type DataFisaLimita,
 } from "./docTypes.ts";
@@ -57,6 +59,74 @@ describe("renderComandaMateriale", () => {
   it("throws on missing template tags", () => {
     expect(() =>
       renderComandaMateriale(template, { materiale: [{}] } as any),
+    ).toThrow(/Missing template values/);
+  });
+});
+
+const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
+  data: "25.06.2026",
+  nrInventar: "42691696",
+  nrInregistrare: "CA 786",
+  denumireVehicul: "Tractor MTZ-82",
+  anProducerii: "2015",
+  defectiuni: [
+    {
+      defectiunea: "Bara reactiva rupta",
+      cauze: "Uzura in exploatare",
+    },
+    {
+      defectiunea: "Scurgere ulei motor",
+      cauze: "Garnitura deteriorata",
+    },
+  ],
+  pieseSchimb: [
+    {
+      nrNomenclator: "120673",
+      piesaSchimb: "Bara reactiva K-3 MAZ 5337",
+      um: "buc",
+      cantitate: 2,
+      cauza: 1,
+      necesitaInlocuire: "da",
+    },
+  ],
+  lucrari: [
+    {
+      denumirea: "de inlocuit Bara reactiva K-3 MAZ 5337",
+      um: "buc",
+      cantitate: 2,
+      cauza: 1,
+    },
+  ],
+};
+
+describe("renderActDefectiune", () => {
+  // Loaded lazily (not at describe-body time like the comanda template) so a
+  // not-yet-fetched template fails only these tests, not the whole file.
+  let template: Buffer;
+
+  beforeAll(() => {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+    template = loadTemplate(TEMPLATES.actDefectiune);
+  });
+
+  it("returns a non-empty Buffer for valid data", () => {
+    const buf = renderActDefectiune(template, ACT_DEFECTIUNE_DATA);
+    expect(Buffer.isBuffer(buf)).toBe(true);
+    expect(buf.length).toBeGreaterThan(0);
+  });
+
+  it(`write to ${OUTPUT_DIR} for visual inspection`, () => {
+    const outPath = path.join(OUTPUT_DIR, "act_defectiune_1.docx");
+    const buf = renderActDefectiune(template, ACT_DEFECTIUNE_DATA);
+    fs.writeFileSync(outPath, buf);
+    expect(fs.statSync(outPath).size).toBeGreaterThan(0);
+    console.log(`Wrote ${outPath}`);
+  });
+
+  it("throws on missing template tags", () => {
+    const { nrInventar, ...incomplete } = ACT_DEFECTIUNE_DATA;
+    expect(() =>
+      renderActDefectiune(template, incomplete as DataActDefectiune),
     ).toThrow(/Missing template values/);
   });
 });

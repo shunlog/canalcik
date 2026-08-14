@@ -93,6 +93,7 @@ Data to be stored:
 ## To Do
 
 - Implement referential integrity. In doc *act defectiune*, there are two table fields that reference rows in another table by their index. Make it so once the user referenced a row, the reference is kept correctly (stay correct when rows get re-ordered, block deleting, warning on stale references)
+- Right now, there when rendering docx, there is error checking so there are no missing placeholder values, but there is no error checking for missing placeholders in the template itself
 
 ## Data model
 
