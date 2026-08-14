@@ -8,7 +8,7 @@ import {
   type DataActDefectiune,
   renderFisaLimita,
   type DataFisaLimita,
-} from "./docTypes.ts";
+} from "./renderTemplates.ts";
 import { TEMPLATES, loadTemplate } from "./templateManifest.ts";
 
 const OUTPUT_DIR = path.resolve("test-output");
