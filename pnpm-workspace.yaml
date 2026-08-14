@@ -1,5 +1,4 @@
-packages:
-  - "mvp"
+packages: []
 
 allowBuilds:
   '@prisma/client': true

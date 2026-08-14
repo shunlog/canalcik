@@ -5,8 +5,6 @@
   "main": "index.js",
   "scripts": {
     "auth": "tsx scripts/auth.ts",
-    "serve": "tsx watch server/index.ts",
-    "sync": "tsx -e \"import { syncFromCsv } from './server/sync.ts'; syncFromCsv().then(r => { console.log(r); process.exit(0) })\"",
     "fetch": "tsx templates/fetchTemplates.ts",
     "test": "jest"
   },
