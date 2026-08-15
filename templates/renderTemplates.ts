@@ -41,7 +41,7 @@ export type DataActDefectiune = {
   }>;
   // "Lista lucrărilor de reparații necesare" table:
   lucrari: Array<{
-    denumirea: string; // "Denumirea lucrărilor": str, e.g. "de inlocuit <material name>"
+    denumire: string; // "Denumirea lucrărilor": str, e.g. "de inlocuit <material name>"
     um: string; // "UM": measurement unit (default: same as in tab 2)
     cantitate: number; // "Cantitate": number (default: same as in tab 2)
     cauza: number; // "Cauza (rând din tab. 1)": row index from tab 1

@@ -47,7 +47,7 @@ const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
   ],
   lucrari: [
     {
-      denumirea: "de inlocuit Bara reactiva K-3 MAZ 5337",
+      denumire: "de inlocuit Bara reactiva K-3 MAZ 5337",
       um: "buc",
       cantitate: 2,
       cauza: 1,

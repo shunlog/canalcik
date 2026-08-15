@@ -65,22 +65,57 @@ describe("renderDocxBuf", () => {
     ).not.toThrow();
   });
 
-  it("throws when a scalar tag has no value", () => {
-    expect(() =>
-      renderDocxBuf(document(["{name}", "{cod}"]), { name: "x" }),
-    ).toThrow(/Missing template values: cod/);
+  describe("missing values", () => {
+    it("throws when a scalar tag has no value", () => {
+      expect(() =>
+        renderDocxBuf(document(["{name}", "{cod}"]), { name: "x" }),
+      ).toThrow(/Missing template values: cod/);
+    });
+
+    it("throws when a tag inside a loop has no value", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#rows}{nume}{/rows}"]), { rows: [{}] }),
+      ).toThrow(/Missing template values: nume/);
+    });
+
+    it("reports every missing tag once", () => {
+      expect(() => renderDocxBuf(document(["{a} {b} {a}"]), {})).toThrow(
+        /Missing template values: a, b/,
+      );
+    });
   });
 
-  it("throws when a tag inside a loop has no value", () => {
-    expect(() =>
-      renderDocxBuf(document(["{#rows}{nume}{/rows}"]), { rows: [{}] }),
-    ).toThrow(/Missing template values: nume/);
-  });
+  describe("unused values", () => {
+    it("throws when a key has no tag", () => {
+      expect(() =>
+        renderDocxBuf(document(["{name}"]), { name: "x", cod_vechi: "1234" }),
+      ).toThrow(/Unused data values: cod_vechi/);
+    });
 
-  it("reports every missing tag once", () => {
-    expect(() =>
-      renderDocxBuf(document(["{a} {b} {a}"]), {})).toThrow(
-      /Missing template values: a, b/,
-    );
+    it("reports every unused key", () => {
+      expect(() =>
+        renderDocxBuf(document(["{name}"]), { name: "x", one: 1, two: 2 }),
+      ).toThrow(/Unused data values: one, two/);
+    });
+
+    it("counts a key used only inside a loop as used", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#rows}{nume}{/rows}"]), {
+          rows: [{ nume: "Motorina", cod: "unused-row-field-is-fine" }],
+        }),
+      ).not.toThrow();
+    });
+
+    it("counts a key whose loop is empty as used", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#rows}{nume}{/rows}"]), { rows: [] }),
+      ).not.toThrow();
+    });
+
+    it("reports missing values before unused ones", () => {
+      expect(() =>
+        renderDocxBuf(document(["{name}"]), { cod_vechi: "1234" }),
+      ).toThrow(/Missing template values: name/);
+    });
   });
 });
