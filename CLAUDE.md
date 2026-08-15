@@ -1,1 +1,1 @@
-- Prefer: pnpm, TypeScript, jest
+- Tech stack: pnpm, TypeScript, jest

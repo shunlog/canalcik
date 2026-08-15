@@ -11,6 +11,10 @@ import {
 } from "./renderTemplates.ts";
 import { TEMPLATES, loadTemplate } from "./templateManifest.ts";
 
+// One describe per template: each checks that the template and its data type
+// still agree (rendering throws if a placeholder has no value, or a value no
+// placeholder) and writes the result out for visual inspection.
+// The generic rendering logic is tested in renderDocx.test.ts / renderXlsx.test.ts.
 const OUTPUT_DIR = path.resolve("test-output");
 
 const COMANDA_DATA: DataComandaMateriale = {
@@ -54,12 +58,6 @@ describe("renderComandaMateriale", () => {
     fs.writeFileSync(outPath, buf);
     expect(fs.statSync(outPath).size).toBeGreaterThan(0);
     console.log(`Wrote ${outPath}`);
-  });
-
-  it("throws on missing template tags", () => {
-    expect(() =>
-      renderComandaMateriale(template, { materiale: [{}] } as any),
-    ).toThrow(/Missing template values/);
   });
 });
 
@@ -123,12 +121,6 @@ describe("renderActDefectiune", () => {
     console.log(`Wrote ${outPath}`);
   });
 
-  it("throws on missing template tags", () => {
-    const { nrInventar, ...incomplete } = ACT_DEFECTIUNE_DATA;
-    expect(() =>
-      renderActDefectiune(template, incomplete as DataActDefectiune),
-    ).toThrow(/Missing template values/);
-  });
 });
 
 const fisaRow = (data: string, nr_cart: string, nume: string) => ({
@@ -178,10 +170,4 @@ describe("renderFisaLimita", () => {
     console.log(`Wrote ${outPath}`);
   });
 
-  it("throws when a template value is missing", () => {
-    const { cod_sofer, ...incomplete } = FISA_DATA;
-    expect(() =>
-      renderFisaLimita(template, incomplete as DataFisaLimita),
-    ).toThrow(/Missing template values/);
-  });
 });
