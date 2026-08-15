@@ -6,7 +6,8 @@
   "scripts": {
     "auth": "tsx scripts/auth.ts",
     "fetch": "tsx templates/fetchTemplates.ts",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,7 @@
     "xlsx-template": "^1.4.7"
   },
   "devDependencies": {
+    "@jest/globals": "^30.4.1",
     "@mermaid-js/mermaid-cli": "^11.15.0",
     "@prisma/client": "^6.19.3",
     "@swc/core": "^1.15.41",

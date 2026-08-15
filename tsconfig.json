@@ -1,0 +1,25 @@
+{
+  // Type-checking only — tsx (dev/scripts) and @swc/jest (tests) do the actual
+  // transpiling, so tsc never emits. `pnpm run typecheck` runs it.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2023"],
+
+    // The package is "type": "module" and runs on Node via tsx, so nodenext
+    // models resolution the way the runtime actually does it. Our relative
+    // imports carry the .ts extension (./renderDocx.ts), which nodenext only
+    // accepts with allowImportingTsExtensions.
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["templates/**/*.ts", "scripts/**/*.ts", "prisma/**/*.ts"],
+  "exclude": ["node_modules", "coverage", "test-output", "scratch"]
+}
