@@ -101,8 +101,44 @@ describe("renderDocxBuf", () => {
     it("counts a key used only inside a loop as used", () => {
       expect(() =>
         renderDocxBuf(document(["{#rows}{nume}{/rows}"]), {
-          rows: [{ nume: "Motorina", cod: "unused-row-field-is-fine" }],
+          rows: [{ nume: "Motorina" }],
         }),
+      ).not.toThrow();
+    });
+
+    it("throws when a loop's row field has no tag", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#rows}{nume}{/rows}"]), {
+          rows: [{ nume: "Motorina" }, { nume: "Antigel", cod: "120673" }],
+        }),
+      ).toThrow(/Unused data values: rows\.cod/);
+    });
+
+    it("reports a field missing from every row only once", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#rows}{nume}{/rows}"]), {
+          rows: [{ nume: "Motorina", cod: "1" }, { nume: "Antigel", cod: "2" }],
+        }),
+      ).toThrow(/Unused data values: rows\.cod$/);
+    });
+
+    it("checks fields of a nested loop", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#a}{#b}{c}{/b}{/a}"]), {
+          a: [{ b: [{ c: 1, d: 2 }] }],
+        }),
+      ).toThrow(/Unused data values: a\.b\.d/);
+    });
+
+    it("counts a whole element as used when the loop renders it with {.}", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#list}{.}{/list}"]), { list: ["a", "b"] }),
+      ).not.toThrow();
+    });
+
+    it("counts a key used only as a condition as used", () => {
+      expect(() =>
+        renderDocxBuf(document(["{#flag}yes{/flag}"]), { flag: true }),
       ).not.toThrow();
     });
 

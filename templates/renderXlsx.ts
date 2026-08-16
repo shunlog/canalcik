@@ -1,5 +1,6 @@
 import PizZip from "pizzip";
 import XlsxTemplate from "xlsx-template";
+import { findUnusedValues, type TagTree } from "./unusedValues.ts";
 
 // Fills an .xlsx template with `data` and returns the rendered workbook as a
 // Buffer. This is the spreadsheet counterpart to renderDocxBuf() in renderTemplates.ts.
@@ -17,8 +18,9 @@ import XlsxTemplate from "xlsx-template";
 // equivalent of docxtemplater's nullGetter and silently fills a missing key
 // with an empty string, so a half-filled sheet would otherwise ship unnoticed.
 // The contract runs both ways: a value in `data` that no placeholder uses is
-// also an error, since it usually means the template and the data type have
-// drifted apart (a renamed or deleted placeholder).
+// also an error (down to the fields of a ${table:...} row), since it usually
+// means the template and the data type have drifted apart (a renamed or
+// deleted placeholder).
 export function renderXlsxBuf(
   templateBuf: Buffer,
   data: Record<string, any>,
@@ -29,7 +31,7 @@ export function renderXlsxBuf(
   if (missing.length > 0) {
     throw new Error(`Missing template values: ${missing.join(", ")}`);
   }
-  const unused = findUnusedValues(placeholders, data);
+  const unused = findUnusedValues(buildUsedTree(placeholders), data);
   if (unused.length > 0) {
     throw new Error(`Unused data values: ${unused.join(", ")}`);
   }
@@ -85,23 +87,30 @@ function findMissingValues(
   return [...missing];
 }
 
-// The mirror of findMissingValues: reports keys of `data` that no placeholder
-// refers to, so a renamed placeholder or a stale field can't pass unnoticed.
-// Only top-level keys are checked — a placeholder that reaches into a key
-// (${a.b}, ${table:rows.prop}) counts that whole key as used, since we can't
-// tell which nested fields a template legitimately leaves out.
-function findUnusedValues(
-  placeholders: string[],
-  data: Record<string, any>,
-): string[] {
-  const used = new Set<string>();
+// Turns the placeholders into the tree of paths the template reads, the shape
+// findUnusedValues() walks `data` against. ${a.b} nests, ${table:rows.prop}
+// nests one level under the array, and a plain ${name} is a leaf (empty tree =
+// the whole value is used).
+//
+// Array indices are dropped: ${tbl[0]} and ${tbl[1]} both read "an element of
+// tbl", so the tree describes one element and every element is checked against
+// it. That means we don't report elements a template has no slot for — a
+// 3-row sheet given 4 rows silently drops one. Catching that needs the count,
+// not the shape, so it's a separate check.
+function buildUsedTree(placeholders: string[]): TagTree {
+  const tree: TagTree = {};
   for (const inner of placeholders) {
-    const expr = inner.startsWith("table:")
-      ? splitTableExpr(inner).arrName
-      : inner;
-    used.add(rootName(expr));
+    const { arrName, prop } = inner.startsWith("table:")
+      ? splitTableExpr(inner)
+      : { arrName: inner, prop: "" };
+    const parts = [...pathParts(arrName), ...pathParts(prop)];
+    let node = tree;
+    for (const part of parts) {
+      node[part] ??= {};
+      node = node[part];
+    }
   }
-  return Object.keys(data).filter((key) => !used.has(key));
+  return tree;
 }
 
 // "table:arr.prop" -> the array's name and the (possibly empty) row property.
@@ -113,9 +122,18 @@ function splitTableExpr(inner: string): { arrName: string; prop: string } {
     : { arrName: expr.slice(0, dot), prop: expr.slice(dot + 1) };
 }
 
-// The top-level key a path starts at: "a.b" -> "a", "rows[0].name" -> "rows".
-function rootName(path: string): string {
-  return path.split(/[.[]/)[0];
+// Splits a dotted / indexed path into its steps, indices included:
+// "rows[0].name" -> ["rows", "0", "name"].
+function splitPath(path: string): string[] {
+  return path
+    .replace(/\[(\d+)\]/g, ".$1")
+    .split(".")
+    .filter(Boolean);
+}
+
+// The same, minus the indices — the steps that name a field.
+function pathParts(path: string): string[] {
+  return splitPath(path).filter((p) => !/^\d+$/.test(p));
 }
 
 // Turns the shared-strings XML into an index -> text array. A shared string may
@@ -134,12 +152,8 @@ function textOf(fragment: string): string {
 // Follows a dotted / indexed path (e.g. "a.b", "rows[0].name") into `obj`,
 // returning undefined if any step is missing.
 function resolvePath(obj: any, path: string): any {
-  const parts = path
-    .replace(/\[(\d+)\]/g, ".$1")
-    .split(".")
-    .filter(Boolean);
   let cur = obj;
-  for (const p of parts) {
+  for (const p of splitPath(path)) {
     if (cur == null) return undefined;
     cur = cur[p];
   }

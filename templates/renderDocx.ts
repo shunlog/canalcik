@@ -1,12 +1,15 @@
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import inspectModuleCjs from "docxtemplater/js/inspect-module.js";
+import { findUnusedValues, type TagTree } from "./unusedValues.ts";
 
 // docxtemplater's inspect module collects every tag it sees while compiling the
 // template — that's how we know which values the template actually asks for.
+// It returns them as a tree, nested through loops: {name} {#rows}{nume}{/rows}
+// gives {name: {}, rows: {nume: {}}}, so we know the per-row fields too.
 // It ships as a CommonJS factory whose bundled types declare a default-exported
 // class instead, so we describe the bit we use rather than fight the interop.
-type InspectModule = { getAllTags(): Record<string, unknown> };
+type InspectModule = { getAllTags(): TagTree };
 const newInspectModule = inspectModuleCjs as unknown as () => InspectModule;
 
 // Fills a .docx template with `data` and returns the rendered document as a
@@ -14,9 +17,9 @@ const newInspectModule = inspectModuleCjs as unknown as () => InspectModule;
 //
 // The data type is the contract: every placeholder in the template must have a
 // value, so an unresolved one is an error rather than a silent blank. The
-// contract runs both ways: a value in `data` that no placeholder uses is also
-// an error, since it usually means the template and the data type have drifted
-// apart (a renamed or deleted placeholder).
+// contract runs both ways: a value in `data` that no tag uses is also an error
+// (down to the fields of a loop's rows), since it usually means the template
+// and the data type have drifted apart (a renamed or deleted tag).
 export function renderDocxBuf(
   templateBuf: Buffer,
   data: Record<string, any>,
@@ -44,14 +47,3 @@ export function renderDocxBuf(
   return doc.getZip().generate({ type: "nodebuffer" });
 }
 
-// The mirror of the nullGetter check: reports keys of `data` that no tag in the
-// template refers to. `tags` is the tag tree the inspect module collected while
-// compiling the template ({name: {}, rows: {nume: {}}}), so only its top-level
-// keys are compared — a loop tag counts its whole key as used, since we can't
-// tell which per-row fields a template legitimately leaves out.
-function findUnusedValues(
-  tags: Record<string, unknown>,
-  data: Record<string, any>,
-): string[] {
-  return Object.keys(data).filter((key) => !(key in tags));
-}

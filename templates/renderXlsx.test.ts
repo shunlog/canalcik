@@ -168,14 +168,44 @@ describe("renderXlsxBuf", () => {
       ).toThrow(/Unused data values: cod_vechi/);
     });
 
-    it("counts a key used by a nested or indexed path as used", () => {
+    it("counts a key reached by a nested or indexed path as used", () => {
       expect(() =>
         renderXlsxBuf(
           sharedStringSheet(["${sofer.nume}", "${tbl[0]}", "${table:rows.a}"]),
-          { sofer: { nume: "x", cod: "unused-nested-field-is-fine" },
-            tbl: ["one"],
-            rows: [{ a: 1, b: "unused-row-field-is-fine" }] },
+          { sofer: { nume: "x" }, tbl: ["one"], rows: [{ a: 1 }] },
         ),
+      ).not.toThrow();
+    });
+
+    it("throws when a nested field has no placeholder", () => {
+      expect(() =>
+        renderXlsxBuf(sharedStringSheet(["${sofer.nume}"]), {
+          sofer: { nume: "x", cod: "4984" },
+        }),
+      ).toThrow(/Unused data values: sofer\.cod/);
+    });
+
+    it("throws when a ${table:...} row field has no placeholder", () => {
+      expect(() =>
+        renderXlsxBuf(sharedStringSheet(["${table:rows.a}"]), {
+          rows: [{ a: 1 }, { a: 2, b: 3 }],
+        }),
+      ).toThrow(/Unused data values: rows\.b/);
+    });
+
+    it("reports a field missing from every row only once", () => {
+      expect(() =>
+        renderXlsxBuf(sharedStringSheet(["${table:rows.a}"]), {
+          rows: [{ a: 1, b: 3 }, { a: 2, b: 4 }],
+        }),
+      ).toThrow(/Unused data values: rows\.b$/);
+    });
+
+    it("treats an index as any element, so extra elements are not unused", () => {
+      expect(() =>
+        renderXlsxBuf(sharedStringSheet(["${tbl[0].a}"]), {
+          tbl: [{ a: 1 }, { a: 2 }, { a: 3 }],
+        }),
       ).not.toThrow();
     });
 
