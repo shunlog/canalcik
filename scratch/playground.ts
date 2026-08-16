@@ -22,12 +22,13 @@ fs.writeFileSync("test-output/playground.docx", out);
 console.log("wrote test-output/playground.docx", out.length, "bytes");
 
 
-const lucrare = {
+const lucrare = (nr: number) => ({
+      nr,
       denumire: "de inlocuit Bara reactiva K-3 MAZ 5337",
       um: "buc",
       cantitate: 2,
       cauza: 1,
-    };
+    });
 
 const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
   data: "25.06.2026",
@@ -37,16 +38,19 @@ const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
   anProducerii: "2015",
   defectiuni: [
     {
+      nr: 1,
       defectiunea: "Bara reactiva rupta",
       cauze: "Uzura in exploatare",
     },
     {
+      nr: 2,
       defectiunea: "Scurgere ulei motor",
       cauze: "Garnitura deteriorata",
     },
   ],
   pieseSchimb: [
     {
+      nr: 1,
       nrNomenclator: "120673",
       piesaSchimb: "Bara reactiva K-3 MAZ 5337",
       um: "buc",
@@ -55,7 +59,7 @@ const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
       necesitaInlocuire: "da",
     },
   ],
-  lucrari: [lucrare, lucrare, lucrare, lucrare, lucrare, lucrare, lucrare, lucrare, lucrare, lucrare],
+  lucrari: Array.from({ length: 10 }, (_, i) => lucrare(i + 1)),
 };
 
 const templateAct = fs.readFileSync("data/templates/template_act_defectiune.docx");

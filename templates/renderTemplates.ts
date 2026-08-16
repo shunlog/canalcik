@@ -27,11 +27,13 @@ export type DataActDefectiune = {
   anProducerii: string; // "Anul producerii": year
   // "Lista defecțiunilor" (tab 1) table:
   defectiuni: Array<{
+    nr: number; // row number
     defectiunea: string; // "Defecțiunea": str
     cauze: string; // "Cauzele probabile ale defecțiunilor": str
   }>;
   // "Lista pieselor de schimb" (tab 2) table:
   pieseSchimb: Array<{
+    nr: number; // row number
     nrNomenclator: string; // "Nr. nomenclator": material code, e.g. "120673"
     piesaSchimb: string; // "Piesa de schimb/ ansamblul component": material name, e.g. "Bara reactiva K-3 MAZ 5337"
     um: string; // "UM": measurement unit, e.g. "buc", "set", "l"
@@ -41,6 +43,7 @@ export type DataActDefectiune = {
   }>;
   // "Lista lucrărilor de reparații necesare" table:
   lucrari: Array<{
+    nr: number; // row number
     denumire: string; // "Denumirea lucrărilor": str, e.g. "de inlocuit <material name>"
     um: string; // "UM": measurement unit (default: same as in tab 2)
     cantitate: number; // "Cantitate": number (default: same as in tab 2)

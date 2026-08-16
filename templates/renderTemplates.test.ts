@@ -69,16 +69,19 @@ const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
   anProducerii: "2015",
   defectiuni: [
     {
+      nr: 1,
       defectiunea: "Bara reactiva rupta",
       cauze: "Uzura in exploatare",
     },
     {
+      nr: 2,
       defectiunea: "Scurgere ulei motor",
       cauze: "Garnitura deteriorata",
     },
   ],
   pieseSchimb: [
     {
+      nr: 1,
       nrNomenclator: "120673",
       piesaSchimb: "Bara reactiva K-3 MAZ 5337",
       um: "buc",
@@ -89,6 +92,7 @@ const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
   ],
   lucrari: [
     {
+      nr: 1,
       denumire: "de inlocuit Bara reactiva K-3 MAZ 5337",
       um: "buc",
       cantitate: 2,
