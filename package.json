@@ -6,6 +6,7 @@
   "scripts": {
     "auth": "tsx scripts/auth.ts",
     "fetch": "tsx templates/fetchTemplates.ts",
+    "import:flota": "tsx scripts/importFlota.ts",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },

@@ -1,9 +1,3 @@
-// Logical data model for Canalcik, derived from the data model in README.md.
-// Naming: PascalCase Romanian entity names (matching the documents),
-// camelCase Romanian for domain fields; English kept for internal/infra
-// fields (timestamps, FK *Id fields, external system IDs). Comments quote
-// the original document labels so the mapping back to the docx templates
-// stays unambiguous.
 
 generator client {
   provider = "prisma-client-js"
@@ -21,189 +15,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// Master data
-//   Mirrored locally from the published Google Sheets CSVs. Powers autocomplete
-//   suggestions in the forms, and provides referential integrity for the
-//   foreign keys held by the document tables below.
-// ============================================================================
-
-model Material {
-  id            Int      @id @default(autoincrement())
-  syncedAt      DateTime @default(now())
-
-  cod           String   @unique                      // "Cod produs" / "Nr. nomenclator"
-  denumire      String                                // "Denumire produs"
-  unitateMasura String?                               // default UM from "Categorii produse" — "buc", "set", "l", ...
-  caleCategorie String?                               // 5-level MSWord hierarchy from "Categorii produse"
-
-  randuriComanda RandComanda[]
-  pieseSchimb    PiesaSchimb[]
-}
-
 model Vehicul {
   id              Int      @id @default(autoincrement())
-  nrInmatriculare String   @unique                    // "Nr. inmatriculare" / "nr. de înregistrare"
-  nrInventar      Int      @unique                    // "Nr. inventar"
-  tip             String                              // "Destinatia"      — Tractor, Excavator, ...
-  model           String                              // "Marca/model"     — MTZ-82, ...
-  anProducere     Int?                                // "Anul producerii"
   syncedAt        DateTime @default(now())
 
+  // The plate is kept split, as in the first two "Nr. înmatriculare" columns
+  // ("MRZ" + "40"); that pair is also how the soferi sheet references a
+  // vehicle, so it is the join key on import. The sheet's 3rd
+  // "Nr. înmatriculare" column (a hand-written display form) is ignored.
+  litere          String                              // "Nr. înmatriculare" (1st col)
+  cifre           String                              // "Nr. înmatriculare" (2nd col) — not always numeric ("f/n")
+  nrInventar      Int      @unique                    // "Nr. Inventar"
+  nrGaraj         Int      @unique                    // "Nr. Garaj"
+  tip             String                              // "Destinatia"      — Tractor, Excavator, ...
+  model           String                              // "Marcă / Model"   — MTZ-82, ...
+  anProducere     Int?                                // "An fabricație"   — blank for a few old vehicles
+  kmActuali       Int?                                // "Km actuali"
+  sector          String?                             // "p63," — Ciocana (5), SBO, Repartizare, ...
+  utilajeAuxiliare String?                            // "Utilaje auxiliare"
+  lucrariLunaViitoare String?                         // "Lucrari necesate efectuat luna viitoare"
+
   soferi         Sofer[]         @relation("VehiculSofer")
-  randuriComanda RandComanda[]
-  acteDefectiune ActDefectiune[]
+
+  @@unique([litere, cifre])
 }
 
 model Sofer {
   id       Int      @id @default(autoincrement())
-  nume     String   @unique
   syncedAt DateTime @default(now())
 
+  cod                Int     @unique                  // "Nr. de pontaj"
+  nume               String                           // "Nume Prenume"
+  functie            String?                          // "Funcție"
+  telefon            String?                          // "Telefon"
+  sector             String?                          // "Sector"
+  marimeHaina        String?                          // "Mărime haină"        — e.g. "52-53"
+  marimeIncaltaminte String?                          // "Mărime încalțăminte"
+  observatii         String?                          // "Observații"
+
+  // EIP (protective equipment) issue dates. The sheet's "Urm. <item>" columns
+  // are spreadsheet formulas (issue date + validity, and often #VALUE!), so
+  // they are derived at the app layer rather than stored. A blank or
+  // "NU E NEVOE" cell imports as null.
+  eipScurta          DateTime?                        // "Scurtă"
+  eipIncaltaminte    DateTime?                        // "Încălțăminte"
+  eipCostum          DateTime?                        // "Costum"
+  eipPantaloni       DateTime?                        // "Pantaloni"
+  eipVestaAvertizare DateTime?                        // "Vestă avertizare"
+
   vehicule Vehicul[] @relation("VehiculSofer")
-}
-
-// ============================================================================
-// Documents (form-completion records)
-//   `state` is "draft" while the form is being filled and auto-saved, then
-//   "completed" once validation passes. SQLite has no enum type, so it's
-//   modelled as a String — narrow it with a Zod/TS union at the app layer.
-// ============================================================================
-
-model ComandaMateriale {
-  id        Int      @id @default(autoincrement())
-  data      DateTime
-  state     String   @default("draft")               // "draft" | "completed"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  randuri           RandComanda[]
-  documenteGenerate DocumentGenerat[]
-}
-
-model RandComanda {
-  id        Int @id @default(autoincrement())
-  comandaId Int
-  comanda   ComandaMateriale @relation(fields: [comandaId], references: [id], onDelete: Cascade)
-  position   Int                                       // row order within the table
-
-  materialId    Int?
-  material      Material? @relation(fields: [materialId], references: [id], onDelete: Restrict)
-                                                     // "Denumirea materialului" + "Nomenclator D365"
-  vehiculId     Int?
-  vehicul       Vehicul?  @relation(fields: [vehiculId], references: [id], onDelete: Restrict)
-                                                     // "Specificația materialului" = nr. de înregistrare
-  unitateMasura String?                              // "UM": "buc", "set", "l", ...
-  cantitate     Float?                               // "Cantitatea"
-
-  @@unique([comandaId, position])
-}
-
-model ActDefectiune {
-  id        Int      @id @default(autoincrement())
-  data      DateTime
-  state     String   @default("draft")               // "draft" | "completed"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // "Informatie activ" section — modelled as a FK to the inspected vehicle.
-  // The five printed fields (nr. inventar, nr. de înregistrare, tip, model, an)
-  // are derived from this relation when rendering.
-  vehiculId Int
-  vehicul   Vehicul @relation(fields: [vehiculId], references: [id], onDelete: Restrict)
-
-  defectiuni        Defectiune[]
-  pieseSchimb       PiesaSchimb[]
-  lucrari           LucrareReparatie[]
-  documenteGenerate DocumentGenerat[]
-}
-
-// "Lista defecțiunilor" (tab 1)
-model Defectiune {
-  id      Int @id @default(autoincrement())
-  actId   Int
-  act     ActDefectiune @relation(fields: [actId], references: [id], onDelete: Cascade)
-  position Int
-
-  descriere      String?                              // "Defecțiunea"
-  cauzaProbabila String?                              // "Cauzele probabile ale defecțiunilor"
-
-  pieseCauzate   PiesaSchimb[]      @relation("DefectiuneCauzaPiesa")
-  lucrariCauzate LucrareReparatie[] @relation("DefectiuneCauzaLucrare")
-
-  @@unique([actId, position])
-}
-
-// "Lista pieselor de schimb" (tab 2)
-model PiesaSchimb {
-  id      Int @id @default(autoincrement())
-  actId   Int
-  act     ActDefectiune @relation(fields: [actId], references: [id], onDelete: Cascade)
-  position Int
-
-  materialId        Int?
-  material          Material? @relation(fields: [materialId], references: [id], onDelete: Restrict)
-  unitateMasura     String?                          // "UM"
-  cantitate         Float?                           // "Cantitate"
-  necesitaInlocuire Boolean?                         // "Necesită înlocuire": da/nu
-
-  // "Cauza (rând din tab. 1)" — replaces the docx's row-index reference with
-  // a proper FK to the Defectiune. Survives row reordering; onDelete: Restrict
-  // blocks deletion of a referenced cause (see the README TODO).
-  cauzaId Int?
-  cauza   Defectiune? @relation("DefectiuneCauzaPiesa", fields: [cauzaId], references: [id], onDelete: Restrict)
-
-  @@unique([actId, position])
-}
-
-// "Lista lucrărilor de reparații necesare"
-model LucrareReparatie {
-  id      Int @id @default(autoincrement())
-  actId   Int
-  act     ActDefectiune @relation(fields: [actId], references: [id], onDelete: Cascade)
-  position Int
-
-  descriere     String?                              // "Denumirea lucrărilor"
-  unitateMasura String?                              // "UM", default from corresponding PiesaSchimb
-  cantitate     Float?                               // "Cantitate", default from corresponding PiesaSchimb
-
-  cauzaId Int?
-  cauza   Defectiune? @relation("DefectiuneCauzaLucrare", fields: [cauzaId], references: [id], onDelete: Restrict)
-
-  @@unique([actId, position])
-}
-
-// ============================================================================
-// Templates and generated documents
-//   The .odt templates and rendered .docx files live on the user's Google
-//   Drive; we keep only refs (file IDs) and bookkeeping locally.
-// ============================================================================
-
-model Sablon {
-  id          Int      @id @default(autoincrement())
-  tip         String                                  // "comanda_materiale" | "act_defectiune"
-  driveFileId String
-  versiune    Int      @default(1)
-  uploadedAt  DateTime @default(now())
-
-  documenteGenerate DocumentGenerat[]
-
-  @@unique([tip, versiune])
-}
-
-model DocumentGenerat {
-  id            Int      @id @default(autoincrement())
-  driveFileId   String                                // file ID of the rendered .docx on Drive
-  driveFolderId String?                               // parent folder, e.g. "act_defectiune_<created>"
-  generatedAt   DateTime @default(now())
-
-  sablonId Int?
-  sablon   Sablon? @relation(fields: [sablonId], references: [id], onDelete: SetNull)
-
-  // Polymorphic source — exactly one of comandaId/actId is set per row.
-  // Enforced at the app layer (Prisma can't express XOR).
-  comandaId Int?
-  comanda   ComandaMateriale? @relation(fields: [comandaId], references: [id], onDelete: Cascade)
-  actId     Int?
-  act       ActDefectiune?    @relation(fields: [actId], references: [id], onDelete: Cascade)
 }
