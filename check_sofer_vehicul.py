@@ -4,10 +4,10 @@ gestiune_flota CSV exports.
 
 The same driver/vehicle assignment is stored twice:
 
-  * data/sources/gestiune_flota_vehicule.csv
+  * data_source/gestiune_flota_vehicule.csv
       one row per vehicle; column "Șofer curent" holds the assigned drivers,
       separated by "/".
-  * data/sources/gestiune_flota_soferi.csv
+  * data_source/gestiune_flota_soferi.csv
       one row per driver; columns "Vehicul litere" / "Vehicul cifre" hold the
       plate of the vehicle the driver is assigned to.
 
@@ -113,7 +113,7 @@ def pair_up(only_a, only_b):
 def compare(vehicule, soferi):
     """Return (spelling_variants, differences) for all plates in either file."""
     spelling_variants = []  # (plate, name_in_vehicule, name_in_soferi, ratio)
-    differences = []  # (plate, missing_from_soferi, missing_from_vehicule)
+    differences = []  # (plate, missing_from_soferi, missing_from_vehicule, common)
 
     for plate in sorted(set(vehicule) | set(soferi)):
         names_v = vehicule.get(plate, set())
@@ -124,12 +124,35 @@ def compare(vehicule, soferi):
         only_s = {folded_s[k] for k in folded_s.keys() - folded_v.keys()}
         if not only_v and not only_s:
             continue
+        common = sorted(folded_v[k] for k in folded_v.keys() & folded_s.keys())
         variants, unmatched_v, unmatched_s = pair_up(only_v, only_s)
         for name_v, name_s, ratio in variants:
             spelling_variants.append((plate, name_v, name_s, ratio))
+        # names paired up as spelling variants are shared too, just typed differently
+        common += [f"{name_v} / {name_s}" for name_v, name_s, _ in variants]
         if unmatched_v or unmatched_s:
-            differences.append((plate, unmatched_v, unmatched_s))
+            differences.append((plate, unmatched_v, unmatched_s, common))
     return spelling_variants, differences
+
+
+def print_table(headers, rows, indent="  "):
+    """Print rows as a table; each cell after the first is a list of names,
+    printed one per line inside its column."""
+    cells = [[[r[0]]] + [list(c) for c in r[1:]] for r in rows]
+    widths = [
+        max([len(h)] + [max((len(line) for line in row[i]), default=0) for row in cells])
+        for i, h in enumerate(headers)
+    ]
+    sep = "  "
+
+    def line(values):
+        return (indent + sep.join(v.ljust(w) for v, w in zip(values, widths))).rstrip()
+
+    print(line(headers))
+    print(line(["-" * w for w in widths]))
+    for row in cells:
+        for i in range(max(len(c) for c in row)):
+            print(line([c[i] if i < len(c) else "" for c in row]))
 
 
 def main():
@@ -165,12 +188,11 @@ def main():
 
     if differences:
         print(f"Mismatched assignments ({len(differences)} plates):")
-        for plate, missing_s, missing_v in differences:
-            print(f"  {plate_str(plate)}")
-            if missing_s:
-                print(f"    in vehicule but not in soferi: {', '.join(missing_s)}")
-            if missing_v:
-                print(f"    in soferi but not in vehicule: {', '.join(missing_v)}")
+        rows = [
+            (plate_str(plate), common, missing_v, missing_s)
+            for plate, missing_s, missing_v, common in differences
+        ]
+        print_table(("Vehicul", "in both", f"only {SOFERI_CSV.name}", f"only {VEHICULE_CSV.name}"), rows)
         print()
 
     ok = not (only_in_vehicule or only_in_soferi or differences)
