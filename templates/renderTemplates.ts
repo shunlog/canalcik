@@ -68,7 +68,7 @@ export type DataFisaLimita = {
     data: string; // "Data": date, e.g. "26.05.2026"
     nr_cart: string; // "Nr. cartelei": material code 2, e.g. "2111121795" (from the bill, not the internal one)
     nume: string; // material name, e.g. "Bara reactiva K-3 MAZ 5337"
-    nr: Num; // row / item number
+    nr: Num; // placeholder
     unit: string; // measurement unit, e.g. "l", "buc"
     cant: Num; // quantity
     pret_lei: Num; // unit price, lei part
