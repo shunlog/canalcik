@@ -7,6 +7,7 @@
     "auth": "tsx scripts/auth.ts",
     "fetch": "tsx templates/fetchTemplates.ts",
     "import:flota": "tsx scripts/importFlota.ts",
+    "seed:bonuri": "tsx scripts/seedBonuri.ts",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },

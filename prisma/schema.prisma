@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,26 +15,27 @@ datasource db {
 }
 
 model Vehicul {
-  id              Int      @id @default(autoincrement())
-  syncedAt        DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  syncedAt DateTime @default(now())
 
   // The plate is kept split, as in the first two "Nr. înmatriculare" columns
   // ("MRZ" + "40"); that pair is also how the soferi sheet references a
   // vehicle, so it is the join key on import. The sheet's 3rd
   // "Nr. înmatriculare" column (a hand-written display form) is ignored.
-  litere          String                              // "Nr. înmatriculare" (1st col)
-  cifre           String                              // "Nr. înmatriculare" (2nd col) — not always numeric ("f/n")
-  nrInventar      Int      @unique                    // "Nr. Inventar"
-  nrGaraj         Int      @unique                    // "Nr. Garaj"
-  tip             String                              // "Destinatia"      — Tractor, Excavator, ...
-  model           String                              // "Marcă / Model"   — MTZ-82, ...
-  anProducere     Int?                                // "An fabricație"   — blank for a few old vehicles
-  kmActuali       Int?                                // "Km actuali"
-  sector          String?                             // "p63," — Ciocana (5), SBO, Repartizare, ...
-  utilajeAuxiliare String?                            // "Utilaje auxiliare"
-  lucrariLunaViitoare String?                         // "Lucrari necesate efectuat luna viitoare"
+  litere              String // "Nr. înmatriculare" (1st col)
+  cifre               String // "Nr. înmatriculare" (2nd col) — not always numeric ("f/n")
+  nrInventar          Int     @unique // "Nr. Inventar"
+  nrGaraj             Int     @unique // "Nr. Garaj"
+  tip                 String // "Destinatia"      — Tractor, Excavator, ...
+  model               String // "Marcă / Model"   — MTZ-82, ...
+  anProducere         Int? // "An fabricație"   — blank for a few old vehicles
+  kmActuali           Int? // "Km actuali"
+  sector              String? // "p63," — Ciocana (5), SBO, Repartizare, ...
+  utilajeAuxiliare    String? // "Utilaje auxiliare"
+  lucrariLunaViitoare String? // "Lucrari necesate efectuat luna viitoare"
 
-  soferi         Sofer[]         @relation("VehiculSofer")
+  soferi Sofer[]        @relation("VehiculSofer")
+  bonuri BonEliberare[]
 
   @@unique([litere, cifre])
 }
@@ -44,24 +44,61 @@ model Sofer {
   id       Int      @id @default(autoincrement())
   syncedAt DateTime @default(now())
 
-  cod                Int     @unique                  // "Nr. de pontaj"
-  nume               String                           // "Nume Prenume"
-  functie            String?                          // "Funcție"
-  telefon            String?                          // "Telefon"
-  sector             String?                          // "Sector"
-  marimeHaina        String?                          // "Mărime haină"        — e.g. "52-53"
-  marimeIncaltaminte String?                          // "Mărime încalțăminte"
-  observatii         String?                          // "Observații"
+  cod                Int     @unique // "Nr. de pontaj"
+  nume               String // "Nume Prenume"
+  functie            String? // "Funcție"
+  telefon            String? // "Telefon"
+  sector             String? // "Sector"
+  marimeHaina        String? // "Mărime haină"        — e.g. "52-53"
+  marimeIncaltaminte String? // "Mărime încalțăminte"
+  observatii         String? // "Observații"
 
-  // EIP (protective equipment) issue dates. The sheet's "Urm. <item>" columns
-  // are spreadsheet formulas (issue date + validity, and often #VALUE!), so
-  // they are derived at the app layer rather than stored. A blank or
-  // "NU E NEVOE" cell imports as null.
-  eipScurta          DateTime?                        // "Scurtă"
-  eipIncaltaminte    DateTime?                        // "Încălțăminte"
-  eipCostum          DateTime?                        // "Costum"
-  eipPantaloni       DateTime?                        // "Pantaloni"
-  eipVestaAvertizare DateTime?                        // "Vestă avertizare"
+  // EIP (protective equipment) issue dates, as "YYYY-MM-DD" strings. These are
+  // calendar dates, not instants: DateTime would store them as a Unix
+  // timestamp and shift the day across time zones, while the ISO string sorts
+  // chronologically in SQLite and is what <input type="date"> reads and writes.
+  // The sheet's "Urm. <item>" columns are spreadsheet formulas (issue date +
+  // validity, and often #VALUE!), so they are derived at the app layer rather
+  // than stored. A blank or "NU E NEVOE" cell imports as null.
+  eipScurta          String? // "Scurtă"
+  eipIncaltaminte    String? // "Încălțăminte"
+  eipCostum          String? // "Costum"
+  eipPantaloni       String? // "Pantaloni"
+  eipVestaAvertizare String? // "Vestă avertizare"
 
-  vehicule Vehicul[] @relation("VehiculSofer")
+  vehicule Vehicul[]      @relation("VehiculSofer")
+  bonuri   BonEliberare[]
+}
+
+// A "bon de eliberare" — one issue slip: materials handed to one sofer for one
+// vehicul on one day.
+model BonEliberare {
+  id       Int      @id @default(autoincrement())
+  syncedAt DateTime @default(now())
+
+  // Calendar date as "YYYY-MM-DD", same convention as Sofer's EIP dates.
+  data String
+
+  soferId   Int
+  sofer     Sofer   @relation(fields: [soferId], references: [id])
+  vehiculId Int
+  vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
+
+  materiale BonEliberareMaterial[]
+}
+
+// One line on a bon. Kept as its own table rather than JSON so lines can be
+// summed per material/month for the "fisa limita".
+model BonEliberareMaterial {
+  id Int @id @default(autoincrement())
+
+  bonId Int
+  bon   BonEliberare @relation(fields: [bonId], references: [id], onDelete: Cascade)
+
+  // "cod nomenclator", e.g. "2111121795". Unknown when the bon is written; it
+  // is matched by `nume` against the "Factura de expeditie" at month end.
+  nrCart    String?
+  nume      String // "Ulei motor 10W40"
+  um        String // "l", "buc"
+  cantitate Float
 }

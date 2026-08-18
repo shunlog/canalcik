@@ -54,10 +54,10 @@ function int(v: string | undefined, where: string): number | null {
   return n;
 }
 
-// Cells come in as "M/D/YYYY" (Sheets' US export) or "DD.MM.YYYY" (hand-typed).
-// Empty, "NU E NEVOE" (not needed), "#VALUE!" and the 1900-epoch zero dates
-// Excel leaves behind all mean "no date".
-function date(v: string | undefined, where: string): Date | null {
+// Cells come in as "M/D/YYYY" (Sheets' US export) or "DD.MM.YYYY" (hand-typed)
+// and are stored as "YYYY-MM-DD". Empty, "NU E NEVOE" (not needed), "#VALUE!"
+// and the 1900-epoch zero dates Excel leaves behind all mean "no date".
+function date(v: string | undefined, where: string): string | null {
   const s = text(v);
   if (s === null || /^#/.test(s) || /^nu e nevo/i.test(s)) return null;
 
@@ -72,12 +72,13 @@ function date(v: string | undefined, where: string): Date | null {
   }
 
   if (y < 1950) return null; // Excel epoch leftovers, e.g. 12/30/1904
+  // Round-trip through Date to reject overflowing days like 31.02.2026.
   const parsed = new Date(Date.UTC(y, m - 1, d));
   if (parsed.getUTCMonth() !== m - 1 || parsed.getUTCDate() !== d) {
     warn(`${where}: invalid date, imported as empty — ${JSON.stringify(s)}`);
     return null;
   }
-  return parsed;
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 // Columns of gestiune_flota_vehicule.csv
