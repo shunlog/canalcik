@@ -66,7 +66,8 @@ export type DataFisaLimita = {
   cod_sofer: string; // "Nr. soferului": driver code, e.g. "4984"
   tbl: Array<{
     data: string; // "Data": date, e.g. "26.05.2026"
-    nr_cart: string; // "Nr. cartelei": material code 2, e.g. "2111121795" (from the bill, not the internal one)
+    nr_cart: string; // "Nr. cartelei": material code 2, e.g. "2111121795" 
+    // "cod nomenclator" from the bill "Factura de expeditie", not the internal one
     nume: string; // material name, e.g. "Bara reactiva K-3 MAZ 5337"
     nr: Num; // placeholder
     unit: string; // measurement unit, e.g. "l", "buc"
