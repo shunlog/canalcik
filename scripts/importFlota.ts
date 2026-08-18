@@ -14,8 +14,8 @@ import { PrismaClient } from "@prisma/client";
 // soferi sheet has one row per (driver, vehicle) pair, and that sheet is the
 // only source for the relation.
 
-const VEHICULE_CSV = path.resolve("data/sources/gestiune_flota_vehicule.csv");
-const SOFERI_CSV = path.resolve("data/sources/gestiune_flota_soferi.csv");
+const VEHICULE_CSV = path.resolve("data_source/gestiune_flota_vehicule.csv");
+const SOFERI_CSV = path.resolve("data_source/gestiune_flota_soferi.csv");
 
 // Placeholder plate used in the soferi sheet for "no vehicle assigned".
 const NO_VEHICLE = ["XXX", "999"];
