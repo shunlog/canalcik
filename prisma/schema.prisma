@@ -119,5 +119,40 @@ model MaterialeIntretinere {
 
   nume String @unique // "ULEI MOTOR 10W40"
 
-  bonuri BonEliberareMaterial[]
+  bonuri  BonEliberareMaterial[]
+  facturi FacturaExpeditieMaterial[]
+}
+
+// A "factura de expeditie" — one delivery invoice: the materials received on
+// one day, with the "cod nomenclator" and price each came under. It is what
+// the bonuri are matched against at month end to fill in their nrCart.
+model FacturaExpeditie {
+  id       Int      @id @default(autoincrement())
+  syncedAt DateTime @default(now()) @updatedAt
+
+  // Calendar date as "YYYY-MM-DD"
+  data String
+
+  materiale FacturaExpeditieMaterial[]
+}
+
+// One line on a factura de expeditie.
+model FacturaExpeditieMaterial {
+  id Int @id @default(autoincrement())
+
+  facturaId Int
+  factura   FacturaExpeditie @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+
+  // The document's "nume" column, kept as a reference so a factura and a bon
+  // spell the same material the same way. Lines pin the material (no
+  // onDelete), so a material in use cannot be deleted.
+  materialId Int
+  material   MaterialeIntretinere @relation(fields: [materialId], references: [id])
+
+  // "cod nomenclator", e.g. "2111121795" — unlike on a bon line, it is known
+  // here: the factura is where it comes from.
+  nrCart     String
+  um         String // "L", "KG"
+  cantitate  Float
+  pretUnitar Float // price for one `um`
 }
