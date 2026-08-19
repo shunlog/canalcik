@@ -1,0 +1,71 @@
+import type {
+  BonCreateBody,
+  BonDetail,
+  BonListItem,
+  BonUpdateBody,
+} from "@canalcik/server/api-types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, query } from "../lib/api.ts";
+import { bonKeys, soferKeys, vehiculKeys } from "./keys.ts";
+
+export interface BonFilters {
+  soferId?: number;
+  vehiculId?: number;
+  from?: string;
+  to?: string;
+}
+
+/**
+ * A bon write changes the `bonuri` list and counters on the sofer and vehicul
+ * it points at — including the ones it used to point at, which we no longer
+ * know here. Invalidating both entities wholesale is cheap at this data size
+ * and cannot go stale.
+ */
+function useBonInvalidation() {
+  const qc = useQueryClient();
+  return () => {
+    void qc.invalidateQueries({ queryKey: bonKeys.all });
+    void qc.invalidateQueries({ queryKey: soferKeys.all });
+    void qc.invalidateQueries({ queryKey: vehiculKeys.all });
+  };
+}
+
+export function useBonuri(filters: BonFilters = {}) {
+  const qs = query({ ...filters });
+  return useQuery({
+    queryKey: bonKeys.list(qs),
+    queryFn: () => api.get<BonListItem[]>(`/bonuri${qs}`),
+  });
+}
+
+export function useBon(id: number) {
+  return useQuery({
+    queryKey: bonKeys.detail(id),
+    queryFn: () => api.get<BonDetail>(`/bonuri/${id}`),
+    enabled: Number.isInteger(id) && id > 0,
+  });
+}
+
+export function useCreateBon() {
+  const invalidate = useBonInvalidation();
+  return useMutation({
+    mutationFn: (body: BonCreateBody) => api.post<BonDetail>("/bonuri", body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpdateBon(id: number) {
+  const invalidate = useBonInvalidation();
+  return useMutation({
+    mutationFn: (body: BonUpdateBody) => api.patch<BonDetail>(`/bonuri/${id}`, body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteBon(id: number) {
+  const invalidate = useBonInvalidation();
+  return useMutation({
+    mutationFn: () => api.del(`/bonuri/${id}`),
+    onSuccess: invalidate,
+  });
+}

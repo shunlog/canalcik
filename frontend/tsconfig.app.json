@@ -1,0 +1,27 @@
+{
+  // Deliberately does NOT extend ../tsconfig.json: that one is "nodenext",
+  // which models Node's runtime resolution and is wrong for a browser bundle.
+  // "bundler" + allowImportingTsExtensions keeps the repo's `./App.tsx` import
+  // style while letting Vite resolve package "exports" the way it actually does.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    // Makes an accidental *value* import from @canalcik/server fail loudly
+    // instead of silently pulling server code into the browser bundle.
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vite/client"]
+  },
+  "include": ["src"]
+}

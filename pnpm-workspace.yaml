@@ -1,4 +1,6 @@
-packages: []
+packages:
+  - server
+  - frontend
 
 allowBuilds:
   '@prisma/client': true

@@ -8,8 +8,12 @@
     "fetch": "tsx templates/fetchTemplates.ts",
     "import:flota": "tsx scripts/importFlota.ts",
     "seed:bonuri": "tsx scripts/seedBonuri.ts",
+    "dev": "pnpm -r --parallel run dev",
+    "dev:server": "pnpm --filter @canalcik/server dev",
+    "dev:web": "pnpm --filter @canalcik/frontend dev",
+    "build": "pnpm --filter @canalcik/frontend build",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && pnpm -r run typecheck"
   },
   "keywords": [],
   "author": "",
@@ -23,12 +27,10 @@
   },
   "type": "module",
   "dependencies": {
-    "@hono/node-server": "^2.0.4",
     "csv-parse": "^6.2.1",
     "docxtemplater": "^3.68.7",
     "dotenv": "^17.4.2",
     "googleapis": "^172.0.0",
-    "hono": "^4.12.23",
     "pizzip": "^3.2.0",
     "xlsx-template": "^1.4.7"
   },

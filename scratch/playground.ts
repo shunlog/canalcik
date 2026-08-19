@@ -36,6 +36,21 @@ const factura1 : DataFacturaExpeditie = {
 };
 
 
+type BonEliberare = {
+  sofer_id: number;
+  vehicul_id: number;
+  data: string; // "YYYY-MM-DD";
+  materiale: Array<{
+    nr_cart?: string; // "cod nomenclator", e.g. "2111121795",
+    //  matched later by the name in the bill "Factura de expeditie"
+    //  when it comes at the end of the month
+    nume: string; // material name, e.g. "Ulei motor 10W40"
+    um: string; // measurement unit, e.g. "l", "buc"
+    cantitate: number; // quantity
+  }>;
+}
+
+
 function DocFisaLimita(
   vehicul_id: number,
   sofer_id: number,

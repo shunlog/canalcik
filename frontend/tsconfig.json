@@ -1,0 +1,6 @@
+{
+  // Editors read this one; the real settings live in the two files below.
+  // src/ and vite.config.ts need different lib/types, so they are checked apart.
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+}

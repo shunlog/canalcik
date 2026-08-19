@@ -1,0 +1,11 @@
+{
+  // Inherits nodenext + allowImportingTsExtensions + strict from the root, so
+  // server code uses the same explicit ".ts" relative imports as templates/
+  // and scripts/.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

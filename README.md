@@ -90,6 +90,40 @@ Data to be stored:
 - Generated documents:  stored in app's folder on Google Drive `canalcik/docs`
     - all documents generated from a form will be grouped in folders (e.g. `./act_defectiune_<date_created>/act_defectiune-<date_doc>-<n>.odt`)
 
+## Running the app
+
+The repo is a pnpm workspace with three packages: the root (Prisma schema, CSV
+importers, document rendering), `server/` (REST API) and `frontend/` (web UI).
+
+```sh
+pnpm install
+pnpm exec prisma generate   # only after changing prisma/schema.prisma
+pnpm dev                    # API on :8787 and the UI on :5173, in parallel
+```
+
+`pnpm dev:server` and `pnpm dev:web` run the two halves separately when the
+interleaved logs get in the way. Open <http://localhost:5173>; Vite proxies
+`/api` to the server, so the browser only ever talks to one origin and there is
+no CORS involved.
+
+- **`server/`** — Hono on `@hono/node-server`, one router per entity under
+  `server/src/routes/`, zod request schemas under `server/src/schemas/`, and a
+  single `app.onError` that turns `ApiError`, `ZodError` and Prisma error codes
+  into `{ error: { code, message, fields? } }`. The wire contract lives in
+  `server/src/api-types.ts`; the zod schemas are pinned to it by compile-time
+  equality checks, so the two cannot drift.
+  `@prisma/client` is deliberately *not* a dependency of this package — see the
+  comment in `server/src/db.ts`.
+- **`frontend/`** — Vite + React + Mantine, with react-query for all fetching
+  (no router loaders). Full CRUD for Sofer, Vehicul and BonEliberare; the
+  Sofer↔Vehicul many-to-many is editable from either side, and a bon's material
+  lines are edited inline on its page and replaced wholesale on save.
+
+Calendar dates (`Sofer.eip*`, `BonEliberare.data`) are `"YYYY-MM-DD"` strings
+end to end — Mantine 8's `DateInput` uses the same string format, so no `Date`
+object is ever constructed. `main.tsx` registers dayjs's `customParseFormat`
+plugin, without which typed dates are silently misparsed.
+
 ## To Do
 
 - Implement referential integrity. In doc *act defectiune*, there are two table fields that reference rows in another table by their index. Make it so once the user referenced a row, the reference is kept correctly (stay correct when rows get re-ordered, block deleting, warning on stale references)
