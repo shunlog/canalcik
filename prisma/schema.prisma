@@ -16,7 +16,7 @@ datasource db {
 
 model Vehicul {
   id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now())
+  syncedAt DateTime @default(now()) @updatedAt
 
   // The plate is kept split, as in the first two "Nr. înmatriculare" columns
   // ("MRZ" + "40"); that pair is also how the soferi sheet references a
@@ -42,7 +42,7 @@ model Vehicul {
 
 model Sofer {
   id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now())
+  syncedAt DateTime @default(now()) @updatedAt
 
   cod                Int     @unique // "Nr. de pontaj"
   nume               String // "Nume Prenume"
@@ -74,7 +74,7 @@ model Sofer {
 // vehicul on one day.
 model BonEliberare {
   id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now())
+  syncedAt DateTime @default(now()) @updatedAt
 
   // Calendar date as "YYYY-MM-DD", same convention as Sofer's EIP dates.
   data String
