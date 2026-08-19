@@ -1,14 +1,36 @@
-import { ActionIcon, Button, NumberInput, Stack, Table, Text, TextInput } from "@mantine/core";
+import {
+  ActionIcon,
+  Autocomplete,
+  Button,
+  NumberInput,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  Tooltip,
+} from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconAlertTriangle, IconPlus, IconTrash } from "@tabler/icons-react";
+import { useMemo } from "react";
+import { useMateriale } from "../../api/materiale.ts";
 import { newMaterialRow, type BonFormValues } from "./bonForm.ts";
 
 /**
- * The bon's material lines. They are owned by the bon rather than references to
- * a catalogue, so they are edited inline here and saved with the bon in one request.
+ * The bon's material lines: quantities belong to the bon and are edited inline
+ * here, while the denumire is a reference into MaterialeIntretinere. The field
+ * is an Autocomplete rather than a Select because a bon must be writable for
+ * something the catalogue has never seen — a free-typed name is accepted and
+ * flagged, and the server creates the material when the bon is saved.
  */
 export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValues> }) {
   const rows = form.getValues().materiale;
+  const materiale = useMateriale();
+
+  const known = useMemo(
+    () => new Set((materiale.data ?? []).map((m) => m.nume)),
+    [materiale.data],
+  );
+  const options = useMemo(() => [...known], [known]);
 
   return (
     <Stack gap="xs">
@@ -24,41 +46,72 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {rows.map((row, i) => (
-              <Table.Tr key={row.key}>
-                <Table.Td>
-                  <TextInput placeholder="2111121795" {...form.getInputProps(`materiale.${i}.nrCart`)} />
-                </Table.Td>
-                <Table.Td>
-                  <TextInput
-                    placeholder="ULEI MOTOR 10W40"
-                    {...form.getInputProps(`materiale.${i}.nume`)}
-                  />
-                </Table.Td>
-                <Table.Td>
-                  <TextInput placeholder="L" {...form.getInputProps(`materiale.${i}.um`)} />
-                </Table.Td>
-                <Table.Td>
-                  <NumberInput
-                    min={0}
-                    step={0.1}
-                    decimalScale={3}
-                    placeholder="12.5"
-                    {...form.getInputProps(`materiale.${i}.cantitate`)}
-                  />
-                </Table.Td>
-                <Table.Td>
-                  <ActionIcon
-                    color="red"
-                    variant="subtle"
-                    aria-label="Șterge linia"
-                    onClick={() => form.removeListItem("materiale", i)}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
-                </Table.Td>
-              </Table.Tr>
-            ))}
+            {rows.map((row, i) => {
+              const nume = row.nume.trim();
+              // Only warn once the catalogue has actually loaded, so a slow
+              // request doesn't flag every existing material as new.
+              const isNew = nume !== "" && !materiale.isPending && !known.has(nume);
+
+              return (
+                <Table.Tr key={row.key}>
+                  <Table.Td>
+                    <TextInput
+                      placeholder="2111121795"
+                      {...form.getInputProps(`materiale.${i}.nrCart`)}
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <Autocomplete
+                      placeholder="Căutați sau scrieți un material"
+                      data={options}
+                      limit={20}
+                      // Mantine filters the options against what is typed, so
+                      // this is a search box; the typed text stays the value
+                      // whether or not it matched anything.
+                      {...form.getInputProps(`materiale.${i}.nume`)}
+                      rightSection={
+                        isNew ? (
+                          <Tooltip
+                            multiline
+                            w={220}
+                            label="Material nou — va fi adăugat în lista de materiale la salvarea bonului"
+                          >
+                            <IconAlertTriangle
+                              size={16}
+                              color="var(--mantine-color-yellow-6)"
+                              aria-label="Material inexistent"
+                            />
+                          </Tooltip>
+                        ) : null
+                      }
+                      rightSectionPointerEvents="auto"
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <TextInput placeholder="L" {...form.getInputProps(`materiale.${i}.um`)} />
+                  </Table.Td>
+                  <Table.Td>
+                    <NumberInput
+                      min={0}
+                      step={0.1}
+                      decimalScale={3}
+                      placeholder="12.5"
+                      {...form.getInputProps(`materiale.${i}.cantitate`)}
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <ActionIcon
+                      color="red"
+                      variant="subtle"
+                      aria-label="Șterge linia"
+                      onClick={() => form.removeListItem("materiale", i)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Table.Td>
+                </Table.Tr>
+              );
+            })}
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>

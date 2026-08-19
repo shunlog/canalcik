@@ -95,10 +95,29 @@ model BonEliberareMaterial {
   bonId Int
   bon   BonEliberare @relation(fields: [bonId], references: [id], onDelete: Cascade)
 
+  // The material is a reference, not free text, so the same thing is spelled
+  // the same way on every bon and the monthly roll-up can group by it. Lines
+  // pin the material (no onDelete), so a material in use cannot be deleted.
+  materialId Int
+  material   MaterialeIntretinere @relation(fields: [materialId], references: [id])
+
   // "cod nomenclator", e.g. "2111121795". Unknown when the bon is written; it
-  // is matched by `nume` against the "Factura de expeditie" at month end.
+  // is matched by the material's name against the "Factura de expeditie" at
+  // month end. It stays on the line rather than on the material: the same
+  // material can be delivered under different codes.
   nrCart    String?
-  nume      String // "Ulei motor 10W40"
   um        String // "l", "buc"
   cantitate Float
+}
+
+// The catalogue of maintenance materials — the distinct things that can appear
+// on a bon. Names are unique, and the app creates a row on the fly the first
+// time a bon names something new, so the catalogue never blocks writing a bon.
+model MaterialeIntretinere {
+  id       Int      @id @default(autoincrement())
+  syncedAt DateTime @default(now()) @updatedAt
+
+  nume String @unique // "ULEI MOTOR 10W40"
+
+  bonuri BonEliberareMaterial[]
 }

@@ -115,9 +115,10 @@ no CORS involved.
   `@prisma/client` is deliberately *not* a dependency of this package — see the
   comment in `server/src/db.ts`.
 - **`frontend/`** — Vite + React + Mantine, with react-query for all fetching
-  (no router loaders). Full CRUD for Sofer, Vehicul and BonEliberare; the
-  Sofer↔Vehicul many-to-many is editable from either side, and a bon's material
-  lines are edited inline on its page and replaced wholesale on save.
+  (no router loaders). Full CRUD for Sofer, Vehicul, BonEliberare and
+  MaterialeIntretinere; the Sofer↔Vehicul many-to-many is editable from either
+  side, and a bon's material lines are edited inline on its page and replaced
+  wholesale on save.
 
 Calendar dates (`Sofer.eip*`, `BonEliberare.data`) are `"YYYY-MM-DD"` strings
 end to end — Mantine 8's `DateInput` uses the same string format, so no `Date`

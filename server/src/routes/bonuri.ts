@@ -3,9 +3,22 @@ import { db } from "../db.ts";
 import { bonDetailSelect, bonRefSelect, toBonDetail, toBonRef } from "../dto.ts";
 import { badRef, notFound } from "../http/errors.ts";
 import { optionalIdQuery, parseIdParam, readJson } from "../http/read.ts";
-import { bonCreate, bonUpdate } from "../schemas/bon.ts";
+import { bonCreate, bonUpdate, type MaterialLineInput } from "../schemas/bon.ts";
 
 export const bonuri = new Hono();
+
+/**
+ * Lines arrive carrying the material's *name*, so the client can write a bon
+ * for something the catalogue has never seen. connectOrCreate turns that name
+ * into a MaterialeIntretinere row — reusing the existing one when there is a
+ * match, adding it when there isn't — inside the same transaction as the bon,
+ * so a failed write leaves no half-built catalogue behind.
+ */
+const toLineCreate = (lines: MaterialLineInput[]) =>
+  lines.map(({ nume, ...line }) => ({
+    ...line,
+    material: { connectOrCreate: { where: { nume }, create: { nume } } },
+  }));
 
 /** Both FKs are required, so a bad id must be caught before the write. */
 async function assertRefs(soferId?: number, vehiculId?: number) {
@@ -42,7 +55,7 @@ bonuri.post("/", async (c) => {
   await assertRefs(scalars.soferId, scalars.vehiculId);
 
   const row = await db.bonEliberare.create({
-    data: { ...scalars, materiale: { create: materiale } },
+    data: { ...scalars, materiale: { create: toLineCreate(materiale) } },
     select: bonDetailSelect,
   });
   return c.json(toBonDetail(row), 201);
@@ -69,7 +82,7 @@ bonuri.patch("/:id", async (c) => {
       // set is replaced wholesale. Prisma runs the nested deleteMany and create
       // inside one transaction, so the bon is never observed empty.
       // Consequence: line ids are NOT stable across saves.
-      ...(materiale ? { materiale: { deleteMany: {}, create: materiale } } : {}),
+      ...(materiale ? { materiale: { deleteMany: {}, create: toLineCreate(materiale) } } : {}),
     },
     select: bonDetailSelect,
   });

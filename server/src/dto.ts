@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import type {
   BonDetail,
   BonRef,
+  MaterialDetail,
+  MaterialListItem,
   SoferDetail,
   SoferListItem,
   VehiculDetail,
@@ -26,6 +28,11 @@ export const soferRefSelect = {
   cod: true,
   nume: true,
 } satisfies Prisma.SoferSelect;
+
+export const materialRefSelect = {
+  id: true,
+  nume: true,
+} satisfies Prisma.MaterialeIntretinereSelect;
 
 export const bonRefSelect = {
   id: true,
@@ -167,14 +174,72 @@ export const bonDetailSelect = {
   sofer: { select: soferRefSelect },
   vehicul: { select: vehiculRefSelect },
   materiale: {
-    select: { id: true, nrCart: true, nume: true, um: true, cantitate: true },
+    select: {
+      id: true,
+      materialId: true,
+      material: { select: { nume: true } },
+      nrCart: true,
+      um: true,
+      cantitate: true,
+    },
     orderBy: { id: "asc" },
   },
 } satisfies Prisma.BonEliberareSelect;
 
 type BonDetailRow = Prisma.BonEliberareGetPayload<{ select: typeof bonDetailSelect }>;
 
-export const toBonDetail = ({ syncedAt, ...b }: BonDetailRow): BonDetail => ({
+// A line's name lives on the material it points at, but the wire type keeps it
+// flat: the client edits lines by name and never has to hold an id it can't
+// have yet for a material that doesn't exist.
+export const toBonDetail = ({ syncedAt, materiale, ...b }: BonDetailRow): BonDetail => ({
   ...b,
   syncedAt: syncedAt.toISOString(),
+  materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
+});
+
+// ------------------------------------------------------ materialeIntretinere
+
+export const materialListSelect = {
+  ...materialRefSelect,
+  syncedAt: true,
+  _count: { select: { bonuri: true } },
+} satisfies Prisma.MaterialeIntretinereSelect;
+
+type MaterialListRow = Prisma.MaterialeIntretinereGetPayload<{
+  select: typeof materialListSelect;
+}>;
+
+export const toMaterialListItem = ({
+  _count,
+  syncedAt,
+  ...m
+}: MaterialListRow): MaterialListItem => ({
+  ...m,
+  syncedAt: syncedAt.toISOString(),
+  nrLinii: _count.bonuri,
+});
+
+// `bonuri` here is the *lines* pointing at the material, each carrying the bon
+// it sits on — a material can appear twice on one bon, so the page lists lines.
+export const materialDetailSelect = {
+  ...materialRefSelect,
+  syncedAt: true,
+  bonuri: {
+    select: { id: true, nrCart: true, um: true, cantitate: true, bon: { select: bonRefSelect } },
+    orderBy: [{ bon: { data: "desc" } }, { id: "desc" }],
+  },
+} satisfies Prisma.MaterialeIntretinereSelect;
+
+type MaterialDetailRow = Prisma.MaterialeIntretinereGetPayload<{
+  select: typeof materialDetailSelect;
+}>;
+
+export const toMaterialDetail = ({
+  bonuri,
+  syncedAt,
+  ...m
+}: MaterialDetailRow): MaterialDetail => ({
+  ...m,
+  syncedAt: syncedAt.toISOString(),
+  utilizari: bonuri.map(({ id, bon, ...line }) => ({ lineId: id, bon: toBonRef(bon), ...line })),
 });

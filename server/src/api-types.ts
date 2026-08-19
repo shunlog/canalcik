@@ -48,6 +48,11 @@ export interface SoferRef {
   nume: string;
 }
 
+export interface MaterialRef {
+  id: number;
+  nume: string;
+}
+
 /** A bon as it appears in a list, or on a sofer/vehicul detail page. */
 export interface BonRef {
   id: number;
@@ -136,6 +141,11 @@ export interface SetSoferiBody {
 /** One line on a bon, as sent by the client. Lines are owned by the bon. */
 export interface MaterialLine {
   nrCart: string | null;
+  /**
+   * The material's name, not its id. The server resolves it against
+   * MaterialeIntretinere and creates the row when no material carries that
+   * name yet — so a bon can always be written, even for something new.
+   */
   nume: string;
   um: string;
   cantitate: number;
@@ -144,9 +154,11 @@ export interface MaterialLine {
 /**
  * A line as stored. `id` is informational only: PATCH replaces the whole set,
  * so line ids are NOT stable across saves — never key React rows by them.
+ * `materialId` is stable: it identifies the catalogue row `nume` resolved to.
  */
 export interface MaterialLineOut extends MaterialLine {
   id: number;
+  materialId: number;
 }
 
 export type BonListItem = BonRef;
@@ -176,3 +188,36 @@ export interface BonUpdateBody {
   /** If present, replaces every line on the bon. If absent, lines are untouched. */
   materiale?: MaterialLine[];
 }
+
+// ------------------------------------------------------ materialeIntretinere
+
+/** A material in the catalogue, with how many bon lines point at it. */
+export interface MaterialListItem extends MaterialRef {
+  syncedAt: string;
+  nrLinii: number;
+}
+
+/**
+ * One bon line that uses a material, with the bon it sits on. A material can
+ * appear on the same bon more than once (two lines, two nomenclature codes),
+ * so this is per line, not per bon. `lineId` is a React key, nothing more:
+ * a bon PATCH replaces its lines, so it does not survive an edit.
+ */
+export interface MaterialUsage {
+  lineId: number;
+  bon: BonRef;
+  nrCart: string | null;
+  um: string;
+  cantitate: number;
+}
+
+export interface MaterialDetail extends MaterialRef {
+  syncedAt: string;
+  utilizari: MaterialUsage[];
+}
+
+export interface MaterialCreateBody {
+  nume: string;
+}
+
+export type MaterialUpdateBody = Partial<MaterialCreateBody>;

@@ -13,7 +13,9 @@ import { PrismaClient } from "@prisma/client";
 // spell out "Goreanu Anatolie" where the fleet sheet has "Goreanu Anatol").
 //
 // Re-running replaces the bonuri of the (sofer, vehicul, data) triples it
-// seeds rather than duplicating them; other bonuri are left alone.
+// seeds rather than duplicating them; other bonuri are left alone. The
+// MaterialeIntretinere rows the lines point at are reused when they already
+// exist and are never deleted — the catalogue outlives the bonuri.
 
 type FisaRow = {
   data: string; // as printed, "DD.MM.YYYY"
@@ -169,9 +171,13 @@ async function main() {
           materiale: {
             create: rows.map(({ nrCart, nume, um, cantitate }) => ({
               nrCart,
-              nume,
               um,
               cantitate,
+              // The material name is a reference now, so the catalogue fills
+              // itself in as the slips name things — same as a bon written in
+              // the app. Names are matched exactly, so the spelling in FISE is
+              // what ends up in MaterialeIntretinere.
+              material: { connectOrCreate: { where: { nume }, create: { nume } } },
             })),
           },
         },
@@ -181,7 +187,11 @@ async function main() {
     }
   }
 
-  console.log(`Seeded ${bonuri} bonuri with ${linii} lines from ${FISE.length} fise.`);
+  const materiale = await prisma.materialeIntretinere.count();
+  console.log(
+    `Seeded ${bonuri} bonuri with ${linii} lines from ${FISE.length} fise; ` +
+      `${materiale} materiale in the catalogue.`,
+  );
   if (warnings.length) {
     console.log(`\n${warnings.length} warning(s):`);
     for (const w of warnings) console.log(`  - ${w}`);

@@ -6,7 +6,7 @@ import type {
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, query } from "../lib/api.ts";
-import { bonKeys, soferKeys, vehiculKeys } from "./keys.ts";
+import { bonKeys, materialKeys, soferKeys, vehiculKeys } from "./keys.ts";
 
 export interface BonFilters {
   soferId?: number;
@@ -19,7 +19,8 @@ export interface BonFilters {
  * A bon write changes the `bonuri` list and counters on the sofer and vehicul
  * it points at — including the ones it used to point at, which we no longer
  * know here. Invalidating both entities wholesale is cheap at this data size
- * and cannot go stale.
+ * and cannot go stale. Its lines can also add materials to the catalogue and
+ * always change their line counts, so that list goes too.
  */
 function useBonInvalidation() {
   const qc = useQueryClient();
@@ -27,6 +28,7 @@ function useBonInvalidation() {
     void qc.invalidateQueries({ queryKey: bonKeys.all });
     void qc.invalidateQueries({ queryKey: soferKeys.all });
     void qc.invalidateQueries({ queryKey: vehiculKeys.all });
+    void qc.invalidateQueries({ queryKey: materialKeys.all });
   };
 }
 

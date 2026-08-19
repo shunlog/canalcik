@@ -18,3 +18,9 @@ export const bonKeys = {
   list: (filters: string) => ["bonuri", "list", filters] as const,
   detail: (id: number) => ["bonuri", "detail", id] as const,
 };
+
+export const materialKeys = {
+  all: ["materiale"] as const,
+  list: (q: string) => ["materiale", "list", q] as const,
+  detail: (id: number) => ["materiale", "detail", id] as const,
+};

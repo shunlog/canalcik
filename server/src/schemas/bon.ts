@@ -9,6 +9,9 @@ export const materialLine = z.object({
   cantitate: z.number().positive("Cantitatea trebuie să fie mai mare decât 0"),
 });
 
+/** The routes map this to a nested Prisma create — see toLineCreate in routes/bonuri.ts. */
+export type MaterialLineInput = z.infer<typeof materialLine>;
+
 export const bonCreate = z.object({
   data: isoDate,
   soferId: z.number().int().positive(),

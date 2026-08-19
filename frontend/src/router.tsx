@@ -4,6 +4,8 @@ import { BonCreatePage } from "./pages/bonuri/BonCreatePage.tsx";
 import { BonDetailPage } from "./pages/bonuri/BonDetailPage.tsx";
 import { BonuriListPage } from "./pages/bonuri/BonuriListPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
+import { MaterialDetailPage } from "./pages/materiale/MaterialDetailPage.tsx";
+import { MaterialeListPage } from "./pages/materiale/MaterialeListPage.tsx";
 import { SoferCreatePage } from "./pages/soferi/SoferCreatePage.tsx";
 import { SoferDetailPage } from "./pages/soferi/SoferDetailPage.tsx";
 import { SoferiListPage } from "./pages/soferi/SoferiListPage.tsx";
@@ -28,6 +30,8 @@ export const router = createBrowserRouter([
       { path: "/bonuri", element: <BonuriListPage /> },
       { path: "/bonuri/nou", element: <BonCreatePage /> },
       { path: "/bonuri/:id", element: <BonDetailPage /> },
+      { path: "/materiale", element: <MaterialeListPage /> },
+      { path: "/materiale/:id", element: <MaterialDetailPage /> },
     ],
   },
 ]);
