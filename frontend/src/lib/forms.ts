@@ -30,3 +30,10 @@ export const formatIsoDate = (v: string | null | undefined): string => {
   const [y, m, d] = v.split("-");
   return y && m && d ? `${d}.${m}.${y}` : v;
 };
+
+/**
+ * Money as "1.234,56", the Romanian convention. The currency (lei) is named in
+ * the column header rather than repeated on every number.
+ */
+export const formatMoney = (n: number): string =>
+  n.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

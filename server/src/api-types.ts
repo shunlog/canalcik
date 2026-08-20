@@ -221,3 +221,60 @@ export interface MaterialCreateBody {
 }
 
 export type MaterialUpdateBody = Partial<MaterialCreateBody>;
+
+// ----------------------------------------------------- facturaExpeditie
+
+/**
+ * One line on a factura, as sent by the client. Lines are owned by the factura.
+ * Unlike a bon line, `nrCart` is required: the factura is where the code comes
+ * from, and matching a bon against it is the whole point of storing one.
+ */
+export interface FacturaLine {
+  nrCart: string;
+  /**
+   * The material's name, not its id — resolved and created on the server
+   * exactly as for a bon line, so a delivery of something new can be recorded.
+   */
+  nume: string;
+  um: string;
+  cantitate: number;
+  /** Price for one `um`. */
+  pretUnitar: number;
+}
+
+/**
+ * A line as stored. As on a bon, `id` is informational only: PATCH replaces the
+ * whole set, so line ids are NOT stable across saves. `materialId` is stable.
+ */
+export interface FacturaLineOut extends FacturaLine {
+  id: number;
+  materialId: number;
+}
+
+/** A factura as it appears in a list. `total` is Σ cantitate × pretUnitar. */
+export interface FacturaRef {
+  id: number;
+  data: IsoDate;
+  nrLinii: number;
+  total: number;
+}
+
+export type FacturaListItem = FacturaRef;
+
+export interface FacturaDetail {
+  id: number;
+  syncedAt: string;
+  data: IsoDate;
+  materiale: FacturaLineOut[];
+}
+
+export interface FacturaCreateBody {
+  data: IsoDate;
+  materiale: FacturaLine[];
+}
+
+export interface FacturaUpdateBody {
+  data?: IsoDate;
+  /** If present, replaces every line on the factura. If absent, lines are untouched. */
+  materiale?: FacturaLine[];
+}

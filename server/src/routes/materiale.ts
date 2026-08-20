@@ -52,12 +52,22 @@ materiale.patch("/:id", async (c) => {
   return c.json(toMaterialListItem(row));
 });
 
+// Both kinds of line pin the material (no onDelete), so both have to be clear
+// before it can go — and the message has to name whichever one is holding it,
+// or the user is sent looking through the bonuri for a line that is on a factura.
 materiale.delete("/:id", async (c) => {
   const id = parseIdParam(c);
-  const n = await db.bonEliberareMaterial.count({ where: { materialId: id } });
-  if (n > 0) {
+  const [nBonuri, nFacturi] = await Promise.all([
+    db.bonEliberareMaterial.count({ where: { materialId: id } }),
+    db.facturaExpeditieMaterial.count({ where: { materialId: id } }),
+  ]);
+  if (nBonuri > 0 || nFacturi > 0) {
+    const parts = [
+      nBonuri > 0 && `${nBonuri} ${nBonuri === 1 ? "linie de bon" : "linii de bon"}`,
+      nFacturi > 0 && `${nFacturi} ${nFacturi === 1 ? "linie de factură" : "linii de factură"}`,
+    ].filter(Boolean);
     throw hasDependents(
-      `Materialul nu poate fi șters: apare pe ${n} ${n === 1 ? "linie de bon" : "linii de bon"}. Ștergeți sau modificați întâi acele linii.`,
+      `Materialul nu poate fi șters: apare pe ${parts.join(" și ")}. Ștergeți sau modificați întâi acele linii.`,
     );
   }
   await db.materialeIntretinere.delete({ where: { id } });

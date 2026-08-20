@@ -1,11 +1,18 @@
 import { NavLink } from "@mantine/core";
-import { IconFileText, IconPackages, IconTruck, IconUsers } from "@tabler/icons-react";
+import {
+  IconFileInvoice,
+  IconFileText,
+  IconPackages,
+  IconTruck,
+  IconUsers,
+} from "@tabler/icons-react";
 import { Link, useLocation } from "react-router";
 
 const ITEMS = [
   { to: "/soferi", label: "Șoferi", icon: IconUsers },
   { to: "/vehicule", label: "Vehicule", icon: IconTruck },
   { to: "/bonuri", label: "Bonuri de eliberare", icon: IconFileText },
+  { to: "/facturi", label: "Facturi de expediție", icon: IconFileInvoice },
   { to: "/materiale", label: "Materiale de întreținere", icon: IconPackages },
 ];
 

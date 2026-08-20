@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import type {
   BonDetail,
   BonRef,
+  FacturaDetail,
+  FacturaRef,
   MaterialDetail,
   MaterialListItem,
   SoferDetail,
@@ -242,4 +244,60 @@ export const toMaterialDetail = ({
   ...m,
   syncedAt: syncedAt.toISOString(),
   utilizari: bonuri.map(({ id, bon, ...line }) => ({ lineId: id, bon: toBonRef(bon), ...line })),
+});
+
+// ----------------------------------------------------- facturaExpeditie
+
+// The lines are read just to total the factura: an invoice is read by its value
+// as much as by its date, and the total is per line (cantitate × pretUnitar),
+// so there is no column to sum in SQL.
+export const facturaRefSelect = {
+  id: true,
+  data: true,
+  _count: { select: { materiale: true } },
+  materiale: { select: { cantitate: true, pretUnitar: true } },
+} satisfies Prisma.FacturaExpeditieSelect;
+
+type FacturaRefRow = Prisma.FacturaExpeditieGetPayload<{ select: typeof facturaRefSelect }>;
+
+/** Money, from a sum of floats — rounded so 20.000000000000004 never ships. */
+const toBani = (n: number) => Math.round(n * 100) / 100;
+
+export const toFacturaRef = (r: FacturaRefRow): FacturaRef => ({
+  id: r.id,
+  data: r.data,
+  nrLinii: r._count.materiale,
+  total: toBani(r.materiale.reduce((sum, m) => sum + m.cantitate * m.pretUnitar, 0)),
+});
+
+export const facturaDetailSelect = {
+  id: true,
+  syncedAt: true,
+  data: true,
+  materiale: {
+    select: {
+      id: true,
+      materialId: true,
+      material: { select: { nume: true } },
+      nrCart: true,
+      um: true,
+      cantitate: true,
+      pretUnitar: true,
+    },
+    orderBy: { id: "asc" },
+  },
+} satisfies Prisma.FacturaExpeditieSelect;
+
+type FacturaDetailRow = Prisma.FacturaExpeditieGetPayload<{ select: typeof facturaDetailSelect }>;
+
+// Flattened the same way as a bon line, and for the same reason: the client
+// edits lines by name and never holds an id for a material that doesn't exist yet.
+export const toFacturaDetail = ({
+  syncedAt,
+  materiale,
+  ...f
+}: FacturaDetailRow): FacturaDetail => ({
+  ...f,
+  syncedAt: syncedAt.toISOString(),
+  materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
 });

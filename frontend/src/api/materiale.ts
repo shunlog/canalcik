@@ -6,7 +6,7 @@ import type {
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, query } from "../lib/api.ts";
-import { bonKeys, materialKeys } from "./keys.ts";
+import { bonKeys, facturaKeys, materialKeys } from "./keys.ts";
 
 export function useMateriale(q = "") {
   return useQuery({
@@ -39,9 +39,10 @@ export function useUpdateMaterial(id: number) {
     onSuccess: () => {
       // `all` is a prefix of `detail`, so this covers the detail query too.
       void qc.invalidateQueries({ queryKey: materialKeys.all });
-      // A rename shows up on every bon line pointing here, so their cached
-      // detail responses are now wrong.
+      // A rename shows up on every bon and factura line pointing here, so their
+      // cached detail responses are now wrong.
       void qc.invalidateQueries({ queryKey: bonKeys.all });
+      void qc.invalidateQueries({ queryKey: facturaKeys.all });
     },
   });
 }
@@ -49,8 +50,8 @@ export function useUpdateMaterial(id: number) {
 export function useDeleteMaterial(id: number) {
   const qc = useQueryClient();
   return useMutation({
-    // A material still on a bon line is refused with a 409 naming the count,
-    // so no bon cache can go stale here — nothing was deleted.
+    // A material still on a bon or factura line is refused with a 409 naming the
+    // counts, so no other cache can go stale here — nothing was deleted.
     mutationFn: () => api.del(`/materiale/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: materialKeys.all }),
   });

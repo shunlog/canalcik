@@ -24,3 +24,9 @@ export const materialKeys = {
   list: (q: string) => ["materiale", "list", q] as const,
   detail: (id: number) => ["materiale", "detail", id] as const,
 };
+
+export const facturaKeys = {
+  all: ["facturi"] as const,
+  list: (filters: string) => ["facturi", "list", filters] as const,
+  detail: (id: number) => ["facturi", "detail", id] as const,
+};

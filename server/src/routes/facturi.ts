@@ -1,0 +1,81 @@
+import { Hono } from "hono";
+import { db } from "../db.ts";
+import {
+  facturaDetailSelect,
+  facturaRefSelect,
+  toFacturaDetail,
+  toFacturaRef,
+} from "../dto.ts";
+import { notFound } from "../http/errors.ts";
+import { parseIdParam, readJson } from "../http/read.ts";
+import { facturaCreate, facturaUpdate, type FacturaLineInput } from "../schemas/factura.ts";
+
+export const facturi = new Hono();
+
+/**
+ * Lines arrive carrying the material's *name*, so a delivery of something the
+ * catalogue has never seen can still be recorded. connectOrCreate resolves the
+ * name to a MaterialeIntretinere row inside the same transaction as the
+ * factura — see the longer note on the identical helper in routes/bonuri.ts.
+ */
+const toLineCreate = (lines: FacturaLineInput[]) =>
+  lines.map(({ nume, ...line }) => ({
+    ...line,
+    material: { connectOrCreate: { where: { nume }, create: { nume } } },
+  }));
+
+facturi.get("/", async (c) => {
+  const from = c.req.query("from")?.trim() || undefined;
+  const to = c.req.query("to")?.trim() || undefined;
+
+  const rows = await db.facturaExpeditie.findMany({
+    // `data` is a "YYYY-MM-DD" string, which sorts and compares
+    // chronologically as text — that is why the column is a string.
+    where: { data: from || to ? { gte: from, lte: to } : undefined },
+    select: facturaRefSelect,
+    orderBy: [{ data: "desc" }, { id: "desc" }],
+  });
+  return c.json(rows.map(toFacturaRef));
+});
+
+facturi.post("/", async (c) => {
+  const { materiale, ...scalars } = await readJson(c, facturaCreate);
+
+  const row = await db.facturaExpeditie.create({
+    data: { ...scalars, materiale: { create: toLineCreate(materiale) } },
+    select: facturaDetailSelect,
+  });
+  return c.json(toFacturaDetail(row), 201);
+});
+
+facturi.get("/:id", async (c) => {
+  const row = await db.facturaExpeditie.findUnique({
+    where: { id: parseIdParam(c) },
+    select: facturaDetailSelect,
+  });
+  if (!row) throw notFound("Factura");
+  return c.json(toFacturaDetail(row));
+});
+
+facturi.patch("/:id", async (c) => {
+  const { materiale, ...scalars } = await readJson(c, facturaUpdate);
+
+  const row = await db.facturaExpeditie.update({
+    where: { id: parseIdParam(c) },
+    data: {
+      ...scalars, // undefined keys stay untouched
+      // The lines are owned by the factura and nothing references their ids, so
+      // the set is replaced wholesale, in one transaction — same trade-off as on
+      // a bon: line ids are NOT stable across saves.
+      ...(materiale ? { materiale: { deleteMany: {}, create: toLineCreate(materiale) } } : {}),
+    },
+    select: facturaDetailSelect,
+  });
+  return c.json(toFacturaDetail(row));
+});
+
+facturi.delete("/:id", async (c) => {
+  // FacturaExpeditieMaterial is onDelete: Cascade, so the lines go with it.
+  await db.facturaExpeditie.delete({ where: { id: parseIdParam(c) } });
+  return c.body(null, 204);
+});

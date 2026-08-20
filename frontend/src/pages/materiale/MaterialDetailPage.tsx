@@ -62,7 +62,7 @@ export function MaterialDetailPage() {
                   Înapoi
                 </Button>
                 <DeleteButton
-                  confirmText={`Ștergeți materialul „${m.nume}”? Se poate șterge doar dacă nu apare pe niciun bon.`}
+                  confirmText={`Ștergeți materialul „${m.nume}”? Se poate șterge doar dacă nu apare pe niciun bon și pe nicio factură.`}
                   backTo="/materiale"
                   loading={remove.isPending}
                   onDelete={() => remove.mutateAsync()}

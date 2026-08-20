@@ -3,6 +3,7 @@ import type { ApiErrorBody, HealthBody } from "./api-types.ts";
 import { db } from "./db.ts";
 import { onError } from "./http/onError.ts";
 import { bonuri } from "./routes/bonuri.ts";
+import { facturi } from "./routes/facturi.ts";
 import { materiale } from "./routes/materiale.ts";
 import { soferi } from "./routes/soferi.ts";
 import { vehicule } from "./routes/vehicule.ts";
@@ -26,6 +27,7 @@ app.route("/api/soferi", soferi);
 app.route("/api/vehicule", vehicule);
 app.route("/api/bonuri", bonuri);
 app.route("/api/materiale", materiale);
+app.route("/api/facturi", facturi);
 
 // No CORS middleware on purpose: in dev the browser only ever talks to Vite,
 // which proxies /api here, so everything is same-origin.
