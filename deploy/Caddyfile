@@ -1,0 +1,23 @@
+# Imported from /etc/caddy/Caddyfile. Placeholders come from
+# /etc/caddy/canalcik.env — see deploy/README.md.
+
+{$CANALCIK_DOMAIN} {
+	# /api/* goes to the Hono process; everything else is the built SPA. This
+	# mirrors the Vite dev proxy, so fetch("/api/...") works unchanged.
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8787
+	}
+
+	handle {
+		root * /srv/canalcik/frontend/dist
+		try_files {path} /index.html
+		file_server
+	}
+
+	# The API has no auth of its own; this is the only thing in front of it.
+	basic_auth {
+		arbalan {$CANALCIK_BASICAUTH_HASH}
+	}
+
+	encode gzip
+}
