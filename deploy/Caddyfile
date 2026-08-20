@@ -16,7 +16,7 @@
 
 	# The API has no auth of its own; this is the only thing in front of it.
 	basic_auth {
-		arbalan {$CANALCIK_BASICAUTH_HASH}
+		{$CANALCIK_BASICAUTH_USERNAME} {$CANALCIK_BASICAUTH_HASH}
 	}
 
 	encode gzip

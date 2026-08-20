@@ -57,6 +57,7 @@ git). Generate the hash with `caddy hash-password`:
 
 ```
 CANALCIK_DOMAIN=canalcik.example.com   # any sub-subdomain works on DuckDNS
+CANALCIK_BASICAUTH_USERNAME=example
 CANALCIK_BASICAUTH_HASH=$2a$14$...
 ```
 
