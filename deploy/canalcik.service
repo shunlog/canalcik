@@ -1,0 +1,22 @@
+# Copied (not symlinked) to /etc/systemd/system/canalcik.service — see
+# deploy/README.md; a symlink into the checkout would be canalcik-writable.
+# No EnvironmentFile: server/src/env.ts loads the repo-root .env itself.
+
+[Unit]
+Description=canalcik API (Hono)
+After=network.target
+
+[Service]
+Type=simple
+User=canalcik
+WorkingDirectory=/srv/canalcik
+ExecStart=/usr/bin/env pnpm --filter @canalcik/server start
+Restart=always
+RestartSec=2
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
