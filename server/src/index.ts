@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 import { app } from "./app.ts";
-import { PORT } from "./env.ts";
+import { HOST, PORT } from "./env.ts";
 
-serve({ fetch: app.fetch, port: PORT }, (info) =>
-  console.log(`API canalcik: http://localhost:${info.port}`),
+serve({ fetch: app.fetch, hostname: HOST, port: PORT }, (info) =>
+  console.log(`API canalcik: http://${info.address}:${info.port}`),
 );

@@ -10,7 +10,4 @@ dist
 /test-data/
 /test-output/
 /data/
-/prisma/dev.db
 /coverage/
-
-*.db-journal
