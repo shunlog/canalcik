@@ -1,3 +1,7 @@
+// Dates are stored as "YYYY-MM-DD" ISO strings.
+// It reads chronologically in SQLite 
+// and it is what <input type="date"> reads and writes.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -53,13 +57,7 @@ model Sofer {
   marimeIncaltaminte String? // "Mărime încalțăminte"
   observatii         String? // "Observații"
 
-  // EIP (protective equipment) issue dates, as "YYYY-MM-DD" strings. These are
-  // calendar dates, not instants: DateTime would store them as a Unix
-  // timestamp and shift the day across time zones, while the ISO string sorts
-  // chronologically in SQLite and is what <input type="date"> reads and writes.
-  // The sheet's "Urm. <item>" columns are spreadsheet formulas (issue date +
-  // validity, and often #VALUE!), so they are derived at the app layer rather
-  // than stored. A blank or "NU E NEVOE" cell imports as null.
+  // EIP (protective equipment) issue dates (ISO YYYY-MM-DD)
   eipScurta          String? // "Scurtă"
   eipIncaltaminte    String? // "Încălțăminte"
   eipCostum          String? // "Costum"
@@ -76,7 +74,7 @@ model BonEliberare {
   id       Int      @id @default(autoincrement())
   syncedAt DateTime @default(now()) @updatedAt
 
-  // Calendar date as "YYYY-MM-DD", same convention as Sofer's EIP dates.
+  // Issue date (ISO "YYYY-MM-DD")
   data String
 
   soferId   Int
@@ -130,7 +128,7 @@ model FacturaExpeditie {
   id       Int      @id @default(autoincrement())
   syncedAt DateTime @default(now()) @updatedAt
 
-  // Calendar date as "YYYY-MM-DD"
+  // Calendar date (ISO "YYYY-MM-DD")
   data String
 
   materiale FacturaExpeditieMaterial[]
