@@ -67,10 +67,12 @@ export function SoferiListPage() {
                       <Table.Td>{s.telefon ?? "—"}</Table.Td>
                       <Table.Td>{formatIsoDate(s.eipScurta)}</Table.Td>
                       <Table.Td>
-                        <Badge variant="light">{s.nrVehicule}</Badge>
+                        <Badge variant="light">
+                          {s.nrVehicule}
+                        </Badge>
                       </Table.Td>
                       <Table.Td>
-                        <Badge variant="light" color="gray">
+                        <Badge variant="light">
                           {s.nrBonuri}
                         </Badge>
                       </Table.Td>

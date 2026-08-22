@@ -69,10 +69,12 @@ export function VehiculeListPage() {
                       <Table.Td>{v.nrGaraj}</Table.Td>
                       <Table.Td>{v.sector ?? "—"}</Table.Td>
                       <Table.Td>
-                        <Badge variant="light">{v.nrSoferi}</Badge>
+                        <Badge variant="light">
+                          {v.nrSoferi}
+                        </Badge>
                       </Table.Td>
                       <Table.Td>
-                        <Badge variant="light" color="gray">
+                        <Badge variant="light">
                           {v.nrBonuri}
                         </Badge>
                       </Table.Td>

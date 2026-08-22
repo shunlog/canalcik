@@ -190,7 +190,7 @@ function MaterialRow({ material }: { material: MaterialListItem }) {
         )}
       </Table.Td>
       <Table.Td>
-        <Badge variant="light" color="gray">
+        <Badge variant="light">
           {material.nrLinii}
         </Badge>
       </Table.Td>

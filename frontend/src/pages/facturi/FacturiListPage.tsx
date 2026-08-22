@@ -77,7 +77,9 @@ export function FacturiListPage() {
                         </Anchor>
                       </Table.Td>
                       <Table.Td>
-                        <Badge variant="light">{f.nrLinii}</Badge>
+                        <Badge variant="light">
+                          {f.nrLinii}
+                        </Badge>
                       </Table.Td>
                       <Table.Td>{formatMoney(f.total)}</Table.Td>
                       <Table.Td>

@@ -1,4 +1,4 @@
-import { Anchor, Button, Table, Text, Tooltip } from "@mantine/core";
+import { Anchor, Badge, Button, Table, Text, Tooltip } from "@mantine/core";
 import { Link } from "react-router";
 import { useFisaLimitaMonths, useGenereazaFisaLimita } from "../../api/fisaLimita.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
@@ -31,6 +31,7 @@ export function FisaLimitaListPage() {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Luna</Table.Th>
+                    <Table.Th w={90}>Bonuri</Table.Th>
                     <Table.Th w={130}>Factură</Table.Th>
                     <Table.Th w={170}>Document</Table.Th>
                     <Table.Th w={160} />
@@ -49,6 +50,11 @@ export function FisaLimitaListPage() {
                     return (
                       <Table.Tr key={m.luna}>
                         <Table.Td>{formatLuna(m.luna)}</Table.Td>
+                        <Table.Td>
+                          <Badge variant="light">
+                            {m.nrBonuri}
+                          </Badge>
+                        </Table.Td>
                         <Table.Td>
                           {m.factura ? (
                             <Anchor component={Link} to={`/facturi/${m.factura.id}`}>
