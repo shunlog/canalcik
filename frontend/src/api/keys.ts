@@ -35,3 +35,7 @@ export const facturaKeys = {
   list: (filters: string) => ["facturi", "list", filters] as const,
   detail: (id: number) => ["facturi", "detail", id] as const,
 };
+
+export const fisaLimitaKeys = {
+  all: ["fisaLimita"] as const,
+};

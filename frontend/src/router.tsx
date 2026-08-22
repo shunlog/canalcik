@@ -6,6 +6,7 @@ import { BonuriListPage } from "./pages/bonuri/BonuriListPage.tsx";
 import { FacturaCreatePage } from "./pages/facturi/FacturaCreatePage.tsx";
 import { FacturaDetailPage } from "./pages/facturi/FacturaDetailPage.tsx";
 import { FacturiListPage } from "./pages/facturi/FacturiListPage.tsx";
+import { FisaLimitaListPage } from "./pages/fisaLimita/FisaLimitaListPage.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
 import { MaterialDetailPage } from "./pages/materiale/MaterialDetailPage.tsx";
 import { MaterialeListPage } from "./pages/materiale/MaterialeListPage.tsx";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: "/facturi", element: <FacturiListPage /> },
       { path: "/facturi/nou", element: <FacturaCreatePage /> },
       { path: "/facturi/:id", element: <FacturaDetailPage /> },
+      { path: "/fisa-limita", element: <FisaLimitaListPage /> },
       { path: "/materiale", element: <MaterialeListPage /> },
       { path: "/materiale/:id", element: <MaterialDetailPage /> },
     ],

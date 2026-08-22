@@ -24,3 +24,7 @@ export const hasDependents = (message: string) =>
 /** Drive was never authorized or the token is dead: the UI shows the connect button. */
 export const driveNotConnected = () =>
   new ApiError(409, "DRIVE_NOT_CONNECTED", "Google Drive nu este conectat");
+
+/** data/templates/ hasn't been populated yet (run `pnpm run fetch` on the box). */
+export const templateMissing = () =>
+  new ApiError(409, "TEMPLATE_MISSING", "Șablonul nu este disponibil pe server");

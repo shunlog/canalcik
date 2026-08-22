@@ -7,6 +7,12 @@ import { fileURLToPath } from "node:url";
 // resolved from this module instead.
 config({ path: fileURLToPath(new URL("../../.env", import.meta.url)), quiet: true });
 
+// Same cwd problem as the .env path above: templateManifest.ts resolves a
+// relative default from process.cwd(), which is server/ here.
+process.env.TEMPLATES_DIR ??= fileURLToPath(
+  new URL("../../data/templates", import.meta.url),
+);
+
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL lipsește din .env-ul din rădăcina proiectului");
 }

@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import type { ZodType } from "zod";
+import { isoMonth } from "../schemas/common.ts";
 import { ApiError } from "./errors.ts";
 
 /**
@@ -21,6 +22,20 @@ export function parseIdParam(c: Context, name = "id"): number {
     throw new ApiError(400, "VALIDATION", `Parametrul "${name}" nu este un id valid`);
   }
   return n;
+}
+
+/**
+ * Parses the `:luna` route param, "YYYY-MM". Not just `isoMonth.parse` inline:
+ * a ZodError from a bare string has `issue.path === []`, i.e. a `fields` key
+ * of `""`, which is useless to the client.
+ */
+export function parseLunaParam(c: Context, name = "luna"): string {
+  const raw = c.req.param(name);
+  const result = isoMonth.safeParse(raw);
+  if (!result.success) {
+    throw new ApiError(400, "VALIDATION", `Parametrul "${name}" nu este o lună validă`);
+  }
+  return result.data;
 }
 
 /** A positive-integer query param, or undefined when absent/blank. */

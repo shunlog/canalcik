@@ -4,6 +4,7 @@ import type {
   BonRef,
   FacturaDetail,
   FacturaRef,
+  FisaLimitaDocRef,
   MaterialDetail,
   MaterialListItem,
   SoferDetail,
@@ -300,4 +301,19 @@ export const toFacturaDetail = ({
   ...f,
   syncedAt: syncedAt.toISOString(),
   materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
+});
+
+// ------------------------------------------------------------- fisaLimitaDoc
+
+export const fisaLimitaDocSelect = {
+  nume: true,
+  driveUrl: true,
+  createdAt: true,
+} satisfies Prisma.GeneratedDocumentSelect;
+
+type FisaLimitaDocRow = Prisma.GeneratedDocumentGetPayload<{ select: typeof fisaLimitaDocSelect }>;
+
+export const toFisaLimitaDocRef = ({ createdAt, ...d }: FisaLimitaDocRow): FisaLimitaDocRef => ({
+  ...d,
+  createdAt: createdAt.toISOString(),
 });

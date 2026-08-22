@@ -6,11 +6,29 @@ import {
   toFacturaDetail,
   toFacturaRef,
 } from "../dto.ts";
-import { notFound } from "../http/errors.ts";
+import { ApiError, notFound } from "../http/errors.ts";
 import { parseIdParam, readJson } from "../http/read.ts";
 import { facturaCreate, facturaUpdate, type FacturaLineInput } from "../schemas/factura.ts";
 
 export const facturi = new Hono();
+
+/**
+ * Pre-checked here for a message the operator can act on; `luna`'s `@unique`
+ * in the schema is the race backstop, not the primary guard.
+ */
+async function checkLunaUnica(luna: string, excludeId?: number) {
+  const existing = await db.facturaExpeditie.findFirst({
+    where: { luna, ...(excludeId !== undefined ? { id: { not: excludeId } } : {}) },
+  });
+  if (existing) {
+    throw new ApiError(
+      409,
+      "DUPLICATE",
+      `Există deja o factură de expediție pentru luna ${luna}`,
+      { data: "Există deja o factură pentru această lună" },
+    );
+  }
+}
 
 /**
  * Lines arrive carrying the material's *name*, so a delivery of something the
@@ -40,9 +58,11 @@ facturi.get("/", async (c) => {
 
 facturi.post("/", async (c) => {
   const { materiale, ...scalars } = await readJson(c, facturaCreate);
+  const luna = scalars.data.slice(0, 7);
+  await checkLunaUnica(luna);
 
   const row = await db.facturaExpeditie.create({
-    data: { ...scalars, materiale: { create: toLineCreate(materiale) } },
+    data: { ...scalars, luna, materiale: { create: toLineCreate(materiale) } },
     select: facturaDetailSelect,
   });
   return c.json(toFacturaDetail(row), 201);
@@ -58,12 +78,16 @@ facturi.get("/:id", async (c) => {
 });
 
 facturi.patch("/:id", async (c) => {
+  const id = parseIdParam(c);
   const { materiale, ...scalars } = await readJson(c, facturaUpdate);
+  const luna = scalars.data !== undefined ? scalars.data.slice(0, 7) : undefined;
+  if (luna !== undefined) await checkLunaUnica(luna, id);
 
   const row = await db.facturaExpeditie.update({
-    where: { id: parseIdParam(c) },
+    where: { id },
     data: {
       ...scalars, // undefined keys stay untouched
+      ...(luna !== undefined ? { luna } : {}),
       // The lines are owned by the factura and nothing references their ids, so
       // the set is replaced wholesale, in one transaction — same trade-off as on
       // a bon: line ids are NOT stable across saves.

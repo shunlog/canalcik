@@ -1,6 +1,12 @@
 import { Readable } from "node:stream";
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import { FOLDER_MIME, findOrCreateFolder, resetFolderCache, uploadBuffer } from "./drive.ts";
+import {
+  FOLDER_MIME,
+  findOrCreateChildFolder,
+  findOrCreateFolder,
+  resetFolderCache,
+  uploadBuffer,
+} from "./drive.ts";
 
 // googleAuth.ts reads token.json via import.meta.url, which @swc/jest can't
 // transpile to CommonJS — and the tests must not touch a real token anyway. The
@@ -148,5 +154,62 @@ describe("findOrCreateFolder", () => {
     const { drive, list } = fakeDrive({ create: { data: { id: "d3" } } });
     await findOrCreateFolder("it's mine", drive);
     expect((list.calls[0] as { q: string }).q).toContain("name = 'it\\'s mine'");
+  });
+});
+
+describe("findOrCreateChildFolder", () => {
+  test("returns an existing child folder without creating one", async () => {
+    const { drive, list, create } = fakeDrive({
+      list: {
+        data: { files: [{ id: "c1", name: "fisa_limita", webViewLink: "https://drive/c1" }] },
+      },
+    });
+
+    const folder = await findOrCreateChildFolder("fisa_limita", "parent-1", drive);
+
+    expect(folder).toEqual({ id: "c1", name: "fisa_limita", webViewLink: "https://drive/c1" });
+    expect(create.calls).toHaveLength(0);
+    const q = (list.calls[0] as { q: string }).q;
+    expect(q).toContain(`mimeType = '${FOLDER_MIME}'`);
+    expect(q).toContain("'parent-1' in parents");
+  });
+
+  test("creates the child folder inside the parent when the search comes back empty", async () => {
+    const { drive, create } = fakeDrive({
+      list: { data: { files: [] } },
+      create: { data: { id: "c2", name: "fisa_limita" } },
+    });
+
+    const folder = await findOrCreateChildFolder("fisa_limita", "parent-1", drive);
+
+    expect((create.calls[0] as { requestBody: unknown }).requestBody).toEqual({
+      name: "fisa_limita",
+      mimeType: FOLDER_MIME,
+      parents: ["parent-1"],
+    });
+    expect(folder.webViewLink).toBe("https://drive.google.com/drive/folders/c2");
+  });
+
+  test("memoizes per parent+name, so a second call for the same pair hits no API", async () => {
+    const { drive, list } = fakeDrive({
+      list: { data: { files: [{ id: "c1", name: "fisa_limita" }] } },
+    });
+
+    await findOrCreateChildFolder("fisa_limita", "parent-1", drive);
+    await findOrCreateChildFolder("fisa_limita", "parent-1", drive);
+
+    expect(list.calls).toHaveLength(1);
+  });
+
+  test("resetFolderCache also clears child-folder memoization", async () => {
+    const { drive, list } = fakeDrive({
+      list: { data: { files: [{ id: "c1", name: "fisa_limita" }] } },
+    });
+
+    await findOrCreateChildFolder("fisa_limita", "parent-1", drive);
+    resetFolderCache();
+    await findOrCreateChildFolder("fisa_limita", "parent-1", drive);
+
+    expect(list.calls).toHaveLength(2);
   });
 });

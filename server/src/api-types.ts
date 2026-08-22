@@ -8,6 +8,9 @@
 /** A calendar date, "YYYY-MM-DD". Never an instant — see the comment in schema.prisma. */
 export type IsoDate = string;
 
+/** A calendar month, "YYYY-MM". */
+export type IsoMonth = string;
+
 export type ApiErrorCode =
   | "VALIDATION"
   | "BAD_JSON"
@@ -17,6 +20,8 @@ export type ApiErrorCode =
   | "HAS_DEPENDENTS"
   /** Google Drive was never authorized, or the token is dead — see routes/drive.ts. */
   | "DRIVE_NOT_CONNECTED"
+  /** data/templates/ has not been fetched from Drive yet — see routes/fisaLimita.ts. */
+  | "TEMPLATE_MISSING"
   | "INTERNAL";
 
 export interface ApiErrorBody {
@@ -300,4 +305,25 @@ export interface FacturaUpdateBody {
   data?: IsoDate;
   /** If present, replaces every line on the factura. If absent, lines are untouched. */
   materiale?: FacturaLine[];
+}
+
+// ------------------------------------------------------------- fisa limita
+
+/** A generated document as it points at a Drive file. */
+export interface FisaLimitaDocRef {
+  nume: string;
+  driveUrl: string;
+  createdAt: string;
+}
+
+/**
+ * One row of the "fisa limita" month list. `luna` carries the raw "YYYY-MM";
+ * the client formats it, the same split as `data`/`formatIsoDate` everywhere
+ * else.
+ */
+export interface FisaLimitaMonth {
+  luna: IsoMonth;
+  nrBonuri: number;
+  factura: { id: number; data: IsoDate } | null;
+  document: FisaLimitaDocRef | null;
 }

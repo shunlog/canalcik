@@ -3,7 +3,11 @@ import path from "node:path";
 
 // Template .docx files live here, put there by `pnpm run fetch` (or manually).
 // This is runtime data, kept out of the source tree and gitignored — see .gitignore.
-export const TEMPLATES_DIR = path.resolve("data/templates");
+// A function, not a const: the server's cwd is server/ (started via `pnpm
+// --filter`), so a value snapshotted at import time would resolve relative to
+// the wrong directory. Override with TEMPLATES_DIR (see server/src/env.ts).
+export const templatesDir = () =>
+  process.env.TEMPLATES_DIR ?? path.resolve("data/templates");
 
 // "docx" templates are native Google Docs, "xlsx" are native Google Sheets;
 // both are exported to the matching Office format on fetch (see driveTemplates).
@@ -22,7 +26,7 @@ export const TEMPLATES = {
 
 export function templatePath(spec: TemplateSpec): string {
   const ext = spec.kind ?? "docx";
-  return path.join(TEMPLATES_DIR, `${spec.driveName}.${ext}`);
+  return path.join(templatesDir(), `${spec.driveName}.${ext}`);
 }
 
 // Reads a template from templates/. Throws a clear error if it's missing — the

@@ -81,6 +81,7 @@ pnpm install --frozen-lockfile      # not --prod: tsx and prisma are dev deps
 sqlite3 data/prod.db ".backup data/backups/$(date +%F-%H%M).db"
 pnpm exec prisma generate
 pnpm exec prisma migrate deploy     # never `migrate dev` — it can reset the DB
+pnpm run fetch                      # (re)populates data/templates/, gitignored
 pnpm build
 sudo systemctl restart canalcik
 ```

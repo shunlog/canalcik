@@ -54,10 +54,12 @@ const folderLink = (id: string, webViewLink?: string | null) =>
   webViewLink ?? `https://drive.google.com/drive/folders/${id}`;
 
 let cachedFolder: DriveFolder | null = null;
+const cachedChildFolders = new Map<string, DriveFolder>();
 
-/** Forgets the memoized folder — call after the credentials change. */
+/** Forgets the memoized folders — call after the credentials change. */
 export function resetFolderCache(): void {
   cachedFolder = null;
+  cachedChildFolders.clear();
 }
 
 /**
@@ -118,6 +120,61 @@ export async function findOrCreateFolder(
     webViewLink: folderLink(created.data.id, created.data.webViewLink),
   };
   return cachedFolder;
+}
+
+/** The subfolder generated "fisa limita" documents are uploaded into. */
+export const FISA_LIMITA_FOLDER = "fisa_limita";
+
+/**
+ * Resolves a subfolder of `parentId` by name, creating it on first use. Keyed
+ * by `${parentId}/${name}` since, unlike the app's root folder, there can be
+ * more than one of these.
+ *
+ * Note on scopes: the name search only sees a hand-made folder because
+ * scripts/auth.ts also requests drive.readonly. Under drive.file alone,
+ * files.list returns nothing but app-created files, so the first run would
+ * create its own folder instead of finding an existing one.
+ */
+export async function findOrCreateChildFolder(
+  name: string,
+  parentId: string,
+  client?: drive_v3.Drive,
+): Promise<DriveFolder> {
+  const cacheKey = `${parentId}/${name}`;
+  const cached = cachedChildFolders.get(cacheKey);
+  if (cached) return cached;
+  const drive = client ?? driveClient();
+
+  const list = await drive.files.list({
+    q: `mimeType = '${FOLDER_MIME}' and name = '${escapeQueryValue(name)}' and '${parentId}' in parents and trashed = false`,
+    fields: "files(id,name,webViewLink)",
+    pageSize: 1,
+  });
+
+  const found = list.data.files?.[0];
+  if (found?.id) {
+    const folder = {
+      id: found.id,
+      name: found.name ?? name,
+      webViewLink: folderLink(found.id, found.webViewLink),
+    };
+    cachedChildFolders.set(cacheKey, folder);
+    return folder;
+  }
+
+  const created = await drive.files.create({
+    requestBody: { name, mimeType: FOLDER_MIME, parents: [parentId] },
+    fields: "id,name,webViewLink",
+  });
+  if (!created.data.id) throw new Error(`Nu s-a putut crea folderul "${name}" pe Drive`);
+
+  const folder = {
+    id: created.data.id,
+    name: created.data.name ?? name,
+    webViewLink: folderLink(created.data.id, created.data.webViewLink),
+  };
+  cachedChildFolders.set(cacheKey, folder);
+  return folder;
 }
 
 /**

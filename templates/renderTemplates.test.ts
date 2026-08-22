@@ -133,7 +133,6 @@ const fisaRow = (data: string, nr_cart: string, nume: string) => ({
   data,
   nr_cart,
   nume,
-  nr: 1,
   unit: "l",
   cant: "10",
   pret_lei: "20",

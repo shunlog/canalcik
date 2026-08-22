@@ -71,7 +71,6 @@ export type DataFisaLimitaSheet = {
     nr_cart: string; // "Nr. cartelei": material code, e.g. "2111121795" 
     // "cod nomenclator" from the bill "Factura de expeditie", not the internal one
     nume: string; // material name, e.g. "Bara reactiva K-3 MAZ 5337"
-    nr: Num; // placeholder
     unit: string; // measurement unit, e.g. "l", "buc"
     cant: Num; // quantity
     pret_lei: Num; // unit price, lei part

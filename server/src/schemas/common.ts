@@ -22,6 +22,11 @@ export const isoDate = z
     );
   }, "Dată inexistentă");
 
+/** A calendar month, "YYYY-MM". */
+export const isoMonth = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Format așteptat: AAAA-LL");
+
 // A cleared input arrives as "" (or as an omitted key); both mean "no value",
 // i.e. NULL. Normalising here is what keeps empty strings out of SQLite.
 export const nullableText = z

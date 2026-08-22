@@ -131,6 +131,10 @@ model FacturaExpeditie {
   // Calendar date (ISO "YYYY-MM-DD")
   data String
 
+  // "YYYY-MM", derived from `data`. Enforces one factura per month at the DB
+  // level and makes "the factura for month X" an index hit.
+  luna String @unique
+
   materiale FacturaExpeditieMaterial[]
 }
 
@@ -153,4 +157,32 @@ model FacturaExpeditieMaterial {
   um         String // "L", "KG"
   cantitate  Float
   pretUnitar Float // price for one `um`
+}
+
+// A file the app generated and uploaded to Drive — the record of what was
+// produced, independent of which document type it is. On re-generate the row
+// is updated in place, so it always describes the file it currently points
+// at (never an orphaned second row referencing nothing).
+model GeneratedDocument {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  kind String // e.g. "fisaLimita"
+  nume String // Drive file name
+
+  driveFileId String @unique
+  driveUrl    String
+
+  fisaLimita FisaLimitaDoc?
+}
+
+// One month's "fisa limita" — at most one per month, re-generation updates
+// the same row.
+model FisaLimitaDoc {
+  id Int @id @default(autoincrement())
+
+  luna String @unique // "YYYY-MM"
+
+  documentId Int               @unique
+  document   GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
