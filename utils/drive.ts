@@ -177,10 +177,36 @@ export async function findOrCreateChildFolder(
   return folder;
 }
 
+/** Splits "name.ext" into its base and extension (with the dot); no dot means an empty extension. */
+function splitExt(name: string): { base: string; ext: string } {
+  const i = name.lastIndexOf(".");
+  return i <= 0 ? { base: name, ext: "" } : { base: name.slice(0, i), ext: name.slice(i) };
+}
+
+/**
+ * Finds a name that doesn't collide with an existing file in `folderId`,
+ * appending " (1)", " (2)", etc. before the extension as needed.
+ */
+async function uniqueFileName(name: string, folderId: string, drive: drive_v3.Drive): Promise<string> {
+  const { base, ext } = splitExt(name);
+  const list = await drive.files.list({
+    q: `'${folderId}' in parents and trashed = false and name contains '${escapeQueryValue(base)}'`,
+    fields: "files(name)",
+    pageSize: 1000,
+  });
+  const existing = new Set(list.data.files?.map((f) => f.name) ?? []);
+  if (!existing.has(name)) return name;
+
+  let i = 1;
+  while (existing.has(`${base} (${i})${ext}`)) i++;
+  return `${base} (${i})${ext}`;
+}
+
 /**
  * Uploads a Buffer as a new file in `folderId`. The rendering pipeline in
  * templates/ produces Buffers, never paths, so this is the shape everything
- * uploads through.
+ * uploads through. If a file with the same name already exists in the
+ * folder, a "(1)"-style suffix is appended before the extension.
  */
 export async function uploadBuffer(opts: {
   buffer: Buffer;
@@ -192,8 +218,9 @@ export async function uploadBuffer(opts: {
   drive?: drive_v3.Drive;
 }): Promise<DriveFile> {
   const drive = opts.drive ?? driveClient(opts.auth);
+  const name = await uniqueFileName(opts.name, opts.folderId, drive);
   const res = await drive.files.create({
-    requestBody: { name: opts.name, parents: [opts.folderId] },
+    requestBody: { name, parents: [opts.folderId] },
     media: {
       mimeType: opts.mimeType,
       // googleapis wants a stream or a string here; a raw Buffer is uploaded
@@ -203,10 +230,10 @@ export async function uploadBuffer(opts: {
     fields: "id,name,webViewLink",
   });
 
-  if (!res.data.id) throw new Error(`Încărcarea "${opts.name}" pe Drive a eșuat`);
+  if (!res.data.id) throw new Error(`Încărcarea "${name}" pe Drive a eșuat`);
   return {
     id: res.data.id,
-    name: res.data.name ?? opts.name,
+    name: res.data.name ?? name,
     webViewLink: res.data.webViewLink ?? `https://drive.google.com/file/d/${res.data.id}/view`,
   };
 }
