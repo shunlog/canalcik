@@ -1,11 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
+import PizZip from "pizzip";
 import { describe, it, expect, beforeAll } from "@jest/globals";
 import {
   renderComandaMateriale,
   type DataComandaMateriale,
   renderActDefectiune,
   type DataActDefectiune,
+  type DataFisaLimitaSheet,
   renderFisaLimita,
   type DataFisaLimita,
 } from "./renderTemplates.ts";
@@ -140,7 +142,7 @@ const fisaRow = (data: string, nr_cart: string, nume: string) => ({
   suma_bani: "00",
 });
 
-const FISA_DATA: DataFisaLimita = {
+const FISA_SHEET_DATA: DataFisaLimitaSheet = {
   nr_inregistrare: "CBE 276",
   nume_sofer: "Celpan Ion",
   cod_sofer: "4984",
@@ -151,27 +153,43 @@ const FISA_DATA: DataFisaLimita = {
   ],
 };
 
+const FISA_DATA: DataFisaLimita = [
+  FISA_SHEET_DATA,
+  {
+    ...FISA_SHEET_DATA,
+    nr_inregistrare: "CBE 277",
+    nume_sofer: "Rusu Maria",
+    cod_sofer: "1111",
+  },
+];
+
 describe("renderFisaLimita", () => {
-  // Loaded lazily (not at describe-body time like the docx template) so a
-  // not-yet-fetched template fails only these tests, not the whole file.
   let template: Buffer;
 
   beforeAll(() => {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     template = loadTemplate(TEMPLATES.fisaLimita);
   });
 
-  it("returns a non-empty Buffer for valid data", () => {
+  it("creates one populated worksheet per fisa", () => {
     const buf = renderFisaLimita(template, FISA_DATA);
-    expect(Buffer.isBuffer(buf)).toBe(true);
-    expect(buf.length).toBeGreaterThan(0);
+    const zip = new PizZip(buf);
+    const workbook = zip.file("xl/workbook.xml")?.asText() ?? "";
+    const rendered = [
+      zip.file("xl/sharedStrings.xml")?.asText() ?? "",
+      ...zip.file(/^xl\/worksheets\/.*\.xml$/).map((file) => file.asText()),
+    ].join("");
+
+    expect(workbook).toContain('name="CBE 276-Celpan Ion"');
+    expect(workbook).toContain('name="CBE 277-Rusu Maria"');
+    expect(workbook.match(/<sheet\b/g)).toHaveLength(2);
+    expect(rendered).toContain("Celpan Ion");
+    expect(rendered).toContain("Rusu Maria");
   });
 
   it(`writes to ${OUTPUT_DIR} for visual inspection`, () => {
-    const outPath = path.join(OUTPUT_DIR, "fisa_limita_1.xlsx");
+    const outPath = path.join(OUTPUT_DIR, "fisa_limita.xlsx");
     fs.writeFileSync(outPath, renderFisaLimita(template, FISA_DATA));
     expect(fs.statSync(outPath).size).toBeGreaterThan(0);
     console.log(`Wrote ${outPath}`);
   });
-
 });

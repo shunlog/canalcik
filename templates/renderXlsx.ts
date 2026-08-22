@@ -26,6 +26,54 @@ export function renderXlsxBuf(
   data: Record<string, any>,
   sheet: string | number = 1,
 ): Buffer {
+  // xlsx-template mutates the buffer it's given, so hand it a private copy —
+  // the caller may render the same template more than once.
+  const template = new XlsxTemplate(Buffer.from(templateBuf));
+  renderXlsxSheet(template, templateBuf, data, sheet);
+  return template.generate({ type: "nodebuffer" }) as Buffer;
+}
+
+// Renders one copy of the template's first worksheet for each data item. The
+// source worksheet is removed from the result, so every tab is a filled-in
+// sheet rather than an unrendered template tab. Sheet names come from `name`;
+// callers must provide one valid, unique Excel worksheet name per item.
+export function renderXlsxTabs(
+  templateBuf: Buffer,
+  tabs: ReadonlyArray<{ name: string; data: Record<string, any> }>,
+): Buffer {
+  if (tabs.length === 0) {
+    throw new Error("Cannot render an XLSX workbook without tabs");
+  }
+
+  // copySheet() preserves the complete worksheet structure (styles, merged
+  // cells, print settings and sheet relationships), unlike recreating cells
+  // in a new workbook would. Copy before substituting so every tab starts from
+  // the untouched placeholder sheet.
+  const template = new XlsxTemplate(Buffer.from(templateBuf));
+  for (const { name } of tabs) template.copySheet(1, name);
+  template.deleteSheet(1);
+
+  for (const [index, { data }] of tabs.entries()) {
+    renderXlsxSheet(template, templateBuf, data, index + 1);
+  }
+  return template.generate({ type: "nodebuffer" }) as Buffer;
+}
+
+// Shared rendering step for the public single-sheet and multi-tab APIs.
+// Validation always reads the original source template: after a sheet has been
+// rendered its placeholders no longer exist, but each data item must still be
+// checked against the same template contract.
+function renderXlsxSheet(
+  template: XlsxTemplate,
+  sourceTemplate: Buffer,
+  data: Record<string, any>,
+  sheet: string | number,
+): void {
+  validateXlsxData(sourceTemplate, data);
+  template.substitute(sheet, data);
+}
+
+function validateXlsxData(templateBuf: Buffer, data: Record<string, any>): void {
   const placeholders = readPlaceholders(templateBuf);
   const missing = findMissingValues(placeholders, data);
   if (missing.length > 0) {
@@ -35,11 +83,6 @@ export function renderXlsxBuf(
   if (unused.length > 0) {
     throw new Error(`Unused data values: ${unused.join(", ")}`);
   }
-  // xlsx-template mutates the buffer it's given, so hand it a private copy —
-  // the caller may render the same template more than once.
-  const template = new XlsxTemplate(Buffer.from(templateBuf));
-  template.substitute(sheet, data);
-  return template.generate({ type: "nodebuffer" }) as Buffer;
 }
 
 // Reads every placeholder expression (the text between ${ and }) out of the

@@ -1,5 +1,5 @@
 import { renderDocxBuf } from "./renderDocx.ts";
-import { renderXlsxBuf } from "./renderXlsx.ts";
+import { renderXlsxBuf, renderXlsxTabs } from "./renderXlsx.ts";
 
 // --- Data types (one per template; the module's contract) --------------------
 
@@ -60,7 +60,7 @@ export type DataActDefectiune = {
 // numbers).
 type Num = string | number;
 
-export type DataFisaLimita = {
+export type DataFisaLimitaSheet = {
   nr_inregistrare: string; // "Nr inregistrare": registration nr, e.g. "CBE 276"
   nume_sofer: string; // "Numele soferului": driver full name, e.g. "Celpan Ion"
   cod_sofer: string; // "Nr. soferului": driver code, e.g. "4984"
@@ -81,6 +81,8 @@ export type DataFisaLimita = {
   }>;
 };
 
+export type DataFisaLimita = Array<DataFisaLimitaSheet>;
+
 // --- Public API --------------------------------------------------------------
 
 export function renderComandaMateriale(
@@ -97,9 +99,45 @@ export function renderActDefectiune(
   return renderDocxBuf(template, data);
 }
 
+// Renders a spreadsheet with multiple tabs named "<registration plate>-<driver name>"
+// it is normalized to Excel's naming rules and made unique if necessary.
 export function renderFisaLimita(
   template: Buffer,
   data: DataFisaLimita,
 ): Buffer {
-  return renderXlsxBuf(template, data);
+  const names = fisaLimitaTabNames(data);
+  return renderXlsxTabs(
+    template,
+    data.map((fisa, index) => ({
+      name: names[index],
+      data: fisa,
+    })),
+  );
+}
+
+function fisaLimitaTabNames(data: DataFisaLimita): string[] {
+  const used = new Set<string>();
+  return data.map((fisa, index) => {
+    const base = (
+      fisa.nr_inregistrare.trim() && fisa.nume_sofer.trim()
+        ? `${fisa.nr_inregistrare}-${fisa.nume_sofer}`
+        : `Fisa ${index + 1}`
+    )
+      .replace(/[\\/*?:\[\]]/g, "-")
+      .replace(/^'+|'+$/g, "")
+      .slice(0, 31) || `Fisa ${index + 1}`;
+    if (!used.has(base.toLocaleLowerCase())) {
+      used.add(base.toLocaleLowerCase());
+      return base;
+    }
+
+    let suffix = 2;
+    let name = base;
+    do {
+      const ending = ` (${suffix++})`;
+      name = `${base.slice(0, 31 - ending.length)}${ending}`;
+    } while (used.has(name.toLocaleLowerCase()));
+    used.add(name.toLocaleLowerCase());
+    return name;
+  });
 }
