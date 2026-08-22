@@ -5,17 +5,6 @@ import type { DataFisaLimita, DataFisaLimitaSheet } from "../../templates/render
 // import.meta explodes under @swc/jest). Only `import type` crosses either
 // boundary, so the route does the querying and this does the mapping.
 
-/**
- * "2026-06" -> "Iunie", from Intl rather than a hardcoded array. Verified to
- * give Ianuarie … Decembrie on Node 26. Official Node builds ship full ICU;
- * a small-icu build would fall back to English month names — worth knowing
- * since this feeds a persisted filename, not a fallback worth coding for.
- */
-export function numeLuna(luna: string): string {
-  const [y, m] = luna.split("-").map(Number) as [number, number];
-  const nume = new Date(y, m - 1, 1).toLocaleDateString("ro-RO", { month: "long" });
-  return nume.charAt(0).toUpperCase() + nume.slice(1);
-}
 
 /** "YYYY-MM" for the current day, in local time (not UTC — see todayLocalIso in frontend/src/lib/forms.ts). */
 export function lunaCurenta(): string {
@@ -49,7 +38,7 @@ export function intervalLuni(luni: string[]): string[] {
 }
 
 export function numeFisierFisaLimita(luna: string): string {
-  return `${luna}_${numeLuna(luna)}_fisa_limita.xlsx`;
+  return `${luna}_fisa_limita.xlsx`;
 }
 
 /**

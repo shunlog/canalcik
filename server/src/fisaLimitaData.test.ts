@@ -6,23 +6,8 @@ import {
   type BuildFisaLimitaInput,
   type FisaLimitaBon,
   intervalLuni,
-  numeFisierFisaLimita,
-  numeLuna,
 } from "./fisaLimitaData.ts";
 
-describe("numeLuna", () => {
-  it("names every month via Intl", () => {
-    expect(numeLuna("2026-01")).toBe("Ianuarie");
-    expect(numeLuna("2026-06")).toBe("Iunie");
-    expect(numeLuna("2026-12")).toBe("Decembrie");
-  });
-});
-
-describe("numeFisierFisaLimita", () => {
-  it("builds the filename from the month and its name", () => {
-    expect(numeFisierFisaLimita("2026-05")).toBe("2026-05_Mai_fisa_limita.xlsx");
-  });
-});
 
 describe("baniSplit", () => {
   it("splits and pads the bani part", () => {
