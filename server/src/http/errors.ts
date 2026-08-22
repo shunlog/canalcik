@@ -20,3 +20,7 @@ export const badRef = (message: string) => new ApiError(400, "BAD_REF", message)
 
 export const hasDependents = (message: string) =>
   new ApiError(409, "HAS_DEPENDENTS", message);
+
+/** Drive was never authorized or the token is dead: the UI shows the connect button. */
+export const driveNotConnected = () =>
+  new ApiError(409, "DRIVE_NOT_CONNECTED", "Google Drive nu este conectat");

@@ -15,3 +15,10 @@ if (!process.env.DATABASE_URL) {
 // in dev so does Vite. Override with HOST=0.0.0.0 to reach dev from the LAN.
 export const HOST = process.env.HOST ?? "127.0.0.1";
 export const PORT = Number(process.env.PORT ?? 8787);
+
+// Where Google sends the browser back after consent. Left unset it is derived
+// from the incoming request's origin, which is right for both dev (the browser
+// talks to Vite on :5173, which proxies /api here) and prod behind Caddy. Set it
+// only if that guess is wrong — whatever value is used has to be registered
+// verbatim as an authorized redirect URI on the OAuth client.
+export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;

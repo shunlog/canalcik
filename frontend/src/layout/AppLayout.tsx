@@ -1,6 +1,7 @@
 import { Anchor, AppShell, Burger, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Link, Outlet } from "react-router";
+import { DriveStatus } from "./DriveStatus.tsx";
 import { NavLinks } from "./NavLinks.tsx";
 
 export function AppLayout() {
@@ -18,6 +19,7 @@ export function AppLayout() {
           <Anchor component={Link} to="/" fw={700} size="lg" underline="never" c="inherit">
             Canalcik
           </Anchor>
+          <DriveStatus />
         </Group>
       </AppShell.Header>
 

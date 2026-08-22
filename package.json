@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "auth": "tsx scripts/auth.ts",
+    "upload:drive": "tsx scripts/uploadToDrive.ts",
     "fetch": "tsx templates/fetchTemplates.ts",
     "import:flota": "tsx scripts/importFlota.ts",
     "seed:bonuri": "tsx scripts/seedBonuri.ts",

@@ -15,6 +15,8 @@ export type ApiErrorCode =
   | "NOT_FOUND"
   | "DUPLICATE"
   | "HAS_DEPENDENTS"
+  /** Google Drive was never authorized, or the token is dead — see routes/drive.ts. */
+  | "DRIVE_NOT_CONNECTED"
   | "INTERNAL";
 
 export interface ApiErrorBody {
@@ -29,6 +31,27 @@ export interface ApiErrorBody {
 export interface HealthBody {
   ok: true;
   counts: { soferi: number; vehicule: number; bonuri: number };
+}
+
+// ------------------------------------------------------------------ drive
+
+/** Why Drive isn't usable. "missing": never authorized; "revoked": token dead. */
+export type DriveDisconnectedReason = "missing" | "revoked";
+
+export interface DriveStatusBody {
+  connected: boolean;
+  /** Set when connected is false. */
+  reason?: DriveDisconnectedReason;
+  /** The Google account the stored token belongs to. */
+  email?: string;
+  /** The app folder generated documents go into. */
+  folder?: { id: string; name: string; webViewLink: string };
+}
+
+export interface DriveUploadBody {
+  id: string;
+  name: string;
+  webViewLink: string;
 }
 
 // ---------------------------------------------------------------- references

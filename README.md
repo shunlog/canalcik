@@ -36,8 +36,24 @@ Templates:
 ### Data storage
 
 The generated documents will be stored on the user's Google Drive.
-The app will have its own folder, `canalcik`.
-Everything else is stored in an Sqlite database.
+The app will have its own folder, `canalcik`: it is looked up by name on the
+authorized account and created on first use, so nothing is hardcoded per user
+(set `GOOGLE_FOLDER_ID` to pin a different folder). Everything else is stored in
+an Sqlite database.
+
+Drive access is a user OAuth token in `token.json` at the repo root — uploads
+act as the authorized Google account, which is why the folder is resolved per
+account rather than by a shared id. Authorize either way:
+
+- from the terminal, `pnpm run auth` (redirect URI `http://localhost:53682/oauth2callback`);
+- from the web app, the **Conectează Drive** button in the header, which runs the
+  same flow through `/api/drive/auth` (redirect URI
+  `http://localhost:5173/api/drive/callback` in dev, `https://<domain>/api/drive/callback`
+  in prod).
+
+Every redirect URI used has to be registered on the OAuth client in the Google
+Cloud console. `utils/drive.ts` is the single place that talks to Drive — the
+`uploadBuffer` helper takes the Buffer that `templates/` renders.
 
 ## Business model
 

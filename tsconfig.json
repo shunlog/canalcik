@@ -20,6 +20,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["templates/**/*.ts", "scripts/**/*.ts", "prisma/**/*.ts"],
+  "include": ["utils/**/*.ts", "templates/**/*.ts", "scripts/**/*.ts", "prisma/**/*.ts"],
   "exclude": ["node_modules", "coverage", "test-output", "scratch"]
 }
