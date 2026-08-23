@@ -13,9 +13,7 @@ import { materialCreate, materialUpdate } from "../schemas/material.ts";
 export const materiale = new Hono();
 
 materiale.get("/", async (c) => {
-  const q = c.req.query("q")?.trim();
   const rows = await db.materialeIntretinere.findMany({
-    where: q ? { nume: { contains: q } } : undefined,
     select: materialListSelect,
     orderBy: { nume: "asc" },
   });

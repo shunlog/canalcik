@@ -1,23 +1,26 @@
 import { Anchor, Badge, Button, Table, Text, TextInput } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconSearch } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useSoferi } from "../../api/soferi.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { formatIsoDate } from "../../lib/forms.ts";
+import { fuzzySearch } from "../../lib/search.ts";
 
 export function SoferiListPage() {
   const [search, setSearch] = useState("");
-  const [debounced] = useDebouncedValue(search, 250);
-  const query = useSoferi(debounced);
+  const query = useSoferi();
+  const soferi = useMemo(
+    () => fuzzySearch(query.data ?? [], search, [(s) => s.nume, (s) => s.cod]),
+    [query.data, search],
+  );
 
   return (
     <>
       <PageHeader
         title="Șoferi"
-        subtitle={query.data ? `${query.data.length} înregistrări` : undefined}
+        subtitle={query.data ? `${soferi.length} înregistrări` : undefined}
         actions={
           <Button component={Link} to="/soferi/nou" leftSection={<IconPlus size={16} />}>
             Șofer nou
@@ -35,7 +38,7 @@ export function SoferiListPage() {
       />
 
       <QueryBoundary query={query}>
-        {(soferi) =>
+        {() =>
           soferi.length === 0 ? (
             <Text c="dimmed">Niciun șofer găsit.</Text>
           ) : (

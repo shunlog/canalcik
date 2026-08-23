@@ -8,15 +8,7 @@ import { setVehiculeBody, soferCreate, soferUpdate } from "../schemas/sofer.ts";
 export const soferi = new Hono();
 
 soferi.get("/", async (c) => {
-  const q = c.req.query("q")?.trim();
-  // SQLite's LIKE is already case-insensitive for ASCII, and Prisma's
-  // `mode: "insensitive"` is unsupported on this provider — so a search for
-  // "ion" finds "Ion" but not "Ioan"/"IOÁN" with diacritics. Good enough here.
-  const numeric = q && /^\d+$/.test(q) ? Number(q) : undefined;
   const rows = await db.sofer.findMany({
-    where: q
-      ? { OR: [{ nume: { contains: q } }, ...(numeric === undefined ? [] : [{ cod: numeric }])] }
-      : undefined,
     select: soferListSelect,
     orderBy: { nume: "asc" },
   });

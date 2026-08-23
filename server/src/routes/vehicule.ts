@@ -13,20 +13,7 @@ import { setSoferiBody, vehiculCreate, vehiculUpdate } from "../schemas/vehicul.
 export const vehicule = new Hono();
 
 vehicule.get("/", async (c) => {
-  const q = c.req.query("q")?.trim();
-  const numeric = q && /^\d+$/.test(q) ? Number(q) : undefined;
   const rows = await db.vehicul.findMany({
-    where: q
-      ? {
-          OR: [
-            { litere: { contains: q } },
-            { cifre: { contains: q } },
-            { model: { contains: q } },
-            { tip: { contains: q } },
-            ...(numeric === undefined ? [] : [{ nrInventar: numeric }, { nrGaraj: numeric }]),
-          ],
-        }
-      : undefined,
     select: vehiculListSelect,
     orderBy: [{ litere: "asc" }, { cifre: "asc" }],
   });

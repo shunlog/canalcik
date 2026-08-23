@@ -1,5 +1,6 @@
 import { Button, Group, MultiSelect, Stack } from "@mantine/core";
 import { useEffect, useState } from "react";
+import { fuzzyOptionsFilter } from "../lib/search.ts";
 
 /**
  * Edits one side of the Sofer <-> Vehicul many-to-many. The server route
@@ -43,6 +44,7 @@ export function LinkEditor({
         onChange={setSelected}
         disabled={loading}
         searchable
+        filter={fuzzyOptionsFilter}
         clearable
         hidePickedOptions
         nothingFoundMessage="Niciun rezultat"

@@ -4,6 +4,7 @@ import type { UseFormReturnType } from "@mantine/form";
 import { useSoferi } from "../../api/soferi.ts";
 import { useVehicule } from "../../api/vehicule.ts";
 import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
+import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import { MaterialeEditor } from "./MaterialeEditor.tsx";
 import type { BonFormValues } from "./bonForm.ts";
 
@@ -27,6 +28,7 @@ export function BonFields({ form }: { form: UseFormReturnType<BonFormValues> }) 
             placeholder="Alegeți un șofer"
             withAsterisk
             searchable
+            filter={fuzzyOptionsFilter}
             nothingFoundMessage="Niciun rezultat"
             data={(soferi.data ?? []).map((s) => ({ value: String(s.id), label: soferLabel(s) }))}
             {...form.getInputProps("soferId")}
@@ -36,6 +38,7 @@ export function BonFields({ form }: { form: UseFormReturnType<BonFormValues> }) 
             placeholder="Alegeți un vehicul"
             withAsterisk
             searchable
+            filter={fuzzyOptionsFilter}
             nothingFoundMessage="Niciun rezultat"
             data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
             {...form.getInputProps("vehiculId")}

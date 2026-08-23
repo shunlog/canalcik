@@ -10,6 +10,7 @@ import { BonuriTable } from "../../components/BonuriTable.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
+import { fuzzyOptionsFilter } from "../../lib/search.ts";
 
 export function BonuriListPage() {
   const [soferId, setSoferId] = useState<string | null>(null);
@@ -51,6 +52,7 @@ export function BonuriListPage() {
           placeholder="Toți"
           searchable
           clearable
+          filter={fuzzyOptionsFilter}
           w={260}
           data={(soferi.data ?? []).map((s) => ({ value: String(s.id), label: soferLabel(s) }))}
           value={soferId}
@@ -61,6 +63,7 @@ export function BonuriListPage() {
           placeholder="Toate"
           searchable
           clearable
+          filter={fuzzyOptionsFilter}
           w={280}
           data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
           value={vehiculId}

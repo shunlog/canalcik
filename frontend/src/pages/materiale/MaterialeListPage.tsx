@@ -1,5 +1,4 @@
 import { ActionIcon, Anchor, Badge, Button, Group, Table, Text, TextInput } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import type { MaterialListItem } from "@canalcik/server/api-types";
 import {
@@ -10,7 +9,7 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
   useCreateMaterial,
@@ -22,6 +21,7 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, showSaved } from "../../lib/feedback.ts";
+import { fuzzySearch } from "../../lib/search.ts";
 
 /**
  * The catalogue of materials a bon line can point at. There is only one
@@ -30,8 +30,11 @@ import { showError, showSaved } from "../../lib/feedback.ts";
  */
 export function MaterialeListPage() {
   const [search, setSearch] = useState("");
-  const [debounced] = useDebouncedValue(search, 250);
-  const query = useMateriale(debounced);
+  const query = useMateriale();
+  const materiale = useMemo(
+    () => fuzzySearch(query.data ?? [], search, [(m) => m.nume]),
+    [query.data, search],
+  );
 
   const [nume, setNume] = useState("");
   const create = useCreateMaterial();
@@ -55,7 +58,7 @@ export function MaterialeListPage() {
     <>
       <PageHeader
         title="Materiale de întreținere"
-        subtitle={query.data ? `${query.data.length} materiale` : undefined}
+        subtitle={query.data ? `${materiale.length} materiale` : undefined}
       />
 
       <Group align="flex-end" mb="md">
@@ -92,7 +95,7 @@ export function MaterialeListPage() {
       />
 
       <QueryBoundary query={query}>
-        {(materiale) =>
+        {() =>
           materiale.length === 0 ? (
             <Text c="dimmed">Niciun material găsit.</Text>
           ) : (

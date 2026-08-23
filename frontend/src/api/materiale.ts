@@ -5,13 +5,13 @@ import type {
   MaterialUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { bonKeys, facturaKeys, materialKeys } from "./keys.ts";
 
-export function useMateriale(q = "") {
+export function useMateriale() {
   return useQuery({
-    queryKey: materialKeys.list(q),
-    queryFn: () => api.get<MaterialListItem[]>(`/materiale${query({ q })}`),
+    queryKey: materialKeys.list,
+    queryFn: () => api.get<MaterialListItem[]>("/materiale"),
   });
 }
 

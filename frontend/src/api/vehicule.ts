@@ -6,13 +6,13 @@ import type {
   VehiculUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { soferKeys, vehiculKeys } from "./keys.ts";
 
-export function useVehicule(q = "") {
+export function useVehicule() {
   return useQuery({
-    queryKey: vehiculKeys.list(q),
-    queryFn: () => api.get<VehiculListItem[]>(`/vehicule${query({ q })}`),
+    queryKey: vehiculKeys.list,
+    queryFn: () => api.get<VehiculListItem[]>("/vehicule"),
   });
 }
 

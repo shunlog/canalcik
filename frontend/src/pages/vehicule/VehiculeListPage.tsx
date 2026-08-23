@@ -1,23 +1,34 @@
 import { Anchor, Badge, Button, Table, Text, TextInput } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
 import { IconPlus, IconSearch } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { plate } from "../../lib/labels.ts";
+import { fuzzySearch } from "../../lib/search.ts";
 
 export function VehiculeListPage() {
   const [search, setSearch] = useState("");
-  const [debounced] = useDebouncedValue(search, 250);
-  const query = useVehicule(debounced);
+  const query = useVehicule();
+  const vehicule = useMemo(
+    () =>
+      fuzzySearch(query.data ?? [], search, [
+        (v) => v.litere,
+        (v) => v.cifre,
+        (v) => v.model,
+        (v) => v.tip,
+        (v) => v.nrInventar,
+        (v) => v.nrGaraj,
+      ]),
+    [query.data, search],
+  );
 
   return (
     <>
       <PageHeader
         title="Vehicule"
-        subtitle={query.data ? `${query.data.length} înregistrări` : undefined}
+        subtitle={query.data ? `${vehicule.length} înregistrări` : undefined}
         actions={
           <Button component={Link} to="/vehicule/nou" leftSection={<IconPlus size={16} />}>
             Vehicul nou
@@ -35,7 +46,7 @@ export function VehiculeListPage() {
       />
 
       <QueryBoundary query={query}>
-        {(vehicule) =>
+        {() =>
           vehicule.length === 0 ? (
             <Text c="dimmed">Niciun vehicul găsit.</Text>
           ) : (

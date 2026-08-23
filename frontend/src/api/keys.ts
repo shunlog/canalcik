@@ -3,13 +3,13 @@
 
 export const soferKeys = {
   all: ["soferi"] as const,
-  list: (q: string) => ["soferi", "list", q] as const,
+  list: ["soferi", "list"] as const,
   detail: (id: number) => ["soferi", "detail", id] as const,
 };
 
 export const vehiculKeys = {
   all: ["vehicule"] as const,
-  list: (q: string) => ["vehicule", "list", q] as const,
+  list: ["vehicule", "list"] as const,
   detail: (id: number) => ["vehicule", "detail", id] as const,
 };
 
@@ -21,7 +21,7 @@ export const bonKeys = {
 
 export const materialKeys = {
   all: ["materiale"] as const,
-  list: (q: string) => ["materiale", "list", q] as const,
+  list: ["materiale", "list"] as const,
   detail: (id: number) => ["materiale", "detail", id] as const,
 };
 

@@ -6,13 +6,13 @@ import type {
   SoferUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { soferKeys, vehiculKeys } from "./keys.ts";
 
-export function useSoferi(q = "") {
+export function useSoferi() {
   return useQuery({
-    queryKey: soferKeys.list(q),
-    queryFn: () => api.get<SoferListItem[]>(`/soferi${query({ q })}`),
+    queryKey: soferKeys.list,
+    queryFn: () => api.get<SoferListItem[]>("/soferi"),
   });
 }
 

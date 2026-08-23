@@ -14,6 +14,7 @@ import { IconAlertTriangle, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { useMateriale } from "../../api/materiale.ts";
 import { formatMoney } from "../../lib/forms.ts";
+import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import {
   facturaTotal,
   lineValue,
@@ -73,6 +74,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
                       placeholder="Căutați sau scrieți un material"
                       data={options}
                       limit={20}
+                      filter={fuzzyOptionsFilter}
                       {...form.getInputProps(`materiale.${i}.nume`)}
                       rightSection={
                         isNew ? (

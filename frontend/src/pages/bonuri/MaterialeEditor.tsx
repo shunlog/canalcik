@@ -13,6 +13,7 @@ import type { UseFormReturnType } from "@mantine/form";
 import { IconAlertTriangle, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { useMateriale } from "../../api/materiale.ts";
+import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import { newMaterialRow, type BonFormValues } from "./bonForm.ts";
 
 /**
@@ -58,9 +59,10 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
                       placeholder="Căutați sau scrieți un material"
                       data={options}
                       limit={20}
-                      // Mantine filters the options against what is typed, so
+                      // Fuzzy-filters the options against what is typed, so
                       // this is a search box; the typed text stays the value
                       // whether or not it matched anything.
+                      filter={fuzzyOptionsFilter}
                       {...form.getInputProps(`materiale.${i}.nume`)}
                       rightSection={
                         isNew ? (
