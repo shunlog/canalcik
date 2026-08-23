@@ -5,8 +5,8 @@ import { onError } from "./http/onError.ts";
 import { bonuri } from "./routes/bonuri.ts";
 import { drive } from "./routes/drive.ts";
 import { facturi } from "./routes/facturi.ts";
-import { fisaLimita } from "./routes/fisaLimita.ts";
 import { materiale } from "./routes/materiale.ts";
+import { monthlyReport } from "./routes/monthlyReport.ts";
 import { soferi } from "./routes/soferi.ts";
 import { vehicule } from "./routes/vehicule.ts";
 
@@ -30,7 +30,7 @@ app.route("/api/vehicule", vehicule);
 app.route("/api/bonuri", bonuri);
 app.route("/api/materiale", materiale);
 app.route("/api/facturi", facturi);
-app.route("/api/fisa-limita", fisaLimita);
+app.route("/api/monthly-report", monthlyReport);
 app.route("/api/drive", drive);
 
 // No CORS middleware on purpose: in dev the browser only ever talks to Vite,

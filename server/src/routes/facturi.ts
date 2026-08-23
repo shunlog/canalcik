@@ -13,18 +13,18 @@ import { facturaCreate, facturaUpdate, type FacturaLineInput } from "../schemas/
 export const facturi = new Hono();
 
 /**
- * Pre-checked here for a message the operator can act on; `luna`'s `@unique`
+ * Pre-checked here for a message the operator can act on; `month`'s `@unique`
  * in the schema is the race backstop, not the primary guard.
  */
-async function checkLunaUnica(luna: string, excludeId?: number) {
+async function checkMonthUnique(month: string, excludeId?: number) {
   const existing = await db.facturaExpeditie.findFirst({
-    where: { luna, ...(excludeId !== undefined ? { id: { not: excludeId } } : {}) },
+    where: { month, ...(excludeId !== undefined ? { id: { not: excludeId } } : {}) },
   });
   if (existing) {
     throw new ApiError(
       409,
       "DUPLICATE",
-      `Există deja o factură de expediție pentru luna ${luna}`,
+      `Există deja o factură de expediție pentru luna ${month}`,
       { data: "Există deja o factură pentru această lună" },
     );
   }
@@ -58,11 +58,11 @@ facturi.get("/", async (c) => {
 
 facturi.post("/", async (c) => {
   const { materiale, ...scalars } = await readJson(c, facturaCreate);
-  const luna = scalars.data.slice(0, 7);
-  await checkLunaUnica(luna);
+  const month = scalars.data.slice(0, 7);
+  await checkMonthUnique(month);
 
   const row = await db.facturaExpeditie.create({
-    data: { ...scalars, luna, materiale: { create: toLineCreate(materiale) } },
+    data: { ...scalars, month, materiale: { create: toLineCreate(materiale) } },
     select: facturaDetailSelect,
   });
   return c.json(toFacturaDetail(row), 201);
@@ -80,14 +80,14 @@ facturi.get("/:id", async (c) => {
 facturi.patch("/:id", async (c) => {
   const id = parseIdParam(c);
   const { materiale, ...scalars } = await readJson(c, facturaUpdate);
-  const luna = scalars.data !== undefined ? scalars.data.slice(0, 7) : undefined;
-  if (luna !== undefined) await checkLunaUnica(luna, id);
+  const month = scalars.data !== undefined ? scalars.data.slice(0, 7) : undefined;
+  if (month !== undefined) await checkMonthUnique(month, id);
 
   const row = await db.facturaExpeditie.update({
     where: { id },
     data: {
       ...scalars, // undefined keys stay untouched
-      ...(luna !== undefined ? { luna } : {}),
+      ...(month !== undefined ? { month } : {}),
       // The lines are owned by the factura and nothing references their ids, so
       // the set is replaced wholesale, in one transaction — same trade-off as on
       // a bon: line ids are NOT stable across saves.

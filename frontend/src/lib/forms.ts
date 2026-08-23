@@ -38,8 +38,8 @@ export const formatIsoDate = (v: string | null | undefined): string => {
 export const formatMoney = (n: number): string =>
   n.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** Displays a "YYYY-MM" string as "Iunie 2026". The server has its own numeLuna for the filename. */
-export const formatLuna = (v: string): string => {
+/** Displays a "YYYY-MM" string as "Iunie 2026". The server has its own numeFisierFisaLimita for the filename. */
+export const formatMonth = (v: string): string => {
   const [y, m] = v.split("-").map(Number);
   if (!y || !m) return v;
   const nume = new Date(y, m - 1, 1).toLocaleDateString("ro-RO", { month: "long" });

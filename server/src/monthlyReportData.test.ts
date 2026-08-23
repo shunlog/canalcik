@@ -2,11 +2,11 @@ import { describe, expect, it } from "@jest/globals";
 import {
   UnmatchedMaterialeError,
   baniSplit,
-  buildFisaLimita,
-  type BuildFisaLimitaInput,
-  type FisaLimitaBon,
-  intervalLuni,
-} from "./fisaLimitaData.ts";
+  buildMonthlyReport,
+  type BuildMonthlyReportInput,
+  type MonthlyReportBon,
+  intervalMonths,
+} from "./monthlyReportData.ts";
 
 
 describe("baniSplit", () => {
@@ -18,34 +18,34 @@ describe("baniSplit", () => {
   });
 });
 
-describe("intervalLuni", () => {
+describe("intervalMonths", () => {
   it("returns just the current month when given nothing", () => {
-    expect(intervalLuni([])).toEqual([expect.stringMatching(/^\d{4}-\d{2}$/)]);
-    expect(intervalLuni([]).length).toBe(1);
+    expect(intervalMonths([])).toEqual([expect.stringMatching(/^\d{4}-\d{2}$/)]);
+    expect(intervalMonths([]).length).toBe(1);
   });
 
   it("returns a single month when it's the only one and matches the current month", () => {
-    const cur = intervalLuni([])[0];
-    expect(intervalLuni([cur])).toEqual([cur]);
+    const cur = intervalMonths([])[0];
+    expect(intervalMonths([cur])).toEqual([cur]);
   });
 
   it("spans a December -> January boundary", () => {
     // Anchor beyond "now" so the result isn't at the mercy of the current month.
-    expect(intervalLuni(["2030-12", "2031-01"])).toEqual(
+    expect(intervalMonths(["2030-12", "2031-01"])).toEqual(
       expect.arrayContaining(["2030-12", "2031-01"]),
     );
-    const range = intervalLuni(["2030-12", "2031-01"]);
+    const range = intervalMonths(["2030-12", "2031-01"]);
     expect(range[range.length - 2]).toBe("2030-12");
     expect(range[range.length - 1]).toBe("2031-01");
   });
 
   it("extends past the current month for a future-dated record", () => {
-    const range = intervalLuni(["2099-03"]);
+    const range = intervalMonths(["2099-03"]);
     expect(range[range.length - 1]).toBe("2099-03");
   });
 });
 
-const bon = (overrides: Partial<FisaLimitaBon> = {}): FisaLimitaBon => ({
+const bon = (overrides: Partial<MonthlyReportBon> = {}): MonthlyReportBon => ({
   id: 1,
   data: "2026-05-10",
   soferId: 1,
@@ -56,9 +56,9 @@ const bon = (overrides: Partial<FisaLimitaBon> = {}): FisaLimitaBon => ({
   ...overrides,
 });
 
-describe("buildFisaLimita", () => {
+describe("buildMonthlyReport", () => {
   it("groups bonuri by vehicul+sofer into one sheet each, ordered by (litere, cifre, sofer)", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           id: 1,
@@ -99,14 +99,14 @@ describe("buildFisaLimita", () => {
       ],
     };
 
-    const sheets = buildFisaLimita(input);
+    const sheets = buildMonthlyReport(input);
     expect(sheets.map((s) => s.nr_inregistrare)).toEqual(["CBE 276", "CBE 277"]);
     expect(sheets[0].nume_sofer).toBe("Celpan Ion");
     expect(sheets[1].nume_sofer).toBe("Rusu Maria");
   });
 
   it("orders rows within a sheet by (data, bonId, lineId)", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           id: 2,
@@ -126,12 +126,12 @@ describe("buildFisaLimita", () => {
       facturaLinii: [{ materialId: 1, nrCart: "1", pretUnitar: 10 }],
     };
 
-    const [sheet] = buildFisaLimita(input);
+    const [sheet] = buildMonthlyReport(input);
     expect(sheet.tbl.map((r) => r.data)).toEqual(["01.05.2026", "05.05.2026"]);
   });
 
   it("splits price and total into lei/bani, rounding the total from cents", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           linii: [
@@ -149,7 +149,7 @@ describe("buildFisaLimita", () => {
       facturaLinii: [{ materialId: 1, nrCart: "2222", pretUnitar: 24.6 }],
     };
 
-    const [sheet] = buildFisaLimita(input);
+    const [sheet] = buildMonthlyReport(input);
     const row = sheet.tbl[0];
     expect(row.pret_lei).toBe(24);
     expect(row.pret_bani).toBe("60");
@@ -158,7 +158,7 @@ describe("buildFisaLimita", () => {
   });
 
   it("matches by (materialId, nrCart) when the bon line carries a nrCart", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           linii: [
@@ -181,13 +181,13 @@ describe("buildFisaLimita", () => {
       ],
     };
 
-    const [sheet] = buildFisaLimita(input);
+    const [sheet] = buildMonthlyReport(input);
     expect(sheet.tbl[0].nr_cart).toBe("2111");
     expect(sheet.tbl[0].pret_lei).toBe(20);
   });
 
   it("throws, naming every unmatched material, when a bon line's nrCart has no exact factura match", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           linii: [
@@ -205,9 +205,9 @@ describe("buildFisaLimita", () => {
       facturaLinii: [],
     };
 
-    expect(() => buildFisaLimita(input)).toThrow(UnmatchedMaterialeError);
+    expect(() => buildMonthlyReport(input)).toThrow(UnmatchedMaterialeError);
     try {
-      buildFisaLimita(input);
+      buildMonthlyReport(input);
       throw new Error("expected to throw");
     } catch (err) {
       expect(err).toBeInstanceOf(UnmatchedMaterialeError);
@@ -218,7 +218,7 @@ describe("buildFisaLimita", () => {
   });
 
   it("throws an ambiguous error naming the codes when a bon line has no nrCart and more than one factura line matches", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           linii: [
@@ -240,7 +240,7 @@ describe("buildFisaLimita", () => {
     };
 
     try {
-      buildFisaLimita(input);
+      buildMonthlyReport(input);
       throw new Error("expected to throw");
     } catch (err) {
       expect(err).toBeInstanceOf(UnmatchedMaterialeError);
@@ -252,7 +252,7 @@ describe("buildFisaLimita", () => {
   });
 
   it("resolves an unambiguous match when the bon line has no nrCart", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
           linii: [
@@ -263,15 +263,15 @@ describe("buildFisaLimita", () => {
       facturaLinii: [{ materialId: 1, nrCart: "2111", pretUnitar: 20 }],
     };
 
-    const [sheet] = buildFisaLimita(input);
+    const [sheet] = buildMonthlyReport(input);
     expect(sheet.tbl[0].nr_cart).toBe("2111");
   });
 
   it("drops a bon that ends up with no rows", () => {
-    const input: BuildFisaLimitaInput = {
+    const input: BuildMonthlyReportInput = {
       bonuri: [bon({ linii: [] })],
       facturaLinii: [],
     };
-    expect(buildFisaLimita(input)).toEqual([]);
+    expect(buildMonthlyReport(input)).toEqual([]);
   });
 });

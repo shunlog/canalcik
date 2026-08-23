@@ -1,17 +1,17 @@
 import { Anchor, Badge, Button, Table, Text, Tooltip } from "@mantine/core";
 import { Link } from "react-router";
-import { useFisaLimitaMonths, useGenereazaFisaLimita } from "../../api/fisaLimita.ts";
+import { useMonthlyReports, useGenerateMonthlyReport } from "../../api/monthlyReport.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatLuna } from "../../lib/forms.ts";
+import { formatIsoDate, formatMonth } from "../../lib/forms.ts";
 
-export function FisaLimitaListPage() {
-  const query = useFisaLimitaMonths();
-  const gen = useGenereazaFisaLimita();
+export function MonthlyReportListPage() {
+  const query = useMonthlyReports();
+  const gen = useGenerateMonthlyReport();
 
-  const genereaza = (luna: string) => {
-    gen.mutate(luna, {
+  const generate = (month: string) => {
+    gen.mutate(month, {
       onSuccess: () => showSaved("Fișă limită generată"),
       onError: (err) => showError(err, "Generarea a eșuat"),
     });
@@ -22,8 +22,8 @@ export function FisaLimitaListPage() {
       <PageHeader title="Fișa limită" />
 
       <QueryBoundary query={query}>
-        {(luni) =>
-          luni.length === 0 ? (
+        {(monthlyReports) =>
+          monthlyReports.length === 0 ? (
             <Text c="dimmed">Nicio lună găsită.</Text>
           ) : (
             <Table.ScrollContainer minWidth={620}>
@@ -38,18 +38,18 @@ export function FisaLimitaListPage() {
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {luni.map((m) => {
+                  {monthlyReports.map((m) => {
                     const reason =
                       m.nrBonuri === 0
                         ? "Luna nu are bonuri"
                         : !m.factura
                           ? "Luna nu are factură de expediție"
                           : null;
-                    const isLoading = gen.isPending && gen.variables === m.luna;
+                    const isLoading = gen.isPending && gen.variables === m.month;
 
                     return (
-                      <Table.Tr key={m.luna}>
-                        <Table.Td>{formatLuna(m.luna)}</Table.Td>
+                      <Table.Tr key={m.month}>
+                        <Table.Td>{formatMonth(m.month)}</Table.Td>
                         <Table.Td>
                           <Badge variant="light">
                             {m.nrBonuri}
@@ -84,7 +84,7 @@ export function FisaLimitaListPage() {
                                   e.preventDefault();
                                   return;
                                 }
-                                genereaza(m.luna);
+                                generate(m.month);
                               }}
                             >
                               {m.document ? "Re-generează" : "Generează"}

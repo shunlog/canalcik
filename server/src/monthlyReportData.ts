@@ -7,38 +7,38 @@ import type { DataFisaLimita, DataFisaLimitaSheet } from "../../templates/render
 
 
 /** "YYYY-MM" for the current day, in local time (not UTC — see todayLocalIso in frontend/src/lib/forms.ts). */
-export function lunaCurenta(): string {
+export function currentMonth(): string {
   return new Date().toLocaleDateString("sv-SE").slice(0, 7);
 }
 
-const lunaToKey = (luna: string): number => {
-  const [y, m] = luna.split("-").map(Number) as [number, number];
+const monthToKey = (month: string): number => {
+  const [y, m] = month.split("-").map(Number) as [number, number];
   return y * 12 + (m - 1);
 };
 
-const keyToLuna = (key: number): string => {
+const keyToMonth = (key: number): string => {
   const y = Math.floor(key / 12);
   const m = (key % 12) + 1;
   return `${y}-${String(m).padStart(2, "0")}`;
 };
 
 /**
- * The inclusive range of months covering `luni` and the current month, oldest
- * first. An empty input still yields one row (the current month), and the top
- * of the range extends past the current month when a future-dated record
- * exists, so it is never invisible or ungenerable.
+ * The inclusive range of months covering `months` and the current month,
+ * oldest first. An empty input still yields one row (the current month), and
+ * the top of the range extends past the current month when a future-dated
+ * record exists, so it is never invisible or ungenerable.
  */
-export function intervalLuni(luni: string[]): string[] {
-  const keys = [lunaCurenta(), ...luni].map(lunaToKey);
+export function intervalMonths(months: string[]): string[] {
+  const keys = [currentMonth(), ...months].map(monthToKey);
   const min = Math.min(...keys);
   const max = Math.max(...keys);
   const out: string[] = [];
-  for (let k = min; k <= max; k++) out.push(keyToLuna(k));
+  for (let k = min; k <= max; k++) out.push(keyToMonth(k));
   return out;
 }
 
-export function numeFisierFisaLimita(luna: string): string {
-  return `${luna}_fisa_limita.xlsx`;
+export function numeFisierFisaLimita(month: string): string {
+  return `${month}_fisa_limita.xlsx`;
 }
 
 /**
@@ -63,7 +63,7 @@ const isoToDDMMYYYY = (iso: string): string => {
 // Local plain types, not Prisma.*GetPayload, so the test can write literals
 // without constructing real Prisma rows.
 
-export type FisaLimitaBonLine = {
+export type MonthlyReportBonLine = {
   id: number;
   materialId: number;
   materialNume: string;
@@ -72,25 +72,25 @@ export type FisaLimitaBonLine = {
   cantitate: number;
 };
 
-export type FisaLimitaBon = {
+export type MonthlyReportBon = {
   id: number;
   data: string; // "YYYY-MM-DD"
   soferId: number;
   vehiculId: number;
   sofer: { nume: string; cod: number };
   vehicul: { litere: string; cifre: string };
-  linii: FisaLimitaBonLine[];
+  linii: MonthlyReportBonLine[];
 };
 
-export type FisaLimitaFacturaLine = {
+export type MonthlyReportFacturaLine = {
   materialId: number;
   nrCart: string;
   pretUnitar: number;
 };
 
-export type BuildFisaLimitaInput = {
-  bonuri: FisaLimitaBon[];
-  facturaLinii: FisaLimitaFacturaLine[];
+export type BuildMonthlyReportInput = {
+  bonuri: MonthlyReportBon[];
+  facturaLinii: MonthlyReportFacturaLine[];
 };
 
 /** Thrown when one or more bon lines cannot be priced. Collects every offender in one pass. */
@@ -112,10 +112,10 @@ export class UnmatchedMaterialeError extends Error {
  * factura's lines for that material must be unambiguous.
  */
 function resolveFacturaLine(
-  line: FisaLimitaBonLine,
-  facturaByExactKey: Map<string, FisaLimitaFacturaLine>,
-  facturaByMaterial: Map<number, FisaLimitaFacturaLine[]>,
-): { ok: true; line: FisaLimitaFacturaLine } | { ok: false; message: string } {
+  line: MonthlyReportBonLine,
+  facturaByExactKey: Map<string, MonthlyReportFacturaLine>,
+  facturaByMaterial: Map<number, MonthlyReportFacturaLine[]>,
+): { ok: true; line: MonthlyReportFacturaLine } | { ok: false; message: string } {
   if (line.nrCart) {
     const exact = facturaByExactKey.get(`${line.materialId}|${line.nrCart}`);
     if (!exact) {
@@ -142,13 +142,13 @@ function resolveFacturaLine(
 }
 
 /**
- * Builds the per-vehicle-and-driver sheets for one month's "fisa limita" from
+ * Builds the per-vehicle-and-driver sheets for one month's monthly report from
  * that month's bonuri and the month's factura. Throws UnmatchedMaterialeError,
  * naming every offending material at once, if any bon line cannot be priced.
  */
-export function buildFisaLimita(input: BuildFisaLimitaInput): DataFisaLimita {
-  const facturaByExactKey = new Map<string, FisaLimitaFacturaLine>();
-  const facturaByMaterial = new Map<number, FisaLimitaFacturaLine[]>();
+export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimita {
+  const facturaByExactKey = new Map<string, MonthlyReportFacturaLine>();
+  const facturaByMaterial = new Map<number, MonthlyReportFacturaLine[]>();
   for (const f of input.facturaLinii) {
     facturaByExactKey.set(`${f.materialId}|${f.nrCart}`, f);
     const list = facturaByMaterial.get(f.materialId) ?? [];

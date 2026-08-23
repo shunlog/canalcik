@@ -14,7 +14,7 @@ const ITEMS = [
   { to: "/vehicule", label: "Vehicule", icon: IconTruck },
   { to: "/bonuri", label: "Bonuri de eliberare", icon: IconFileText },
   { to: "/facturi", label: "Facturi de expediție", icon: IconFileInvoice },
-  { to: "/fisa-limita", label: "Fișa limită", icon: IconFileSpreadsheet },
+  { to: "/monthly-report", label: "Fișa limită", icon: IconFileSpreadsheet },
   { to: "/materiale", label: "Materiale de întreținere", icon: IconPackages },
 ];
 

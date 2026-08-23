@@ -20,7 +20,7 @@ export type ApiErrorCode =
   | "HAS_DEPENDENTS"
   /** Google Drive was never authorized, or the token is dead — see routes/drive.ts. */
   | "DRIVE_NOT_CONNECTED"
-  /** data/templates/ has not been fetched from Drive yet — see routes/fisaLimita.ts. */
+  /** data/templates/ has not been fetched from Drive yet — see routes/monthlyReport.ts. */
   | "TEMPLATE_MISSING"
   | "INTERNAL";
 
@@ -307,9 +307,9 @@ export interface FacturaUpdateBody {
   materiale?: FacturaLine[];
 }
 
-// ------------------------------------------------------------- fisa limita
+// --------------------------------------------------------- monthly report
 
-/** A generated document as it points at a Drive file. */
+/** A generated "fisa limita" document as it points at a Drive file. */
 export interface FisaLimitaDocRef {
   nume: string;
   driveUrl: string;
@@ -317,12 +317,11 @@ export interface FisaLimitaDocRef {
 }
 
 /**
- * One row of the "fisa limita" month list. `luna` carries the raw "YYYY-MM";
- * the client formats it, the same split as `data`/`formatIsoDate` everywhere
- * else.
+ * One row of the monthly report list. `month` carries the raw "YYYY-MM"; the
+ * client formats it, the same split as `data`/`formatIsoDate` everywhere else.
  */
-export interface FisaLimitaMonth {
-  luna: IsoMonth;
+export interface MonthlyReport {
+  month: IsoMonth;
   nrBonuri: number;
   factura: { id: number; data: IsoDate } | null;
   document: FisaLimitaDocRef | null;

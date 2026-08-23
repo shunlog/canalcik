@@ -25,11 +25,11 @@ export function parseIdParam(c: Context, name = "id"): number {
 }
 
 /**
- * Parses the `:luna` route param, "YYYY-MM". Not just `isoMonth.parse` inline:
+ * Parses the `:month` route param, "YYYY-MM". Not just `isoMonth.parse` inline:
  * a ZodError from a bare string has `issue.path === []`, i.e. a `fields` key
  * of `""`, which is useless to the client.
  */
-export function parseLunaParam(c: Context, name = "luna"): string {
+export function parseMonthParam(c: Context, name = "month"): string {
   const raw = c.req.param(name);
   const result = isoMonth.safeParse(raw);
   if (!result.success) {

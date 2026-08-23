@@ -133,7 +133,7 @@ model FacturaExpeditie {
 
   // "YYYY-MM", derived from `data`. Enforces one factura per month at the DB
   // level and makes "the factura for month X" an index hit.
-  luna String @unique
+  month String @unique
 
   materiale FacturaExpeditieMaterial[]
 }
@@ -181,7 +181,7 @@ model GeneratedDocument {
 model FisaLimitaDoc {
   id Int @id @default(autoincrement())
 
-  luna String @unique // "YYYY-MM"
+  month String @unique // "YYYY-MM"
 
   documentId Int               @unique
   document   GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)

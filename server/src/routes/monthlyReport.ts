@@ -9,19 +9,19 @@ import {
 } from "../../../utils/drive.ts";
 import { loadTemplate, TEMPLATES } from "../../../templates/templateManifest.ts";
 import { renderFisaLimita } from "../../../templates/renderTemplates.ts";
-import type { FisaLimitaDocRef, FisaLimitaMonth } from "../api-types.ts";
+import type { FisaLimitaDocRef, MonthlyReport } from "../api-types.ts";
 import { db } from "../db.ts";
 import { fisaLimitaDocSelect, toFisaLimitaDocRef } from "../dto.ts";
 import {
   UnmatchedMaterialeError,
-  buildFisaLimita,
-  intervalLuni,
+  buildMonthlyReport,
+  intervalMonths,
   numeFisierFisaLimita,
-} from "../fisaLimitaData.ts";
+} from "../monthlyReportData.ts";
 import { ApiError, driveNotConnected, hasDependents, templateMissing } from "../http/errors.ts";
-import { parseLunaParam } from "../http/read.ts";
+import { parseMonthParam } from "../http/read.ts";
 
-export const fisaLimita = new Hono();
+export const monthlyReport = new Hono();
 
 const bonuriLinesSelect = {
   select: {
@@ -38,58 +38,58 @@ const bonuriLinesSelect = {
 async function loadMonthsData() {
   const [bonuriByData, facturi, docs] = await Promise.all([
     db.bonEliberare.groupBy({ by: ["data"], _count: { _all: true } }),
-    db.facturaExpeditie.findMany({ select: { id: true, data: true, luna: true } }),
+    db.facturaExpeditie.findMany({ select: { id: true, data: true, month: true } }),
     db.fisaLimitaDoc.findMany({
-      select: { luna: true, document: { select: fisaLimitaDocSelect } },
+      select: { month: true, document: { select: fisaLimitaDocSelect } },
     }),
   ]);
 
-  const bonuriByLuna = new Map<string, number>();
+  const bonuriByMonth = new Map<string, number>();
   for (const { data, _count } of bonuriByData) {
-    const luna = data.slice(0, 7);
-    bonuriByLuna.set(luna, (bonuriByLuna.get(luna) ?? 0) + _count._all);
+    const month = data.slice(0, 7);
+    bonuriByMonth.set(month, (bonuriByMonth.get(month) ?? 0) + _count._all);
   }
 
-  const facturaByLuna = new Map<string, { id: number; data: string }>();
-  for (const f of facturi) facturaByLuna.set(f.luna, { id: f.id, data: f.data });
+  const facturaByMonth = new Map<string, { id: number; data: string }>();
+  for (const f of facturi) facturaByMonth.set(f.month, { id: f.id, data: f.data });
 
-  const docByLuna = new Map<string, FisaLimitaDocRef>();
-  for (const d of docs) docByLuna.set(d.luna, toFisaLimitaDocRef(d.document));
+  const docByMonth = new Map<string, FisaLimitaDocRef>();
+  for (const d of docs) docByMonth.set(d.month, toFisaLimitaDocRef(d.document));
 
-  return { bonuriByLuna, facturaByLuna, docByLuna };
+  return { bonuriByMonth, facturaByMonth, docByMonth };
 }
 
-function monthRow(
-  luna: string,
+function monthlyReportRow(
+  month: string,
   data: Awaited<ReturnType<typeof loadMonthsData>>,
-): FisaLimitaMonth {
+): MonthlyReport {
   return {
-    luna,
-    nrBonuri: data.bonuriByLuna.get(luna) ?? 0,
-    factura: data.facturaByLuna.get(luna) ?? null,
-    document: data.docByLuna.get(luna) ?? null,
+    month,
+    nrBonuri: data.bonuriByMonth.get(month) ?? 0,
+    factura: data.facturaByMonth.get(month) ?? null,
+    document: data.docByMonth.get(month) ?? null,
   };
 }
 
-fisaLimita.get("/", async (c) => {
+monthlyReport.get("/", async (c) => {
   const data = await loadMonthsData();
-  const luni = intervalLuni([
-    ...data.bonuriByLuna.keys(),
-    ...data.facturaByLuna.keys(),
-    ...data.docByLuna.keys(),
+  const months = intervalMonths([
+    ...data.bonuriByMonth.keys(),
+    ...data.facturaByMonth.keys(),
+    ...data.docByMonth.keys(),
   ]);
-  const rows = luni.map((luna) => monthRow(luna, data)).reverse(); // newest first
+  const rows = months.map((month) => monthlyReportRow(month, data)).reverse(); // newest first
   return c.json(rows);
 });
 
-fisaLimita.post("/:luna/genereaza", async (c) => {
-  const luna = parseLunaParam(c);
+monthlyReport.post("/:month/generate", async (c) => {
+  const month = parseMonthParam(c);
 
   const [bonuri, factura] = await Promise.all([
     db.bonEliberare.findMany({
       // `data` is a "YYYY-MM-DD" string, chronological because the column is
       // a string — a string range is enough to select one calendar month.
-      where: { data: { gte: `${luna}-01`, lte: `${luna}-31` } },
+      where: { data: { gte: `${month}-01`, lte: `${month}-31` } },
       select: {
         id: true,
         data: true,
@@ -101,21 +101,21 @@ fisaLimita.post("/:luna/genereaza", async (c) => {
       },
     }),
     db.facturaExpeditie.findFirst({
-      where: { luna },
+      where: { month },
       select: { materiale: { select: { materialId: true, nrCart: true, pretUnitar: true } } },
     }),
   ]);
 
   if (bonuri.length === 0) {
-    throw new ApiError(400, "VALIDATION", `Luna ${luna} nu are niciun bon de eliberare`);
+    throw new ApiError(400, "VALIDATION", `Luna ${month} nu are niciun bon de eliberare`);
   }
   if (!factura) {
-    throw new ApiError(400, "VALIDATION", `Luna ${luna} nu are o factură de expediție`);
+    throw new ApiError(400, "VALIDATION", `Luna ${month} nu are o factură de expediție`);
   }
 
-  let sheets: ReturnType<typeof buildFisaLimita>;
+  let sheets: ReturnType<typeof buildMonthlyReport>;
   try {
-    sheets = buildFisaLimita({
+    sheets = buildMonthlyReport({
       bonuri: bonuri.map((b) => ({
         id: b.id,
         data: b.data,
@@ -142,7 +142,7 @@ fisaLimita.post("/:luna/genereaza", async (c) => {
   }
 
   if (sheets.length === 0) {
-    throw new ApiError(400, "VALIDATION", `Luna ${luna} nu are linii de bon eligibile`);
+    throw new ApiError(400, "VALIDATION", `Luna ${month} nu are linii de bon eligibile`);
   }
 
   let template: Buffer;
@@ -152,7 +152,7 @@ fisaLimita.post("/:luna/genereaza", async (c) => {
     throw templateMissing();
   }
   const buffer = renderFisaLimita(template, sheets);
-  const nume = numeFisierFisaLimita(luna);
+  const nume = numeFisierFisaLimita(month);
 
   let uploaded: { id: string; webViewLink: string };
   try {
@@ -165,9 +165,9 @@ fisaLimita.post("/:luna/genereaza", async (c) => {
   }
 
   await db.fisaLimitaDoc.upsert({
-    where: { luna },
+    where: { month },
     create: {
-      luna,
+      month,
       document: {
         create: {
           kind: "fisaLimita",
@@ -190,5 +190,5 @@ fisaLimita.post("/:luna/genereaza", async (c) => {
   });
 
   const data = await loadMonthsData();
-  return c.json(monthRow(luna, data), 201);
+  return c.json(monthlyReportRow(month, data), 201);
 });
