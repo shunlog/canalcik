@@ -75,7 +75,6 @@ export type MonthlyReportBonLine = {
   id: number;
   materialId: number;
   materialNume: string;
-  nrCart: string | null;
   um: string;
   cantitate: number;
 };
@@ -111,42 +110,20 @@ export class UnmatchedMaterialeError extends Error {
 
 /**
  * Resolves the factura line — and therefore the price and the printed
- * nr_cart — for one bon line.
- *
- * Keyed by `materialId|nrCart`, not by materialId alone: the schema comment
- * on BonEliberareMaterial.nrCart notes the same material can be delivered
- * under different codes, so one factura may legally carry two lines for one
- * material. The bon's nrCart, when present, is the match key; with none, the
- * factura's lines for that material must be unambiguous.
+ * nr_cart — for one bon line, by materialId: the unique (facturaId,
+ * materialId) constraint on FacturaExpeditieMaterial guarantees at most one
+ * factura line per material, so a bon line (which only ever names the
+ * material, never the code) always has at most one line to resolve to.
  */
 function resolveFacturaLine(
   line: MonthlyReportBonLine,
-  facturaByExactKey: Map<string, MonthlyReportFacturaLine>,
-  facturaByMaterial: Map<number, MonthlyReportFacturaLine[]>,
+  facturaByMaterial: Map<number, MonthlyReportFacturaLine>,
 ): { ok: true; line: MonthlyReportFacturaLine } | { ok: false; message: string } {
-  if (line.nrCart) {
-    const exact = facturaByExactKey.get(`${line.materialId}|${line.nrCart}`);
-    if (!exact) {
-      return {
-        ok: false,
-        message: `${line.materialNume} (nr. cartelă ${line.nrCart})`,
-      };
-    }
-    return { ok: true, line: exact };
-  }
-
-  const candidates = facturaByMaterial.get(line.materialId) ?? [];
-  if (candidates.length === 0) {
+  const match = facturaByMaterial.get(line.materialId);
+  if (!match) {
     return { ok: false, message: line.materialNume };
   }
-  if (candidates.length > 1) {
-    const codes = candidates.map((f) => f.nrCart).join(", ");
-    return {
-      ok: false,
-      message: `${line.materialNume} (ambiguu, coduri posibile: ${codes})`,
-    };
-  }
-  return { ok: true, line: candidates[0] };
+  return { ok: true, line: match };
 }
 
 /**
@@ -155,13 +132,9 @@ function resolveFacturaLine(
  * naming every offending material at once, if any bon line cannot be priced.
  */
 export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimita {
-  const facturaByExactKey = new Map<string, MonthlyReportFacturaLine>();
-  const facturaByMaterial = new Map<number, MonthlyReportFacturaLine[]>();
+  const facturaByMaterial = new Map<number, MonthlyReportFacturaLine>();
   for (const f of input.facturaLinii) {
-    facturaByExactKey.set(`${f.materialId}|${f.nrCart}`, f);
-    const list = facturaByMaterial.get(f.materialId) ?? [];
-    list.push(f);
-    facturaByMaterial.set(f.materialId, list);
+    facturaByMaterial.set(f.materialId, f);
   }
 
   type Row = {
@@ -182,15 +155,12 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     numeSofer: string;
     codSofer: number;
     /**
-     * Keyed `data|materialId|nrCart|unit`, so a material issued twice on the
-     * same day is one row of the summed quantity, not two identical-looking
-     * ones. materialId+nrCart is what resolveFacturaLine matches on, so every
-     * line merged into a row shares one price and one name — keying on nrCart
-     * alone would be wrong, since one material can sit on the factura under two
-     * codes at two prices. The unit is in the key so two genuinely different
-     * units are never added together. Merging spans bonuri, not just the lines
-     * of one bon: a sheet row carries no bon reference, so two bonuri on one
-     * date for the same vehicul+sofer would otherwise look duplicated too.
+     * Keyed `data|materialId|unit`, so a material issued twice on the same
+     * day is one row of the summed quantity, not two identical-looking ones.
+     * The unit is in the key so two genuinely different units are never
+     * added together. Merging spans bonuri, not just the lines of one bon: a
+     * sheet row carries no bon reference, so two bonuri on one date for the
+     * same vehicul+sofer would otherwise look duplicated too.
      */
     rows: Map<string, Row>;
   };
@@ -200,7 +170,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
   for (const bon of input.bonuri) {
     const key = `${bon.vehiculId}|${bon.soferId}`;
     for (const line of bon.linii) {
-      const resolved = resolveFacturaLine(line, facturaByExactKey, facturaByMaterial);
+      const resolved = resolveFacturaLine(line, facturaByMaterial);
       if (!resolved.ok) {
         unmatched.push(resolved.message);
         continue;
@@ -217,7 +187,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
         };
         groups.set(key, group);
       }
-      const rowKey = `${bon.data}|${line.materialId}|${resolved.line.nrCart}|${line.um}`;
+      const rowKey = `${bon.data}|${line.materialId}|${line.um}`;
       const existing = group.rows.get(rowKey);
       if (existing) {
         existing.cant = roundQty(existing.cant + line.cantitate);
@@ -307,14 +277,14 @@ export type ReconcilereFacturaLine = {
 };
 
 /**
- * One nomenclature code, as invoiced against as issued. `diferenta` is what the
+ * One material, as invoiced against as issued. `diferenta` is what the
  * operator acts on: the factura is authoritative and cannot be edited, so a
  * non-zero difference means the month's bonuri need correcting.
  */
 export type ReconcilereLinie = {
   materialId: number;
   nume: string;
-  /** null only on an orphan bon group whose lines carry no code. */
+  /** null only on an orphan row — a bon group that matched no factura line. */
   nrCart: string | null;
   um: string;
   /** null when no factura line matches at all — an orphan bon group. */
@@ -327,48 +297,24 @@ export type ReconcilereLinie = {
 
 /**
  * Compares one month's bonuri against that month's factura, one row per
- * nomenclature code.
+ * material.
  *
- * Bon lines are attributed with the same resolveFacturaLine buildMonthlyReport
- * uses, so this page predicts exactly what generation will do. A bon line that
- * resolves to nothing — no factura line for it, or a material carried under two
- * codes with nothing on the line to pick between them — becomes its own row with
- * `cantitateFactura: null`, which is how the UnmatchedMaterialeError cases
- * become visible and fixable rather than only surfacing as an error on generate.
+ * A bon line whose material has no factura line at all becomes its own row
+ * with `cantitateFactura: null`, which is how the UnmatchedMaterialeError
+ * cases become visible and fixable rather than only surfacing as an error on
+ * generate.
  */
 export function buildReconciliere(input: {
   bonuri: ReconcilereBon[];
   facturaLinii: ReconcilereFacturaLine[];
 }): ReconcilereLinie[] {
-  const facturaByExactKey = new Map<string, MonthlyReportFacturaLine>();
-  const facturaByMaterial = new Map<number, MonthlyReportFacturaLine[]>();
-  const rows = new Map<string, ReconcilereLinie>();
+  const rows = new Map<number, ReconcilereLinie>();
   // Which bonuri are already listed on a row, so a bon carrying two lines for
-  // one code is linked once.
-  const bonuriSeen = new Map<string, Set<number>>();
+  // one material is linked once.
+  const bonuriSeen = new Map<number, Set<number>>();
 
   for (const f of input.facturaLinii) {
-    // resolveFacturaLine only reads these three fields; the price is irrelevant
-    // to a quantity comparison, so a zero stands in for it.
-    const pricing: MonthlyReportFacturaLine = {
-      materialId: f.materialId,
-      nrCart: f.nrCart,
-      pretUnitar: 0,
-    };
-    facturaByExactKey.set(`${f.materialId}|${f.nrCart}`, pricing);
-    const list = facturaByMaterial.get(f.materialId) ?? [];
-    list.push(pricing);
-    facturaByMaterial.set(f.materialId, list);
-
-    const key = `${f.materialId}|${f.nrCart}`;
-    const existing = rows.get(key);
-    // A factura should not carry the same material twice under one code, but if
-    // it does, the quantities belong to one row.
-    if (existing) {
-      existing.cantitateFactura = roundQty((existing.cantitateFactura ?? 0) + f.cantitate);
-      continue;
-    }
-    rows.set(key, {
+    rows.set(f.materialId, {
       materialId: f.materialId,
       nume: f.materialNume,
       nrCart: f.nrCart,
@@ -378,34 +324,29 @@ export function buildReconciliere(input: {
       diferenta: 0,
       bonuri: [],
     });
-    bonuriSeen.set(key, new Set());
+    bonuriSeen.set(f.materialId, new Set());
   }
 
   for (const bon of input.bonuri) {
     for (const line of bon.linii) {
-      const resolved = resolveFacturaLine(line, facturaByExactKey, facturaByMaterial);
-      const key = resolved.ok
-        ? `${line.materialId}|${resolved.line.nrCart}`
-        : `${line.materialId}|${line.nrCart ?? ""}`;
-
-      let row = rows.get(key);
+      let row = rows.get(line.materialId);
       if (!row) {
         row = {
           materialId: line.materialId,
           nume: line.materialNume,
-          nrCart: line.nrCart,
+          nrCart: null,
           um: line.um,
           cantitateFactura: null,
           cantitateBonuri: 0,
           diferenta: 0,
           bonuri: [],
         };
-        rows.set(key, row);
-        bonuriSeen.set(key, new Set());
+        rows.set(line.materialId, row);
+        bonuriSeen.set(line.materialId, new Set());
       }
 
       row.cantitateBonuri = roundQty(row.cantitateBonuri + line.cantitate);
-      const seen = bonuriSeen.get(key)!;
+      const seen = bonuriSeen.get(line.materialId)!;
       if (!seen.has(bon.id)) {
         seen.add(bon.id);
         row.bonuri.push({ id: bon.id, data: bon.data });

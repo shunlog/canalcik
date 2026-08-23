@@ -168,7 +168,6 @@ export interface SetSoferiBody {
 
 /** One line on a bon, as sent by the client. Lines are owned by the bon. */
 export interface MaterialLine {
-  nrCart: string | null;
   /**
    * The material's name, not its id. The server resolves it against
    * MaterialeIntretinere and creates the row when no material carries that
@@ -227,14 +226,13 @@ export interface MaterialListItem extends MaterialRef {
 
 /**
  * One bon line that uses a material, with the bon it sits on. A material can
- * appear on the same bon more than once (two lines, two nomenclature codes),
- * so this is per line, not per bon. `lineId` is a React key, nothing more:
- * a bon PATCH replaces its lines, so it does not survive an edit.
+ * appear on the same bon more than once (two separate lines), so this is per
+ * line, not per bon. `lineId` is a React key, nothing more: a bon PATCH
+ * replaces its lines, so it does not survive an edit.
  */
 export interface MaterialUsage {
   lineId: number;
   bon: BonRef;
-  nrCart: string | null;
   um: string;
   cantitate: number;
 }
@@ -334,17 +332,17 @@ export interface MonthlyReport {
 }
 
 /**
- * One reconciliation row: one nomenclature code, as invoiced against as issued.
- * The factura is authoritative and cannot be edited, so a non-zero `diferenta`
+ * One reconciliation row: one material, as invoiced against as issued. The
+ * factura is authoritative and cannot be edited, so a non-zero `diferenta`
  * means the month's bonuri need correcting.
  */
 export interface MonthlyReportLine {
   materialId: number;
   nume: string;
-  /** null only on a bon group that matched no factura line and carried no code. */
+  /** null only on an orphan row — a bon group that matched no factura line. */
   nrCart: string | null;
   um: string;
-  /** null when the code appears on no factura line at all. */
+  /** null when no factura line matches at all — an orphan bon group. */
   cantitateFactura: number | null;
   cantitateBonuri: number;
   /** cantitateBonuri − (cantitateFactura ?? 0). */

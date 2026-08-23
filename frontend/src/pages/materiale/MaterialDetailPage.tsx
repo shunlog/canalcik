@@ -119,7 +119,6 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
             <Table.Th>Data</Table.Th>
             <Table.Th>Șofer</Table.Th>
             <Table.Th>Vehicul</Table.Th>
-            <Table.Th>Cod nomenclator</Table.Th>
             <Table.Th>Cantitate</Table.Th>
             <Table.Th />
           </Table.Tr>
@@ -142,7 +141,6 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
                   {plate(u.bon.vehicul)}
                 </Anchor>
               </Table.Td>
-              <Table.Td>{u.nrCart ?? "—"}</Table.Td>
               <Table.Td>
                 {u.cantitate} {u.um}
               </Table.Td>

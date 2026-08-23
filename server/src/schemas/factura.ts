@@ -2,9 +2,9 @@ import { z } from "zod";
 import type { FacturaCreateBody, FacturaUpdateBody } from "../api-types.ts";
 import { isoDate, requiredText, type Same, unitateMasura } from "./common.ts";
 
-// Same shape as a bon line, with two deliberate differences: `nrCart` is
-// required (the factura is where the nomenclature code comes from) and the line
-// carries the price it was delivered at.
+// Same shape as a bon line, with two deliberate differences: `nrCart` exists
+// at all (the factura is where the nomenclature code comes from — a bon line
+// only names the material) and the line carries the price it was delivered at.
 export const facturaLine = z.object({
   nrCart: requiredText("Codul nomenclator"),
   nume: requiredText("Denumirea materialului"),

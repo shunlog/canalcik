@@ -99,11 +99,6 @@ model BonEliberareMaterial {
   materialId Int
   material   MaterialeIntretinere @relation(fields: [materialId], references: [id])
 
-  // "cod nomenclator", e.g. "2111121795". Unknown when the bon is written; it
-  // is matched by the material's name against the "Factura de expeditie" at
-  // month end. It stays on the line rather than on the material: the same
-  // material can be delivered under different codes.
-  nrCart    String?
   um        String // "l", "buc"
   cantitate Float
 }
@@ -123,7 +118,7 @@ model MaterialeIntretinere {
 
 // A "factura de expeditie" — one delivery invoice: the materials received on
 // one day, with the "cod nomenclator" and price each came under. It is what
-// the bonuri are matched against at month end to fill in their nrCart.
+// the bonuri are matched against at month end to resolve their price.
 model FacturaExpeditie {
   id       Int      @id @default(autoincrement())
   syncedAt DateTime @default(now()) @updatedAt
@@ -145,18 +140,18 @@ model FacturaExpeditieMaterial {
   facturaId Int
   factura   FacturaExpeditie @relation(fields: [facturaId], references: [id], onDelete: Cascade)
 
-  // The document's "nume" column, kept as a reference so a factura and a bon
-  // spell the same material the same way. Lines pin the material (no
-  // onDelete), so a material in use cannot be deleted.
+  // The document's "nume" column.
   materialId Int
   material   MaterialeIntretinere @relation(fields: [materialId], references: [id])
 
-  // "cod nomenclator", e.g. "2111121795" — unlike on a bon line, it is known
-  // here: the factura is where it comes from.
+  // "cod nomenclator", e.g. "2111121795".
   nrCart     String
   um         String // "L", "KG"
   cantitate  Float
   pretUnitar Float // price for one `um`
+
+  // A material can appear at most once per factura
+  @@unique([facturaId, materialId])
 }
 
 // A file the app generated and uploaded to Drive — the record of what was

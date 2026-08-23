@@ -74,7 +74,6 @@ describe("buildMonthlyReport", () => {
               id: 1,
               materialId: 1,
               materialNume: "Motorina",
-              nrCart: "2111",
               um: "l",
               cantitate: 10,
             },
@@ -89,7 +88,6 @@ describe("buildMonthlyReport", () => {
               id: 2,
               materialId: 2,
               materialNume: "Ulei motor",
-              nrCart: "2222",
               um: "l",
               cantitate: 5,
             },
@@ -114,16 +112,12 @@ describe("buildMonthlyReport", () => {
         bon({
           id: 2,
           data: "2026-05-05",
-          linii: [
-            { id: 1, materialId: 1, materialNume: "A", nrCart: "1", um: "l", cantitate: 1 },
-          ],
+          linii: [{ id: 1, materialId: 1, materialNume: "A", um: "l", cantitate: 1 }],
         }),
         bon({
           id: 1,
           data: "2026-05-01",
-          linii: [
-            { id: 2, materialId: 1, materialNume: "A", nrCart: "1", um: "l", cantitate: 1 },
-          ],
+          linii: [{ id: 2, materialId: 1, materialNume: "A", um: "l", cantitate: 1 }],
         }),
       ],
       facturaLinii: [{ materialId: 1, nrCart: "1", pretUnitar: 10 }],
@@ -142,7 +136,6 @@ describe("buildMonthlyReport", () => {
               id: 1,
               materialId: 1,
               materialNume: "ULEI MOTOR DIZEL M10G2K",
-              nrCart: "2222",
               um: "l",
               cantitate: 12,
             },
@@ -160,36 +153,7 @@ describe("buildMonthlyReport", () => {
     expect(row.suma_bani).toBe("20");
   });
 
-  it("matches by (materialId, nrCart) when the bon line carries a nrCart", () => {
-    const input: BuildMonthlyReportInput = {
-      bonuri: [
-        bon({
-          linii: [
-            {
-              id: 1,
-              materialId: 1,
-              materialNume: "Motorina",
-              nrCart: "2111",
-              um: "l",
-              cantitate: 1,
-            },
-          ],
-        }),
-      ],
-      // Two factura lines for the same material under different codes — only
-      // the exact-code one should apply.
-      facturaLinii: [
-        { materialId: 1, nrCart: "2111", pretUnitar: 20 },
-        { materialId: 1, nrCart: "9999", pretUnitar: 999 },
-      ],
-    };
-
-    const [sheet] = buildMonthlyReport(input);
-    expect(sheet.tbl[0].nr_cart).toBe("2111");
-    expect(sheet.tbl[0].pret_lei).toBe(20);
-  });
-
-  it("throws, naming every unmatched material, when a bon line's nrCart has no exact factura match", () => {
+  it("throws, naming every unmatched material, when a bon line's material has no factura line at all", () => {
     const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
@@ -198,7 +162,6 @@ describe("buildMonthlyReport", () => {
               id: 1,
               materialId: 1,
               materialNume: "ULEI MOTOR 10W40 DIZEL SEMISINTETIC",
-              nrCart: "2112210812",
               um: "l",
               cantitate: 1,
             },
@@ -220,47 +183,11 @@ describe("buildMonthlyReport", () => {
     }
   });
 
-  it("throws an ambiguous error naming the codes when a bon line has no nrCart and more than one factura line matches", () => {
+  it("resolves a bon line by materialId when the factura carries exactly one line for it", () => {
     const input: BuildMonthlyReportInput = {
       bonuri: [
         bon({
-          linii: [
-            {
-              id: 1,
-              materialId: 1,
-              materialNume: "ANTIGEL ALBASTRU -40C",
-              nrCart: null,
-              um: "l",
-              cantitate: 1,
-            },
-          ],
-        }),
-      ],
-      facturaLinii: [
-        { materialId: 1, nrCart: "111", pretUnitar: 10 },
-        { materialId: 1, nrCart: "222", pretUnitar: 20 },
-      ],
-    };
-
-    try {
-      buildMonthlyReport(input);
-      throw new Error("expected to throw");
-    } catch (err) {
-      expect(err).toBeInstanceOf(UnmatchedMaterialeError);
-      const message = (err as UnmatchedMaterialeError).materiale[0];
-      expect(message).toContain("ANTIGEL ALBASTRU -40C");
-      expect(message).toContain("111");
-      expect(message).toContain("222");
-    }
-  });
-
-  it("resolves an unambiguous match when the bon line has no nrCart", () => {
-    const input: BuildMonthlyReportInput = {
-      bonuri: [
-        bon({
-          linii: [
-            { id: 1, materialId: 1, materialNume: "Motorina", nrCart: null, um: "l", cantitate: 1 },
-          ],
+          linii: [{ id: 1, materialId: 1, materialNume: "Motorina", um: "l", cantitate: 1 }],
         }),
       ],
       facturaLinii: [{ materialId: 1, nrCart: "2111", pretUnitar: 20 }],
@@ -284,13 +211,12 @@ describe("buildMonthlyReport row merging", () => {
     id: 1,
     materialId: 1,
     materialNume: "ANTIGEL ALBASTRU -40C",
-    nrCart: "2111017178" as string | null,
     um: "L",
     cantitate: 5,
     ...over,
   });
 
-  it("sums two lines of one bon for the same day, material and code", () => {
+  it("sums two lines of one bon for the same day and material", () => {
     const [sheet] = buildMonthlyReport({
       bonuri: [
         bon({
@@ -324,39 +250,13 @@ describe("buildMonthlyReport row merging", () => {
     const [sheet] = buildMonthlyReport({
       bonuri: [
         bon({
-          linii: [
-            line({ id: 1, cantitate: 0.1 }),
-            line({ id: 2, cantitate: 0.2 }),
-          ],
+          linii: [line({ id: 1, cantitate: 0.1 }), line({ id: 2, cantitate: 0.2 })],
         }),
       ],
       facturaLinii: [{ materialId: 1, nrCart: "2111017178", pretUnitar: 10 }],
     });
 
     expect(sheet.tbl[0].cant).toBe(0.3);
-  });
-
-  it("keeps one material under two nomenclature codes as two rows", () => {
-    const [sheet] = buildMonthlyReport({
-      bonuri: [
-        bon({
-          linii: [
-            line({ id: 1, nrCart: "2111", cantitate: 5 }),
-            line({ id: 2, nrCart: "2222", cantitate: 3 }),
-          ],
-        }),
-      ],
-      facturaLinii: [
-        { materialId: 1, nrCart: "2111", pretUnitar: 20 },
-        { materialId: 1, nrCart: "2222", pretUnitar: 30 },
-      ],
-    });
-
-    expect(sheet.tbl).toHaveLength(2);
-    expect(sheet.tbl.map((r) => [r.nr_cart, r.cant])).toEqual([
-      ["2111", 5],
-      ["2222", 3],
-    ]);
   });
 
   it("keeps the same material on two dates as two rows", () => {
@@ -378,10 +278,7 @@ describe("buildMonthlyReport row merging", () => {
     const [sheet] = buildMonthlyReport({
       bonuri: [
         bon({
-          linii: [
-            line({ id: 1, um: "L", cantitate: 5 }),
-            line({ id: 2, um: "KG", cantitate: 3 }),
-          ],
+          linii: [line({ id: 1, um: "L", cantitate: 5 }), line({ id: 2, um: "KG", cantitate: 3 })],
         }),
       ],
       facturaLinii: [{ materialId: 1, nrCart: "2111017178", pretUnitar: 20 }],
@@ -409,7 +306,6 @@ describe("buildReconciliere", () => {
     id: 1,
     materialId: 1,
     materialNume: "ANTIGEL ALBASTRU -40C",
-    nrCart: "2111017178" as string | null,
     um: "L",
     cantitate: 6,
     ...over,
@@ -455,34 +351,19 @@ describe("buildReconciliere", () => {
     expect(row).toMatchObject({ cantitateBonuri: 0, diferenta: -6, bonuri: [] });
   });
 
-  it("gives a bon line with no factura line its own row", () => {
+  it("gives a bon line whose material has no factura line its own row", () => {
     const rows = buildReconciliere({
-      bonuri: [
-        bon({ linii: [bLine({ materialId: 9, materialNume: "MOTORINA", nrCart: "999" })] }),
-      ],
+      bonuri: [bon({ linii: [bLine({ materialId: 9, materialNume: "MOTORINA" })] })],
       facturaLinii: [fLine()],
     });
 
     const orphan = rows.find((r) => r.nume === "MOTORINA");
-    expect(orphan).toMatchObject({ nrCart: "999", cantitateFactura: null, diferenta: 6 });
+    expect(orphan).toMatchObject({ nrCart: null, cantitateFactura: null, diferenta: 6 });
   });
 
-  it("gives an ambiguous no-nrCart bon line its own row, as generation would reject it", () => {
+  it("attributes a bon line to the only factura line for that material", () => {
     const rows = buildReconciliere({
-      bonuri: [bon({ linii: [bLine({ nrCart: null, cantitate: 2 })] })],
-      facturaLinii: [
-        fLine({ nrCart: "2111", cantitate: 6 }),
-        fLine({ nrCart: "2222", cantitate: 4 }),
-      ],
-    });
-
-    const orphan = rows.find((r) => r.cantitateFactura === null);
-    expect(orphan).toMatchObject({ nrCart: null, cantitateBonuri: 2, diferenta: 2 });
-  });
-
-  it("attributes a no-nrCart bon line to the only factura line for that material", () => {
-    const rows = buildReconciliere({
-      bonuri: [bon({ linii: [bLine({ nrCart: null, cantitate: 6 })] })],
+      bonuri: [bon({ linii: [bLine({ cantitate: 6 })] })],
       facturaLinii: [fLine({ cantitate: 6 })],
     });
 
@@ -506,7 +387,7 @@ describe("buildReconciliere", () => {
     expect(row.diferenta).toBe(0);
   });
 
-  it("links a bon once even when it carries two lines for one code", () => {
+  it("links a bon once even when it carries two lines for the same material", () => {
     const [row] = buildReconciliere({
       bonuri: [
         bon({ id: 51, linii: [bLine({ id: 1, cantitate: 5 }), bLine({ id: 2, cantitate: 1 })] }),
@@ -516,7 +397,7 @@ describe("buildReconciliere", () => {
     expect(row.bonuri).toEqual([{ id: 51, data: "2026-05-10" }]);
   });
 
-  it("lists every bon touching a code, oldest first", () => {
+  it("lists every bon touching a material, oldest first", () => {
     const [row] = buildReconciliere({
       bonuri: [
         bon({ id: 2, data: "2026-05-18", linii: [bLine({ cantitate: 1 })] }),
@@ -528,21 +409,6 @@ describe("buildReconciliere", () => {
     expect(row.bonuri).toEqual([
       { id: 1, data: "2026-05-04" },
       { id: 2, data: "2026-05-18" },
-    ]);
-  });
-
-  it("keeps one material under two codes as two rows", () => {
-    const rows = buildReconciliere({
-      bonuri: [bon({ linii: [bLine({ nrCart: "2111", cantitate: 6 })] })],
-      facturaLinii: [
-        fLine({ nrCart: "2111", cantitate: 6 }),
-        fLine({ nrCart: "2222", cantitate: 4 }),
-      ],
-    });
-
-    expect(rows.map((r) => [r.nrCart, r.diferenta])).toEqual([
-      ["2111", 0],
-      ["2222", -4],
     ]);
   });
 

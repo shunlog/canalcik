@@ -38,7 +38,6 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w={170}>Cod nomenclator</Table.Th>
               <Table.Th>Denumire</Table.Th>
               <Table.Th w={110}>UM</Table.Th>
               <Table.Th w={150}>Cantitate</Table.Th>
@@ -54,12 +53,6 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
 
               return (
                 <Table.Tr key={row.key}>
-                  <Table.Td>
-                    <TextInput
-                      placeholder="2111121795"
-                      {...form.getInputProps(`materiale.${i}.nrCart`)}
-                    />
-                  </Table.Td>
                   <Table.Td>
                     <Autocomplete
                       placeholder="Căutați sau scrieți un material"

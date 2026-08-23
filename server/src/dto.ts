@@ -181,7 +181,6 @@ export const bonDetailSelect = {
       id: true,
       materialId: true,
       material: { select: { nume: true } },
-      nrCart: true,
       um: true,
       cantitate: true,
     },
@@ -228,7 +227,7 @@ export const materialDetailSelect = {
   ...materialRefSelect,
   syncedAt: true,
   bonuri: {
-    select: { id: true, nrCart: true, um: true, cantitate: true, bon: { select: bonRefSelect } },
+    select: { id: true, um: true, cantitate: true, bon: { select: bonRefSelect } },
     orderBy: [{ bon: { data: "desc" } }, { id: "desc" }],
   },
 } satisfies Prisma.MaterialeIntretinereSelect;

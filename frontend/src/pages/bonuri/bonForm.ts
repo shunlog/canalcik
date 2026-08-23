@@ -1,6 +1,6 @@
 import type { BonCreateBody, BonDetail } from "@canalcik/server/api-types";
 import { randomId } from "@mantine/hooks";
-import { emptyToNull, numOrZero, todayLocalIso } from "../../lib/forms.ts";
+import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
 
 export interface MaterialRow {
   /**
@@ -8,7 +8,6 @@ export interface MaterialRow {
    * each save — keying React rows by them makes inputs lose focus after a refetch.
    */
   key: string;
-  nrCart: string;
   nume: string;
   um: string;
   cantitate: number | string;
@@ -23,7 +22,6 @@ export interface BonFormValues {
 
 export const newMaterialRow = (): MaterialRow => ({
   key: randomId(),
-  nrCart: "",
   nume: "",
   um: "",
   cantitate: "",
@@ -42,7 +40,6 @@ export const toBonForm = (b: BonDetail): BonFormValues => ({
   vehiculId: String(b.vehiculId),
   materiale: b.materiale.map((m) => ({
     key: randomId(),
-    nrCart: m.nrCart ?? "",
     nume: m.nume,
     um: m.um,
     cantitate: m.cantitate,
@@ -54,7 +51,6 @@ export const fromBonForm = (v: BonFormValues): BonCreateBody => ({
   soferId: Number(v.soferId),
   vehiculId: Number(v.vehiculId),
   materiale: v.materiale.map((m) => ({
-    nrCart: emptyToNull(m.nrCart),
     nume: m.nume.trim(),
     um: m.um.trim(),
     cantitate: numOrZero(m.cantitate),

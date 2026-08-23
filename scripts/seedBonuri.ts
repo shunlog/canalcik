@@ -19,7 +19,6 @@ import { PrismaClient } from "@prisma/client";
 
 type FisaRow = {
   data: string; // as printed, "DD.MM.YYYY"
-  nrCart: string;
   nume: string;
   um: string;
   cantitate: number;
@@ -41,11 +40,11 @@ const FISE: Fisa[] = [
     cod: 8981,
     sofer: "Apavaloae Gheorghe",
     rows: [
-      { data: "26.05.2026", nrCart: "2111121795", nume: "LICHID DE FRANA DOT-4", um: "L", cantitate: 2 },
-      { data: "22.05.2026", nrCart: "2112210775", nume: "UNSOARE LITOL-24", um: "KG", cantitate: 3 },
-      { data: "04.05.2026", nrCart: "2111017178", nume: "ANTIGEL ALBASTRU -40C", um: "L", cantitate: 5 },
-      { data: "18.05.2026", nrCart: "2112210834", nume: "ULEI MOTOR DIZEL M10G2K", um: "L", cantitate: 12 },
-      { data: "22.05.2026", nrCart: "2112210848", nume: "ULEI INDUSTRIAL I-40", um: "L", cantitate: 13 },
+      { data: "26.05.2026", nume: "LICHID DE FRANA DOT-4", um: "L", cantitate: 2 },
+      { data: "22.05.2026", nume: "UNSOARE LITOL-24", um: "KG", cantitate: 3 },
+      { data: "04.05.2026", nume: "ANTIGEL ALBASTRU -40C", um: "L", cantitate: 5 },
+      { data: "18.05.2026", nume: "ULEI MOTOR DIZEL M10G2K", um: "L", cantitate: 12 },
+      { data: "22.05.2026", nume: "ULEI INDUSTRIAL I-40", um: "L", cantitate: 13 },
     ],
   },
   {
@@ -54,8 +53,8 @@ const FISE: Fisa[] = [
     cod: 8913,
     sofer: "Goreanu Anatolie",
     rows: [
-      { data: "18.05.2026", nrCart: "2112210848", nume: "ULEI INDUSTRIAL I-40", um: "L", cantitate: 5 },
-      { data: "18.05.2026", nrCart: "2112210860", nume: "ULEI 15W40 SG/SD MAXIMUM GUARDMAX", um: "L", cantitate: 5 },
+      { data: "18.05.2026", nume: "ULEI INDUSTRIAL I-40", um: "L", cantitate: 5 },
+      { data: "18.05.2026", nume: "ULEI 15W40 SG/SD MAXIMUM GUARDMAX", um: "L", cantitate: 5 },
     ],
   },
   {
@@ -64,7 +63,7 @@ const FISE: Fisa[] = [
     cod: 8222,
     sofer: "Matei Fiodor",
     rows: [
-      { data: "04.05.2026", nrCart: "2112210737", nume: "ULEI MOTOR 10W40 CI-4/SL", um: "L", cantitate: 5 },
+      { data: "04.05.2026", nume: "ULEI MOTOR 10W40 CI-4/SL", um: "L", cantitate: 5 },
     ],
   },
   {
@@ -73,7 +72,7 @@ const FISE: Fisa[] = [
     cod: 8988,
     sofer: "David Ivan",
     rows: [
-      { data: "05.05.2026", nrCart: "2112210812", nume: "ULEI MOTOR 10W40 DIZEL SEMISINTETIC", um: "L", cantitate: 5 },
+      { data: "05.05.2026", nume: "ULEI MOTOR 10W40 DIZEL SEMISINTETIC", um: "L", cantitate: 5 },
     ],
   },
   {
@@ -82,8 +81,8 @@ const FISE: Fisa[] = [
     cod: 9492,
     sofer: "Zatic Valeriu",
     rows: [
-      { data: "05.05.2026", nrCart: "2112210848", nume: "ULEI INDUSTRIAL I-40", um: "L", cantitate: 25 },
-      { data: "05.05.2026", nrCart: "2112210834", nume: "ULEI MOTOR DIZEL M10G2K", um: "L", cantitate: 25 },
+      { data: "05.05.2026", nume: "ULEI INDUSTRIAL I-40", um: "L", cantitate: 25 },
+      { data: "05.05.2026", nume: "ULEI MOTOR DIZEL M10G2K", um: "L", cantitate: 25 },
     ],
   },
 ];
@@ -169,8 +168,7 @@ async function main() {
           soferId: sofer.id,
           vehiculId: vehicul.id,
           materiale: {
-            create: rows.map(({ nrCart, nume, um, cantitate }) => ({
-              nrCart,
+            create: rows.map(({ nume, um, cantitate }) => ({
               um,
               cantitate,
               // The material name is a reference now, so the catalogue fills

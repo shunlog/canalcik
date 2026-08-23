@@ -1,9 +1,8 @@
 import { z } from "zod";
 import type { BonCreateBody, BonUpdateBody } from "../api-types.ts";
-import { isoDate, nullableText, requiredText, type Same, unitateMasura } from "./common.ts";
+import { isoDate, requiredText, type Same, unitateMasura } from "./common.ts";
 
 export const materialLine = z.object({
-  nrCart: nullableText,
   nume: requiredText("Denumirea materialului"),
   um: unitateMasura,
   cantitate: z.number().positive("Cantitatea trebuie să fie mai mare decât 0"),
