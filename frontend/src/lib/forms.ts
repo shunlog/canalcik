@@ -38,6 +38,13 @@ export const formatIsoDate = (v: string | null | undefined): string => {
 export const formatMoney = (n: number): string =>
   n.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+/**
+ * A quantity, at the 3 decimals the inputs allow. Sums of floats reach here, so
+ * the rounding is what keeps 0.30000000000000004 off the screen; trailing zeros
+ * are dropped, since "6" reads better than "6,000" for a whole number of litres.
+ */
+export const formatQty = (n: number): string => Number(n.toFixed(3)).toLocaleString("ro-RO");
+
 /** Displays a "YYYY-MM" string as "Iunie 2026". The server has its own numeFisierFisaLimita for the filename. */
 export const formatMonth = (v: string): string => {
   const [y, m] = v.split("-").map(Number);

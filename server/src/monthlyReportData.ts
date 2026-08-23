@@ -53,6 +53,14 @@ export function baniSplit(n: number): { lei: number; bani: string } {
   return { lei, bani };
 }
 
+/**
+ * Rounds a quantity to 3 decimals — the scale the quantity inputs allow. Sums
+ * of floats are the whole point: 0.1 + 0.2 must be 0.3, both so a difference
+ * can be compared against 0 and so a spreadsheet cell never prints
+ * 0.30000000000000004.
+ */
+export const roundQty = (n: number): number => Math.round(n * 1000) / 1000;
+
 const isoToDDMMYYYY = (iso: string): string => {
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
@@ -156,22 +164,35 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     facturaByMaterial.set(f.materialId, list);
   }
 
+  type Row = {
+    data: string;
+    /** First (bonId, lineId) merged into this row — only the row-order tiebreak. */
+    bonId: number;
+    lineId: number;
+    nrCart: string;
+    nume: string;
+    unit: string;
+    cant: number;
+    pretUnitar: number;
+  };
   type Group = {
     key: string;
     litere: string;
     cifre: string;
     numeSofer: string;
     codSofer: number;
-    rows: Array<{
-      data: string;
-      bonId: number;
-      lineId: number;
-      nrCart: string;
-      nume: string;
-      unit: string;
-      cant: number;
-      pretUnitar: number;
-    }>;
+    /**
+     * Keyed `data|materialId|nrCart|unit`, so a material issued twice on the
+     * same day is one row of the summed quantity, not two identical-looking
+     * ones. materialId+nrCart is what resolveFacturaLine matches on, so every
+     * line merged into a row shares one price and one name — keying on nrCart
+     * alone would be wrong, since one material can sit on the factura under two
+     * codes at two prices. The unit is in the key so two genuinely different
+     * units are never added together. Merging spans bonuri, not just the lines
+     * of one bon: a sheet row carries no bon reference, so two bonuri on one
+     * date for the same vehicul+sofer would otherwise look duplicated too.
+     */
+    rows: Map<string, Row>;
   };
   const groups = new Map<string, Group>();
   const unmatched: string[] = [];
@@ -192,18 +213,24 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
           cifre: bon.vehicul.cifre,
           numeSofer: bon.sofer.nume,
           codSofer: bon.sofer.cod,
-          rows: [],
+          rows: new Map(),
         };
         groups.set(key, group);
       }
-      group.rows.push({
+      const rowKey = `${bon.data}|${line.materialId}|${resolved.line.nrCart}|${line.um}`;
+      const existing = group.rows.get(rowKey);
+      if (existing) {
+        existing.cant = roundQty(existing.cant + line.cantitate);
+        continue;
+      }
+      group.rows.set(rowKey, {
         data: bon.data,
         bonId: bon.id,
         lineId: line.id,
         nrCart: resolved.line.nrCart,
         nume: line.materialNume,
         unit: line.um,
-        cant: line.cantitate,
+        cant: roundQty(line.cantitate),
         pretUnitar: resolved.line.pretUnitar,
       });
     }
@@ -215,7 +242,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
 
   const sortedGroups = [...groups.values()]
     // Drop groups left with no rows (a bon with zero lines passes bonCreate).
-    .filter((g) => g.rows.length > 0)
+    .filter((g) => g.rows.size > 0)
     .sort((a, b) =>
       a.litere !== b.litere
         ? a.litere.localeCompare(b.litere)
@@ -225,7 +252,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     );
 
   return sortedGroups.map((g): DataFisaLimitaSheet => {
-    const rows = [...g.rows].sort((a, b) =>
+    const rows = [...g.rows.values()].sort((a, b) =>
       a.data !== b.data
         ? a.data.localeCompare(b.data)
         : a.bonId !== b.bonId
@@ -260,3 +287,142 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     };
   });
 }
+
+// ------------------------------------------------------------ reconciliation
+
+/** Just what reconciliation needs from a bon. A `MonthlyReportBon` satisfies it. */
+export type ReconcilereBon = Pick<MonthlyReportBon, "id" | "data" | "linii">;
+
+/**
+ * A factura line as reconciliation sees it. Separate from
+ * MonthlyReportFacturaLine, which is the pricing shape buildMonthlyReport
+ * matches against: this one needs the quantity and unit and not the price.
+ */
+export type ReconcilereFacturaLine = {
+  materialId: number;
+  materialNume: string;
+  nrCart: string;
+  um: string;
+  cantitate: number;
+};
+
+/**
+ * One nomenclature code, as invoiced against as issued. `diferenta` is what the
+ * operator acts on: the factura is authoritative and cannot be edited, so a
+ * non-zero difference means the month's bonuri need correcting.
+ */
+export type ReconcilereLinie = {
+  materialId: number;
+  nume: string;
+  /** null only on an orphan bon group whose lines carry no code. */
+  nrCart: string | null;
+  um: string;
+  /** null when no factura line matches at all — an orphan bon group. */
+  cantitateFactura: number | null;
+  cantitateBonuri: number;
+  /** cantitateBonuri − (cantitateFactura ?? 0). */
+  diferenta: number;
+  bonuri: Array<{ id: number; data: string }>;
+};
+
+/**
+ * Compares one month's bonuri against that month's factura, one row per
+ * nomenclature code.
+ *
+ * Bon lines are attributed with the same resolveFacturaLine buildMonthlyReport
+ * uses, so this page predicts exactly what generation will do. A bon line that
+ * resolves to nothing — no factura line for it, or a material carried under two
+ * codes with nothing on the line to pick between them — becomes its own row with
+ * `cantitateFactura: null`, which is how the UnmatchedMaterialeError cases
+ * become visible and fixable rather than only surfacing as an error on generate.
+ */
+export function buildReconciliere(input: {
+  bonuri: ReconcilereBon[];
+  facturaLinii: ReconcilereFacturaLine[];
+}): ReconcilereLinie[] {
+  const facturaByExactKey = new Map<string, MonthlyReportFacturaLine>();
+  const facturaByMaterial = new Map<number, MonthlyReportFacturaLine[]>();
+  const rows = new Map<string, ReconcilereLinie>();
+  // Which bonuri are already listed on a row, so a bon carrying two lines for
+  // one code is linked once.
+  const bonuriSeen = new Map<string, Set<number>>();
+
+  for (const f of input.facturaLinii) {
+    // resolveFacturaLine only reads these three fields; the price is irrelevant
+    // to a quantity comparison, so a zero stands in for it.
+    const pricing: MonthlyReportFacturaLine = {
+      materialId: f.materialId,
+      nrCart: f.nrCart,
+      pretUnitar: 0,
+    };
+    facturaByExactKey.set(`${f.materialId}|${f.nrCart}`, pricing);
+    const list = facturaByMaterial.get(f.materialId) ?? [];
+    list.push(pricing);
+    facturaByMaterial.set(f.materialId, list);
+
+    const key = `${f.materialId}|${f.nrCart}`;
+    const existing = rows.get(key);
+    // A factura should not carry the same material twice under one code, but if
+    // it does, the quantities belong to one row.
+    if (existing) {
+      existing.cantitateFactura = roundQty((existing.cantitateFactura ?? 0) + f.cantitate);
+      continue;
+    }
+    rows.set(key, {
+      materialId: f.materialId,
+      nume: f.materialNume,
+      nrCart: f.nrCart,
+      um: f.um,
+      cantitateFactura: roundQty(f.cantitate),
+      cantitateBonuri: 0,
+      diferenta: 0,
+      bonuri: [],
+    });
+    bonuriSeen.set(key, new Set());
+  }
+
+  for (const bon of input.bonuri) {
+    for (const line of bon.linii) {
+      const resolved = resolveFacturaLine(line, facturaByExactKey, facturaByMaterial);
+      const key = resolved.ok
+        ? `${line.materialId}|${resolved.line.nrCart}`
+        : `${line.materialId}|${line.nrCart ?? ""}`;
+
+      let row = rows.get(key);
+      if (!row) {
+        row = {
+          materialId: line.materialId,
+          nume: line.materialNume,
+          nrCart: line.nrCart,
+          um: line.um,
+          cantitateFactura: null,
+          cantitateBonuri: 0,
+          diferenta: 0,
+          bonuri: [],
+        };
+        rows.set(key, row);
+        bonuriSeen.set(key, new Set());
+      }
+
+      row.cantitateBonuri = roundQty(row.cantitateBonuri + line.cantitate);
+      const seen = bonuriSeen.get(key)!;
+      if (!seen.has(bon.id)) {
+        seen.add(bon.id);
+        row.bonuri.push({ id: bon.id, data: bon.data });
+      }
+    }
+  }
+
+  const out = [...rows.values()];
+  for (const row of out) {
+    row.diferenta = roundQty(row.cantitateBonuri - (row.cantitateFactura ?? 0));
+    row.bonuri.sort((a, b) => (a.data !== b.data ? a.data.localeCompare(b.data) : a.id - b.id));
+  }
+  return out.sort((a, b) =>
+    a.nume !== b.nume ? a.nume.localeCompare(b.nume) : (a.nrCart ?? "").localeCompare(b.nrCart ?? ""),
+  );
+}
+
+/** The rows an operator must fix before the month can be generated. */
+export const liniiCuDiferente = (linii: ReconcilereLinie[]): ReconcilereLinie[] =>
+  linii.filter((l) => l.diferenta !== 0);

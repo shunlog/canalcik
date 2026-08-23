@@ -325,4 +325,35 @@ export interface MonthlyReport {
   nrBonuri: number;
   factura: { id: number; data: IsoDate } | null;
   document: FisaLimitaDocRef | null;
+  /**
+   * How many reconciliation rows disagree with the factura. null when there is
+   * nothing to compare — no bonuri, or no factura — so the client's "not enough
+   * data" reason keeps precedence over "the data is inconsistent".
+   */
+  nrDiferente: number | null;
+}
+
+/**
+ * One reconciliation row: one nomenclature code, as invoiced against as issued.
+ * The factura is authoritative and cannot be edited, so a non-zero `diferenta`
+ * means the month's bonuri need correcting.
+ */
+export interface MonthlyReportLine {
+  materialId: number;
+  nume: string;
+  /** null only on a bon group that matched no factura line and carried no code. */
+  nrCart: string | null;
+  um: string;
+  /** null when the code appears on no factura line at all. */
+  cantitateFactura: number | null;
+  cantitateBonuri: number;
+  /** cantitateBonuri − (cantitateFactura ?? 0). */
+  diferenta: number;
+  /** Every bon of the month carrying this code, oldest first. */
+  bonuri: Array<{ id: number; data: IsoDate }>;
+}
+
+/** One month's report, with the row-by-row comparison behind `nrDiferente`. */
+export interface MonthlyReportDetail extends MonthlyReport {
+  linii: MonthlyReportLine[];
 }

@@ -1,10 +1,11 @@
-import { Anchor, Badge, Button, Table, Text, Tooltip } from "@mantine/core";
+import { Anchor, Badge, Table, Text } from "@mantine/core";
 import { Link } from "react-router";
 import { useMonthlyReports, useGenerateMonthlyReport } from "../../api/monthlyReport.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatMonth } from "../../lib/forms.ts";
+import { GenerateButton } from "./GenerateButton.tsx";
 
 export function MonthlyReportListPage() {
   const query = useMonthlyReports();
@@ -39,17 +40,15 @@ export function MonthlyReportListPage() {
                 </Table.Thead>
                 <Table.Tbody>
                   {monthlyReports.map((m) => {
-                    const reason =
-                      m.nrBonuri === 0
-                        ? "Luna nu are bonuri"
-                        : !m.factura
-                          ? "Luna nu are factură de expediție"
-                          : null;
                     const isLoading = gen.isPending && gen.variables === m.month;
 
                     return (
                       <Table.Tr key={m.month}>
-                        <Table.Td>{formatMonth(m.month)}</Table.Td>
+                        <Table.Td>
+                          <Anchor component={Link} to={`/monthly-report/${m.month}`}>
+                            {formatMonth(m.month)}
+                          </Anchor>
+                        </Table.Td>
                         <Table.Td>
                           <Badge variant="light">
                             {m.nrBonuri}
@@ -74,22 +73,11 @@ export function MonthlyReportListPage() {
                           )}
                         </Table.Td>
                         <Table.Td>
-                          <Tooltip label={reason} disabled={!reason}>
-                            <Button
-                              size="xs"
-                              loading={isLoading}
-                              data-disabled={!!reason}
-                              onClick={(e) => {
-                                if (reason) {
-                                  e.preventDefault();
-                                  return;
-                                }
-                                generate(m.month);
-                              }}
-                            >
-                              {m.document ? "Re-generează" : "Generează"}
-                            </Button>
-                          </Tooltip>
+                          <GenerateButton
+                            report={m}
+                            loading={isLoading}
+                            onGenerate={() => generate(m.month)}
+                          />
                         </Table.Td>
                       </Table.Tr>
                     );

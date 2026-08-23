@@ -49,4 +49,11 @@ export const nullableInt = z
 
 export const requiredText = (label: string) => z.string().trim().min(1, `${label} este obligatoriu`);
 
+/**
+ * A unit of measure, upper-cased. A factura is written "L"/"KG" and a bon "l"/
+ * "buc" for the same thing, and the monthly reconciliation compares one against
+ * the other — so the case is settled on the way in, not at every read.
+ */
+export const unitateMasura = requiredText("Unitatea de măsură").transform((s) => s.toUpperCase());
+
 export const idList = z.array(z.number().int().positive());

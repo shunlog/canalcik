@@ -38,4 +38,5 @@ export const facturaKeys = {
 
 export const monthlyReportKeys = {
   all: ["monthlyReport"] as const,
+  detail: (month: string) => ["monthlyReport", "detail", month] as const,
 };
