@@ -7,6 +7,7 @@ import {
   isAuthError,
   uploadBuffer,
 } from "../../../utils/drive.ts";
+import { hasToken } from "../../../utils/googleAuth.ts";
 import { loadTemplate, TEMPLATES } from "../../../templates/templateManifest.ts";
 import { renderFisaLimita } from "../../../templates/renderTemplates.ts";
 import type { FisaLimitaDocRef, MonthlyReport, MonthlyReportDetail } from "../api-types.ts";
@@ -273,6 +274,11 @@ monthlyReport.post("/:month/generate", async (c) => {
   }
   const buffer = renderFisaLimita(template, sheets);
   const nume = numeFisierFisaLimita(month);
+
+  // driveClient() throws a plain Error when token.json is absent, which
+  // isAuthError() doesn't recognize — check up front so a never-authorized box
+  // gets the same 409 as a dead token instead of a 500.
+  if (!hasToken()) throw driveNotConnected();
 
   let uploaded: { id: string; webViewLink: string };
   try {

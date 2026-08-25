@@ -36,15 +36,6 @@ export function driveClient(auth?: Auth.OAuth2Client): drive_v3.Drive {
   return google.drive({ version: "v3", auth: auth ?? oauthClient() });
 }
 
-export function streamToBuffer(stream: Readable): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
-    stream.on("end", () => resolve(Buffer.concat(chunks)));
-    stream.on("error", reject);
-  });
-}
-
 /** Single quotes are the string delimiter in Drive's query language. */
 export function escapeQueryValue(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
@@ -64,12 +55,13 @@ export function resetFolderCache(): void {
 
 /**
  * Resolves the folder that generated documents go into, creating it on first
- * use. GOOGLE_FOLDER_ID short-circuits the lookup when it is set.
+ * use.
  *
- * Note on scopes: the name search only sees a hand-made folder because
- * scripts/auth.ts also requests drive.readonly. Under drive.file alone,
- * files.list returns nothing but app-created files, so the first run would
- * create its own folder instead of finding an existing one.
+ * Note on scopes: under drive.file (the only scope the app asks for) files.list
+ * returns nothing but the files this app created — which is exactly why the
+ * name search works: the app created this folder itself. A folder made by hand
+ * in the Drive UI is invisible here, so the app would quietly create its own
+ * alongside it.
  */
 export async function findOrCreateFolder(
   name: string = APP_FOLDER_NAME,
@@ -77,20 +69,6 @@ export async function findOrCreateFolder(
 ): Promise<DriveFolder> {
   if (cachedFolder) return cachedFolder;
   const drive = client ?? driveClient();
-
-  const configured = process.env.GOOGLE_FOLDER_ID;
-  if (configured) {
-    const res = await drive.files.get({
-      fileId: configured,
-      fields: "id,name,webViewLink",
-    });
-    cachedFolder = {
-      id: configured,
-      name: res.data.name ?? name,
-      webViewLink: folderLink(configured, res.data.webViewLink),
-    };
-    return cachedFolder;
-  }
 
   const list = await drive.files.list({
     q: `mimeType = '${FOLDER_MIME}' and name = '${escapeQueryValue(name)}' and trashed = false`,
@@ -130,10 +108,8 @@ export const FISA_LIMITA_FOLDER = "fisa_limita";
  * by `${parentId}/${name}` since, unlike the app's root folder, there can be
  * more than one of these.
  *
- * Note on scopes: the name search only sees a hand-made folder because
- * scripts/auth.ts also requests drive.readonly. Under drive.file alone,
- * files.list returns nothing but app-created files, so the first run would
- * create its own folder instead of finding an existing one.
+ * Same scope caveat as findOrCreateFolder: the search only finds it because
+ * the app created it.
  */
 export async function findOrCreateChildFolder(
   name: string,
@@ -236,12 +212,6 @@ export async function uploadBuffer(opts: {
     name: res.data.name ?? name,
     webViewLink: res.data.webViewLink ?? `https://drive.google.com/file/d/${res.data.id}/view`,
   };
-}
-
-/** The account the current token belongs to. Throws if it is missing or revoked. */
-export async function checkAccess(drive: drive_v3.Drive = driveClient()): Promise<string> {
-  const res = await drive.about.get({ fields: "user(emailAddress)" });
-  return res.data.user?.emailAddress ?? "";
 }
 
 /** True for the errors that mean "re-authorize", as opposed to a real failure. */

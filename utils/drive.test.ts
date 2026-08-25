@@ -29,17 +29,15 @@ function stub(response: unknown) {
 }
 
 // The slice of drive_v3.Drive that these two functions use.
-function fakeDrive(files: { list?: unknown; create?: unknown; get?: unknown }) {
+function fakeDrive(files: { list?: unknown; create?: unknown }) {
   const list = stub(files.list ?? { data: { files: [] } });
   const create = stub(files.create ?? { data: {} });
-  const get = stub(files.get ?? { data: {} });
   // biome-ignore lint/suspicious/noExplicitAny: a hand-rolled stub of the client
-  return { drive: { files: { list, create, get } } as any, list, create, get };
+  return { drive: { files: { list, create } } as any, list, create };
 }
 
 beforeEach(() => {
   resetFolderCache();
-  delete process.env.GOOGLE_FOLDER_ID;
 });
 
 describe("uploadBuffer", () => {
@@ -131,23 +129,6 @@ describe("findOrCreateFolder", () => {
     await findOrCreateFolder("canalcik", drive);
 
     expect(list.calls).toHaveLength(1);
-  });
-
-  test("GOOGLE_FOLDER_ID short-circuits the search", async () => {
-    process.env.GOOGLE_FOLDER_ID = "configured-id";
-    const { drive, list, get } = fakeDrive({
-      get: { data: { id: "configured-id", name: "documente", webViewLink: "https://drive/cfg" } },
-    });
-
-    const folder = await findOrCreateFolder("canalcik", drive);
-
-    expect(list.calls).toHaveLength(0);
-    expect(get.calls).toHaveLength(1);
-    expect(folder).toEqual({
-      id: "configured-id",
-      name: "documente",
-      webViewLink: "https://drive/cfg",
-    });
   });
 
   test("escapes quotes in the folder name", async () => {

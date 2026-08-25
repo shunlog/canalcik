@@ -16,10 +16,9 @@ import { type Auth, google } from "googleapis";
 // transpiles to CommonJS). Tests mock it — see utils/drive.test.ts.
 export const TOKEN_PATH = fileURLToPath(new URL("../token.json", import.meta.url));
 
-export const SCOPES = [
-  "https://www.googleapis.com/auth/drive.readonly", // find hand-made folders (see utils/drive.ts)
-  "https://www.googleapis.com/auth/drive.file", // create/upload generated docs
-];
+// The only scope the app needs: it creates its own folders and uploads its own
+// documents, and drive.file also lets it see (list, re-open) exactly those.
+export const SCOPES = ["https://www.googleapis.com/auth/drive.file"];
 
 export function readToken(): Auth.Credentials | null {
   if (!fs.existsSync(TOKEN_PATH)) return null;

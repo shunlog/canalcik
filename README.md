@@ -39,12 +39,13 @@ The generated documents will be stored on the my Google Drive.
 The app will have its own folder `canalcik`. 
 It will need to generate the folder itself, so that it has access to it (that's how `drive.file` works).
 
-Drive access is a user OAuth token in `token.json` at the repo root — uploads
-act as the authorized Google account, which is why the folder is resolved per
-account rather than by a shared id. Authorize either way:
+Drive access is a user OAuth token in `token.json` at the repo root.
+Authorization happens once, from the
+terminal: `pnpm run auth`
 
-- from the terminal, `pnpm run auth` (redirect URI `http://localhost:53682/oauth2callback`);
-
+`drive.file` is the only scope requested. The folder is created on the first
+`/api/drive/status` call, i.e. the first time the app is opened after
+authorizing, which is also what makes it findable later. Two consequences:
 
 Handling the templates is simpler.
 They are also on my Drive, in any dir, shared with "anyone with the link".
@@ -58,7 +59,6 @@ used.
 `fetchTemplates()` in `templates/fetchTemplates.ts` is the reusable entry
 point — the server can call it to refresh the templates on demand.
 
-## Business model
 
 ## Generated documents
 

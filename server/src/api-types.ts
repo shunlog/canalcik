@@ -18,7 +18,7 @@ export type ApiErrorCode =
   | "NOT_FOUND"
   | "DUPLICATE"
   | "HAS_DEPENDENTS"
-  /** Google Drive was never authorized, or the token is dead — see routes/drive.ts. */
+  /** Google Drive was never authorized, or the token is dead — see routes/monthlyReport.ts. */
   | "DRIVE_NOT_CONNECTED"
   /** data/templates/ has not been fetched from Drive yet — see routes/monthlyReport.ts. */
   | "TEMPLATE_MISSING"
@@ -40,23 +40,15 @@ export interface HealthBody {
 
 // ------------------------------------------------------------------ drive
 
-/** Why Drive isn't usable. "missing": never authorized; "revoked": token dead. */
-export type DriveDisconnectedReason = "missing" | "revoked";
-
+/**
+ * Whether token.json is present and still good, plus the app folder generated
+ * documents go into. Not connected means `pnpm run auth` has to be re-run on
+ * the server — the web app has no consent flow of its own.
+ */
 export interface DriveStatusBody {
   connected: boolean;
-  /** Set when connected is false. */
-  reason?: DriveDisconnectedReason;
-  /** The Google account the stored token belongs to. */
-  email?: string;
-  /** The app folder generated documents go into. */
+  /** Set when connected is true. */
   folder?: { id: string; name: string; webViewLink: string };
-}
-
-export interface DriveUploadBody {
-  id: string;
-  name: string;
-  webViewLink: string;
 }
 
 // ---------------------------------------------------------------- references
