@@ -35,25 +35,28 @@ Templates:
 
 ### Data storage
 
-The generated documents will be stored on the user's Google Drive.
-The app will have its own folder, `canalcik`: it is looked up by name on the
-authorized account and created on first use, so nothing is hardcoded per user
-(set `GOOGLE_FOLDER_ID` to pin a different folder). Everything else is stored in
-an Sqlite database.
+The generated documents will be stored on the my Google Drive.
+The app will have its own folder `canalcik`. 
+It will need to generate the folder itself, so that it has access to it (that's how `drive.file` works).
 
 Drive access is a user OAuth token in `token.json` at the repo root — uploads
 act as the authorized Google account, which is why the folder is resolved per
 account rather than by a shared id. Authorize either way:
 
 - from the terminal, `pnpm run auth` (redirect URI `http://localhost:53682/oauth2callback`);
-- from the web app, the **Conectează Drive** button in the header, which runs the
-  same flow through `/api/drive/auth` (redirect URI
-  `http://localhost:5173/api/drive/callback` in dev, `https://<domain>/api/drive/callback`
-  in prod).
 
-Every redirect URI used has to be registered on the OAuth client in the Google
-Cloud console. `utils/drive.ts` is the single place that talks to Drive — the
-`uploadBuffer` helper takes the Buffer that `templates/` renders.
+
+Handling the templates is simpler.
+They are also on my Drive, in any dir, shared with "anyone with the link".
+Their URLs go in `.env`
+(`TEMPLATE_URL_*`) and `pnpm run fetch`
+saves them to `data/templates/`.
+Set `GOOGLE_API_KEY` to export through the
+Drive API (the key must not be restricted to HTTP referrers, or requests from
+Node get a 403); left unset, the keyless `docs.google.com` export endpoint is
+used.
+`fetchTemplates()` in `templates/fetchTemplates.ts` is the reusable entry
+point — the server can call it to refresh the templates on demand.
 
 ## Business model
 

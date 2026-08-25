@@ -17,7 +17,7 @@ import { type Auth, google } from "googleapis";
 export const TOKEN_PATH = fileURLToPath(new URL("../token.json", import.meta.url));
 
 export const SCOPES = [
-  "https://www.googleapis.com/auth/drive.readonly", // read user-created template docs
+  "https://www.googleapis.com/auth/drive.readonly", // find hand-made folders (see utils/drive.ts)
   "https://www.googleapis.com/auth/drive.file", // create/upload generated docs
 ];
 

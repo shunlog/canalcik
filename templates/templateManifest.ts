@@ -10,18 +10,29 @@ export const templatesDir = () =>
   process.env.TEMPLATES_DIR ?? path.resolve("data/templates");
 
 // "docx" templates are native Google Docs, "xlsx" are native Google Sheets;
-// both are exported to the matching Office format on fetch (see driveTemplates).
+// both are exported to the matching Office format on fetch (see fetchTemplates).
 export type TemplateKind = "docx" | "xlsx";
 
 export type TemplateSpec = {
-  driveName: string; // Drive file name (native Google Doc/Sheet, no extension)
+  driveName: string; // local base file name; also the Drive document's name
+  urlEnv: string; // .env variable holding the Drive share URL of the source doc
   kind?: TemplateKind; // defaults to "docx"
 };
 
 export const TEMPLATES = {
-  comandaMateriale: { driveName: "template_comanda_materiale" },
-  actDefectiune: { driveName: "template_act_defectiune" },
-  fisaLimita: { driveName: "template_fisa_limita", kind: "xlsx" },
+  comandaMateriale: {
+    driveName: "template_comanda_materiale",
+    urlEnv: "TEMPLATE_URL_COMANDA_MATERIALE",
+  },
+  actDefectiune: {
+    driveName: "template_act_defectiune",
+    urlEnv: "TEMPLATE_URL_ACT_DEFECTIUNE",
+  },
+  fisaLimita: {
+    driveName: "template_fisa_limita",
+    urlEnv: "TEMPLATE_URL_FISA_LIMITA",
+    kind: "xlsx",
+  },
 } satisfies Record<string, TemplateSpec>;
 
 export function templatePath(spec: TemplateSpec): string {

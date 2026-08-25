@@ -6,7 +6,7 @@
   "scripts": {
     "auth": "tsx scripts/auth.ts",
     "upload:drive": "tsx scripts/uploadToDrive.ts",
-    "fetch": "tsx templates/fetchTemplates.ts",
+    "fetch": "tsx scripts/fetchTemplates.ts",
     "import:flota": "tsx scripts/importFlota.ts",
     "seed:bonuri": "tsx scripts/seedBonuri.ts",
     "dev": "pnpm -r --parallel run dev",
