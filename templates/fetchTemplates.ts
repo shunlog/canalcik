@@ -8,11 +8,7 @@ import {
   templatesDir,
 } from "./templateManifest.ts";
 
-// Downloads the templates from Drive into TEMPLATES_DIR (data/templates by
-// default). No OAuth involved: each template is a native Google Doc/Sheet
-// shared with "anyone with the link" and addressed by its URL in .env. The CLI
-// entry point is scripts/fetchTemplates.ts (`pnpm run fetch`); the server can
-// call these same functions to refresh the templates on demand.
+// Downloads the templates from Drive into TEMPLATES_DIR. 
 
 // The source Google file type per template kind, and the Office format it is
 // exported to.

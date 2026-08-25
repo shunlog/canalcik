@@ -7,10 +7,8 @@ Repo lives at `/srv/canalcik`, owned by the `canalcik` user. Caddy serves
 
 Copy the gitignored files by hand — `.env`, `token.json`, `drive-config.json`.
 
-In `.env`, point `DATABASE_URL` at `file:/srv/canalcik/data/prod.db`. The path
-must be absolute: Prisma resolves a relative `file:` path against `prisma/`, not
-the repo root. `data/` is gitignored, so `git pull` leaves it alone — but it is
-inside the checkout, so never run `git clean -xdf` here.
+In `.env`, point `DATABASE_URL` at `file:/srv/canalcik/data/prod.db` and
+`TEMPLATES_DIR` at `/srv/canalcik/data/templates`. Both must be absolute paths.
 
 ```sh
 sudo install -o root -g root -m 644 \

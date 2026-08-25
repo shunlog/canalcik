@@ -1,1 +1,3 @@
 - Tech stack: pnpm, TypeScript, jest
+- Write comments in code very sparingly, only when it's useful to the developer to use the code. For example:
+    - don't explain *why* the code was written
