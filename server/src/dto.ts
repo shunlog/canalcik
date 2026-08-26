@@ -59,7 +59,7 @@ export const toBonRef = (r: BonRefRow): BonRef => ({
 
 const soferScalarSelect = {
   id: true,
-  syncedAt: true,
+  updatedAt: true,
   cod: true,
   nume: true,
   functie: true,
@@ -89,12 +89,12 @@ export const soferDetailSelect = {
 type SoferListRow = Prisma.SoferGetPayload<{ select: typeof soferListSelect }>;
 type SoferDetailRow = Prisma.SoferGetPayload<{ select: typeof soferDetailSelect }>;
 
-// syncedAt is a Date in Prisma but a string on the wire. Converting it here
+// updatedAt is a Date in Prisma but a string on the wire. Converting it here
 // rather than leaning on JSON.stringify's implicit toJSON is what keeps
 // api-types.ts an honest description of the response.
-export const toSoferListItem = ({ _count, syncedAt, ...s }: SoferListRow): SoferListItem => ({
+export const toSoferListItem = ({ _count, updatedAt, ...s }: SoferListRow): SoferListItem => ({
   ...s,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   nrVehicule: _count.vehicule,
   nrBonuri: _count.bonuri,
 });
@@ -102,11 +102,11 @@ export const toSoferListItem = ({ _count, syncedAt, ...s }: SoferListRow): Sofer
 export const toSoferDetail = ({
   vehicule,
   bonuri,
-  syncedAt,
+  updatedAt,
   ...s
 }: SoferDetailRow): SoferDetail => ({
   ...s,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   vehicule,
   bonuri: bonuri.map(toBonRef),
 });
@@ -115,7 +115,7 @@ export const toSoferDetail = ({
 
 const vehiculScalarSelect = {
   id: true,
-  syncedAt: true,
+  updatedAt: true,
   litere: true,
   cifre: true,
   nrInventar: true,
@@ -145,11 +145,11 @@ type VehiculDetailRow = Prisma.VehiculGetPayload<{ select: typeof vehiculDetailS
 
 export const toVehiculListItem = ({
   _count,
-  syncedAt,
+  updatedAt,
   ...v
 }: VehiculListRow): VehiculListItem => ({
   ...v,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   nrSoferi: _count.soferi,
   nrBonuri: _count.bonuri,
 });
@@ -157,11 +157,11 @@ export const toVehiculListItem = ({
 export const toVehiculDetail = ({
   soferi,
   bonuri,
-  syncedAt,
+  updatedAt,
   ...v
 }: VehiculDetailRow): VehiculDetail => ({
   ...v,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   soferi,
   bonuri: bonuri.map(toBonRef),
 });
@@ -170,7 +170,7 @@ export const toVehiculDetail = ({
 
 export const bonDetailSelect = {
   id: true,
-  syncedAt: true,
+  updatedAt: true,
   data: true,
   soferId: true,
   vehiculId: true,
@@ -193,9 +193,9 @@ type BonDetailRow = Prisma.BonEliberareGetPayload<{ select: typeof bonDetailSele
 // A line's name lives on the material it points at, but the wire type keeps it
 // flat: the client edits lines by name and never has to hold an id it can't
 // have yet for a material that doesn't exist.
-export const toBonDetail = ({ syncedAt, materiale, ...b }: BonDetailRow): BonDetail => ({
+export const toBonDetail = ({ updatedAt, materiale, ...b }: BonDetailRow): BonDetail => ({
   ...b,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
 });
 
@@ -203,7 +203,7 @@ export const toBonDetail = ({ syncedAt, materiale, ...b }: BonDetailRow): BonDet
 
 export const materialListSelect = {
   ...materialRefSelect,
-  syncedAt: true,
+  updatedAt: true,
   _count: { select: { bonuri: true } },
 } satisfies Prisma.MaterialeIntretinereSelect;
 
@@ -213,11 +213,11 @@ type MaterialListRow = Prisma.MaterialeIntretinereGetPayload<{
 
 export const toMaterialListItem = ({
   _count,
-  syncedAt,
+  updatedAt,
   ...m
 }: MaterialListRow): MaterialListItem => ({
   ...m,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   nrLinii: _count.bonuri,
 });
 
@@ -225,7 +225,7 @@ export const toMaterialListItem = ({
 // it sits on — a material can appear twice on one bon, so the page lists lines.
 export const materialDetailSelect = {
   ...materialRefSelect,
-  syncedAt: true,
+  updatedAt: true,
   bonuri: {
     select: { id: true, um: true, cantitate: true, bon: { select: bonRefSelect } },
     orderBy: [{ bon: { data: "desc" } }, { id: "desc" }],
@@ -238,11 +238,11 @@ type MaterialDetailRow = Prisma.MaterialeIntretinereGetPayload<{
 
 export const toMaterialDetail = ({
   bonuri,
-  syncedAt,
+  updatedAt,
   ...m
 }: MaterialDetailRow): MaterialDetail => ({
   ...m,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   utilizari: bonuri.map(({ id, bon, ...line }) => ({ lineId: id, bon: toBonRef(bon), ...line })),
 });
 
@@ -272,7 +272,7 @@ export const toFacturaRef = (r: FacturaRefRow): FacturaRef => ({
 
 export const facturaDetailSelect = {
   id: true,
-  syncedAt: true,
+  updatedAt: true,
   data: true,
   materiale: {
     select: {
@@ -293,12 +293,12 @@ type FacturaDetailRow = Prisma.FacturaExpeditieGetPayload<{ select: typeof factu
 // Flattened the same way as a bon line, and for the same reason: the client
 // edits lines by name and never holds an id for a material that doesn't exist yet.
 export const toFacturaDetail = ({
-  syncedAt,
+  updatedAt,
   materiale,
   ...f
 }: FacturaDetailRow): FacturaDetail => ({
   ...f,
-  syncedAt: syncedAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
   materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
 });
 

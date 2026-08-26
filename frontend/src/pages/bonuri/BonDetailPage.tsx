@@ -50,7 +50,7 @@ export function BonDetailPage() {
         <>
           <PageHeader
             title={`Bon din ${formatIsoDate(b.data)}`}
-            subtitle={`${b.materiale.length} ${b.materiale.length === 1 ? "linie" : "linii"} · sincronizat ${new Date(b.syncedAt).toLocaleString("ro-RO")}`}
+            subtitle={`${b.materiale.length} ${b.materiale.length === 1 ? "linie" : "linii"} · modificat ${new Date(b.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/bonuri")}>

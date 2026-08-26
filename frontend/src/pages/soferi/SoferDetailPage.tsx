@@ -56,7 +56,7 @@ export function SoferDetailPage() {
         <>
           <PageHeader
             title={s.nume}
-            subtitle={`Nr. de pontaj ${s.cod} · sincronizat ${new Date(s.syncedAt).toLocaleString("ro-RO")}`}
+            subtitle={`Nr. de pontaj ${s.cod} · modificat ${new Date(s.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/soferi")}>

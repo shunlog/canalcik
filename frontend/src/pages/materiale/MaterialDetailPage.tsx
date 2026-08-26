@@ -55,7 +55,7 @@ export function MaterialDetailPage() {
         <>
           <PageHeader
             title={m.nume}
-            subtitle={`${describeUsage(m.utilizari)} · sincronizat ${new Date(m.syncedAt).toLocaleString("ro-RO")}`}
+            subtitle={`${describeUsage(m.utilizari)} · modificat ${new Date(m.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/materiale")}>

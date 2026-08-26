@@ -66,7 +66,7 @@ export function VehiculDetailPage() {
         <>
           <PageHeader
             title={plate(v)}
-            subtitle={`${v.tip} · ${v.model} · sincronizat ${new Date(v.syncedAt).toLocaleString("ro-RO")}`}
+            subtitle={`${v.tip} · ${v.model} · modificat ${new Date(v.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/vehicule")}>

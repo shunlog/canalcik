@@ -102,14 +102,14 @@ export interface SoferScalars {
 
 export interface SoferListItem extends SoferScalars {
   id: number;
-  syncedAt: string;
+  updatedAt: string;
   nrVehicule: number;
   nrBonuri: number;
 }
 
 export interface SoferDetail extends SoferScalars {
   id: number;
-  syncedAt: string;
+  updatedAt: string;
   vehicule: VehiculRef[];
   bonuri: BonRef[];
 }
@@ -138,14 +138,14 @@ export interface VehiculScalars {
 
 export interface VehiculListItem extends VehiculScalars {
   id: number;
-  syncedAt: string;
+  updatedAt: string;
   nrSoferi: number;
   nrBonuri: number;
 }
 
 export interface VehiculDetail extends VehiculScalars {
   id: number;
-  syncedAt: string;
+  updatedAt: string;
   soferi: SoferRef[];
   bonuri: BonRef[];
 }
@@ -184,7 +184,7 @@ export type BonListItem = BonRef;
 
 export interface BonDetail {
   id: number;
-  syncedAt: string;
+  updatedAt: string;
   data: IsoDate;
   soferId: number;
   vehiculId: number;
@@ -212,7 +212,7 @@ export interface BonUpdateBody {
 
 /** A material in the catalogue, with how many bon lines point at it. */
 export interface MaterialListItem extends MaterialRef {
-  syncedAt: string;
+  updatedAt: string;
   nrLinii: number;
 }
 
@@ -230,7 +230,7 @@ export interface MaterialUsage {
 }
 
 export interface MaterialDetail extends MaterialRef {
-  syncedAt: string;
+  updatedAt: string;
   utilizari: MaterialUsage[];
 }
 
@@ -281,7 +281,7 @@ export type FacturaListItem = FacturaRef;
 
 export interface FacturaDetail {
   id: number;
-  syncedAt: string;
+  updatedAt: string;
   data: IsoDate;
   materiale: FacturaLineOut[];
 }

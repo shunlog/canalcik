@@ -58,7 +58,7 @@ export function FacturaDetailPage() {
         <>
           <PageHeader
             title={`Factură din ${formatIsoDate(f.data)}`}
-            subtitle={`${f.materiale.length} ${f.materiale.length === 1 ? "linie" : "linii"} · ${formatMoney(facturaTotal(f.materiale))} lei · sincronizat ${new Date(f.syncedAt).toLocaleString("ro-RO")}`}
+            subtitle={`${f.materiale.length} ${f.materiale.length === 1 ? "linie" : "linii"} · ${formatMoney(facturaTotal(f.materiale))} lei · modificat ${new Date(f.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/facturi")}>

@@ -19,8 +19,8 @@ datasource db {
 }
 
 model Vehicul {
-  id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
 
   // The plate is kept split, as in the first two "Nr. înmatriculare" columns
   // ("MRZ" + "40"); that pair is also how the soferi sheet references a
@@ -45,8 +45,8 @@ model Vehicul {
 }
 
 model Sofer {
-  id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
 
   cod                Int     @unique // "Nr. de pontaj"
   nume               String // "Nume Prenume"
@@ -71,8 +71,8 @@ model Sofer {
 // A "bon de eliberare" — one issue slip: materials handed to one sofer for one
 // vehicul on one day.
 model BonEliberare {
-  id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
 
   // Issue date (ISO "YYYY-MM-DD")
   data String
@@ -110,8 +110,8 @@ model BonEliberareMaterial {
 // on a bon. Names are unique, and the app creates a row on the fly the first
 // time a bon names something new, so the catalogue never blocks writing a bon.
 model MaterialeIntretinere {
-  id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
 
   nume String @unique // "ULEI MOTOR 10W40"
 
@@ -123,8 +123,8 @@ model MaterialeIntretinere {
 // one day, with the "cod nomenclator" and price each came under. It is what
 // the bonuri are matched against at month end to resolve their price.
 model FacturaExpeditie {
-  id       Int      @id @default(autoincrement())
-  syncedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
 
   // Calendar date (ISO "YYYY-MM-DD")
   data String
