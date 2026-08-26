@@ -101,6 +101,9 @@ model BonEliberareMaterial {
 
   um        String // "l", "buc"
   cantitate Float
+
+  // A material can appear at most once per bon
+  @@unique([bonId, materialId])
 }
 
 // The catalogue of maintenance materials — the distinct things that can appear

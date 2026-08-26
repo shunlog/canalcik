@@ -36,6 +36,15 @@ export const onError: ErrorHandler = (err, c) => {
       // are all editable from the UI, so this one will fire in normal use.
       case "P2002": {
         const target = (err.meta?.target as string[] | undefined)?.join(", ");
+
+        if (target === "bonId, materialId") {
+          return c.json(body("DUPLICATE", "Materialele nu pot fi repetate într-un bon"), 409);
+        }
+
+        if (target === "facturaId, materialId") {
+          return c.json(body("DUPLICATE", "Materialele nu pot fi repetate într-o factură"), 409);
+        }
+
         return c.json(
           body(
             "DUPLICATE",
