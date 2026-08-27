@@ -1,125 +1,93 @@
 # Deploy
 
-Three trees under `/srv/canalcik`, and one rule that decides every permission:
-**everything that writes to `data/` runs as `canalcik`, everything that writes
-to `app/` or `web/` runs as the deploy user (`awh`).** No file is written by
-both, so nothing ends up owned by the account that cannot rewrite it.
+The app ships as an image. The host keeps only what the image must not carry:
+the secrets, the mutable state, and the built SPA. Caddy stays on the host —
+it serves the other sites on this box — and proxies `/api` to the container on
+`127.0.0.1:8787`.
 
-Caddy serves `web/` — a copy of `frontend/dist` — and proxies `/api` to the
-Hono process on `127.0.0.1:8787`.
+`Dockerfile` and `compose.yaml` live at the repo root, so `docker compose`
+finds them with no `-f`. Only `Caddyfile` here gets installed onto the host.
 
-```
-/srv/canalcik/
-├── .env            awh:canalcik      640   secrets and prod paths
-├── app/            awh:canalcik      750   the checkout, read-only to the service
-├── web/            awh:awh           755   published frontend/dist
-└── data/           canalcik:canalcik 750   everything the service writes
-    ├── db/                                 prod.db + its -wal/-shm
-    ├── templates/                          templates fetched from Drive
-    ├── backups/                            pre-migration DB copies
-    └── token.json                    600   OAuth token, rewritten on refresh
-```
+**Do not add your user to the `docker` group.** Membership is root-equivalent —
+a container can bind-mount `/` — so it would undo the point of running the app
+unprivileged. Every command below is `sudo docker compose`.
 
-| path | owner | mode | why this mode |
+## Layout
+
+| path | owner | mode | holds |
 | --- | --- | --- | --- |
-| `/srv/canalcik` | `awh:awh` | 755 | you create `.env` here; `caddy` needs `o+x` to reach `web/` |
-| `/srv/canalcik/.env` | `awh:canalcik` | 640 | you write it, the service and the CLI scripts read it |
-| `/srv/canalcik/app` | `awh:canalcik` | 750 | deploys write, the service only reads |
-| `/srv/canalcik/web` | `awh:awh` | 755 | `caddy` reads it as "other" — no group grant needed |
-| `/srv/canalcik/data` | `canalcik:canalcik` | 750 | `awh` reads it through the group, nobody else sees it |
-| `/srv/canalcik/data/db` | `canalcik:canalcik` | 750 | WAL needs *directory* write for `-wal`/`-shm` |
-| `/srv/canalcik/data/token.json` | `canalcik:canalcik` | 600 | replaced by rename on refresh, so the dir must be canalcik's |
+| `/srv/canalcik/app` | `awh:awh` | 755 | the checkout; only ever used as build context |
+| `/srv/canalcik/.env` | `awh:awh` | 600 | secrets and paths, read by compose as root |
+| `/srv/canalcik/data` | `10001:10001` | 750 | bind-mounted at `/data` — `db/`, `templates/`, `backups/`, `token.json` |
+| `/srv/canalcik/web` | `10001:10001` | 755 | SPA copied out of the image; `caddy` reads it as "other" |
 
-Four important decisions:
+The checkout needs no special permissions any more: the code the service runs
+lives in the image, root-owned, and the process runs as uid 10001, so it is
+read-only to the app without a single `chmod`. `10001` is a fixed uid baked
+into the image precisely so the bind mount has exactly one owner to chown,
+instead of a user, a group and a umask to keep in step.
 
-- **The checkout is not writable by the service**
-- **The build is copied out of the checkout.** Caddy runs as `caddy`, so what
-  it serves must be world-readable
-- **`token.json` lives in `data/`, not next to `.env`.**, because `canalcik` needs
-  access to it to be able to refresh it
-- **The DB gets its own directory.** because SQLite creates some files near the DB
+Inside the container the sandbox is `read_only: true` with a tmpfs on `/tmp`,
+`cap_drop: ALL`, and `no-new-privileges` — so `/data` is the only path the app
+can write, the same guarantee `ProtectSystem=strict` used to give.
 
 ## One-time setup
 
-The service account has no login shell and a home outside `/home`, which
-`ProtectHome=yes` masks — pnpm and tsx still need a writable `$HOME`:
+```sh
+curl -fsSL https://get.docker.com | sudo sh
+sudo systemctl enable --now docker      # `restart: unless-stopped` needs this
+```
+
+A host account sharing the image's uid, so `ls -l` shows a name rather than a
+bare `10001`. It has no login and owns nothing but the state:
 
 ```sh
-sudo useradd --system --create-home --home-dir /var/lib/canalcik \
+sudo useradd --system --uid 10001 --no-create-home \
      --shell /usr/sbin/nologin canalcik
-sudo usermod -aG canalcik awh          # then re-login, or `newgrp canalcik`
-getent passwd canalcik                 # home must not be under /home
-```
 
-Node and pnpm have to be installed system-wide for the same reason — a
-`node` under `~/.nvm` is invisible to the unit and surfaces as `203/EXEC`:
-
-```sh
-which -a node pnpm                     # expect /usr/bin or /usr/local/bin
-```
-
-Lay out the tree. `data/` is created by hand: the unit has no
-`StateDirectory=`, which only works under `/var/lib`.
-
-```sh
-sudo install -d -o awh      -g awh      -m 755 /srv/canalcik /srv/canalcik/web
+sudo install -d -o awh      -g awh      -m 755 /srv/canalcik
+sudo install -d -o canalcik -g canalcik -m 755 /srv/canalcik/web
 sudo install -d -o canalcik -g canalcik -m 750 \
      /srv/canalcik/data /srv/canalcik/data/{db,templates,backups}
-```
 
-Clone as `awh`, then hand the group over:
-
-```sh
 git clone <repo> /srv/canalcik/app
-chgrp -R canalcik /srv/canalcik/app
-chmod 750 /srv/canalcik/app
 ```
 
-`/srv/canalcik/.env` is `.env.example` with the prod paths. Create it with the
-mode already tight, so it is never briefly world-readable:
+`/srv/canalcik/.env` is `.env.example` with the paths as the *container* sees
+them:
 
 ```sh
-install -m 640 -g canalcik /dev/null /srv/canalcik/.env
+install -m 600 /dev/null /srv/canalcik/.env
 $EDITOR /srv/canalcik/.env
 ```
 
 ```sh
-DATABASE_URL="file:/srv/canalcik/data/db/prod.db"
-TEMPLATES_DIR=/srv/canalcik/data/templates
-TOKEN_PATH=/srv/canalcik/data/token.json
+DATABASE_URL=file:/data/db/prod.db
+TEMPLATES_DIR=/data/templates
+TOKEN_PATH=/data/token.json
+PORT=8787
+# Required in prod, and only safe because compose publishes the port as
+# 127.0.0.1:8787. Docker forwards to the container's eth0, so a process bound
+# to the container's loopback is unreachable — caddy would get ECONNREFUSED.
+HOST=0.0.0.0
 ```
 
-Install and start the unit:
+Compose does not run a shell over this file: no `export`, no `${VAR}`, and
+leave the values unquoted — the quotes in `.env.example` are for dotenv in dev.
 
-```sh
-sudo install -o root -g root -m 644 \
-  /srv/canalcik/app/deploy/canalcik.service /etc/systemd/system/canalcik.service
-sudo systemctl daemon-reload && sudo systemctl enable --now canalcik
-systemd-analyze security canalcik.service    # needs systemd >= 247
-```
-
-Then authorize Drive once. This must run **as `canalcik`** — run it as
-yourself and `token.json` ends up owned by `awh`: startup still works, and the
-failure arrives hours later at the first refresh, when the service tries to
-replace a file it does not own. The CLI reads `.env` from the cwd, which prod
-does not have, so source it explicitly:
-
-```sh
-sudo -u canalcik -H bash -c '
-  set -a; . /srv/canalcik/.env; set +a
-  cd /srv/canalcik/app && exec pnpm run auth'
-
-ls -l /srv/canalcik/data/token.json     # canalcik canalcik, before going further
-```
-
-Build the frontend and publish it. The `--chmod` is what guarantees `caddy`
-can read the result whatever your umask is:
+Build and start:
 
 ```sh
 cd /srv/canalcik/app
-pnpm install --frozen-lockfile      # not --prod: tsx and prisma are dev deps
-pnpm build
-rsync -a --delete --chmod=D755,F644 frontend/dist/ /srv/canalcik/web/
+sudo docker compose build
+sudo docker compose up -d
+sudo docker compose ps
+```
+
+Publish the SPA out of the image onto the path caddy serves:
+
+```sh
+sudo docker compose run --rm publish
 ```
 
 `deploy/Caddyfile` is a complete site block. Install it root-owned:
@@ -163,56 +131,61 @@ namei -l /srv/canalcik/web/index.html
 sudo -u caddy test -r /srv/canalcik/web/index.html && echo ok || echo denied
 ```
 
-Port 80 must be reachable from outside for the ACME challenge — forward 80 and
-443 on the router, and nothing else. Port 8787 stays on loopback.
+Forward 80 and 443 on the router and nothing else; 8787 never leaves the host.
+
+### Authorizing Drive
+
+`scripts/auth.ts` listens on 53682 for Google's redirect, 
+so that port has to be published for
+the one-off run — and since the browser is on your laptop, forwarded there too:
+
+```sh
+# on your laptop
+ssh -L 53682:localhost:53682 awh@server
+
+# in that session, on the server
+cd /srv/canalcik/app
+sudo docker compose run --rm -p 127.0.0.1:53682:53682 app tsx scripts/auth.ts
+
+ls -ln /srv/canalcik/data/token.json     # 10001 10001
+```
+
+`http://localhost:53682/oauth2callback` must be an authorized redirect URI on
+the OAuth client in the Google Cloud console.
 
 ## Deploying a new commit
 
-Everything that touches `data/` goes through the service account. Paste this
-helper first — it drops privileges, loads the prod env, and runs from the
-checkout:
-
-```sh
-asvc() {
-  sudo -u canalcik -H bash -c '
-    set -a; . /srv/canalcik/.env; set +a
-    cd /srv/canalcik/app && exec "$@"' _ "$@"
-}
-```
-
 ```sh
 cd /srv/canalcik/app
-umask 022                             # keep new files group-readable to the service
 git pull --ff-only
-pnpm install --frozen-lockfile        # not --prod: tsx and prisma are dev deps
-pnpm exec prisma generate             # as awh: it writes node_modules/
 
-asvc sqlite3 /srv/canalcik/data/db/prod.db \
-     ".backup /srv/canalcik/data/backups/$(date +%F-%H%M).db"
-asvc pnpm exec prisma migrate deploy  # never `migrate dev` — it can reset the DB
-asvc pnpm run fetch                   # (re)populates data/templates
+sudo docker tag canalcik:latest canalcik:prev    # cheap rollback
+sudo docker compose build
 
-pnpm build
-rsync -a --delete --chmod=D755,F644 frontend/dist/ /srv/canalcik/web/
-sudo systemctl restart canalcik
+sudo docker compose run --rm app \
+  sqlite3 /data/db/prod.db ".backup /data/backups/$(date +%F-%H%M).db"
+sudo docker compose run --rm app prisma migrate deploy   # never `migrate dev`
+sudo docker compose run --rm app tsx scripts/fetchTemplates.ts
+
+sudo docker compose up -d
+sudo docker compose run --rm publish
 ```
 
-`prisma generate` is the one step that stays as `awh`, because it writes into
-`node_modules/`. `migrate deploy`, the backup and `fetch` only touch `data/`,
-so they run as the service — run `fetch` as yourself and the new templates are
-`awh`-owned, and the server gets `EACCES` the next time it rewrites one.
+Every `run --rm` uses the image just built, with the same user, sandbox and
+env_file as the server — so a migration or a fetch cannot write state as the
+wrong owner. That is the whole reason `x-canalcik` is a shared anchor in
+`compose.yaml` rather than settings on `app` alone.
 
-The files in `deploy/` are copies, not symlinks — diff, re-install whichever
-changed, and only then reload:
+To roll back: `sudo docker tag canalcik:prev canalcik:latest && sudo docker
+compose up -d`. Migrations are not reversed by that — restore from
+`/srv/canalcik/data/backups/` if the schema moved.
+
+`Caddyfile` is a copy, not a symlink — diff, re-install if it changed, and only
+then reload. `validate` needs the placeholders, which `sudo` does not inherit
+from the drop-in:
 
 ```sh
-diff /srv/canalcik/app/deploy/canalcik.service /etc/systemd/system/canalcik.service
 diff /srv/canalcik/app/deploy/Caddyfile /etc/caddy/sites/canalcik.Caddyfile
-```
-
-`validate` needs the placeholders, which `sudo` does not inherit from the drop-in:
-
-```sh
 sudo bash -c 'set -a; . /etc/caddy/canalcik.env; set +a
   caddy validate --config /etc/caddy/Caddyfile' && sudo systemctl reload caddy
 ```
@@ -220,31 +193,34 @@ sudo bash -c 'set -a; . /etc/caddy/canalcik.env; set +a
 ## Debugging
 
 ```sh
-journalctl -u canalcik -f            # live tail
-journalctl -u canalcik -p err        # errors only
-systemctl show canalcik -p Environment   # what the unit actually parsed from .env
-ss -tlnp | grep 8787                 # should be 127.0.0.1:8787, not *:8787
-curl -s localhost:8787/api/health    # bypasses Caddy and basicauth
-sudo -u canalcik ls -l /srv/canalcik/data    # state, as the service sees it
+sudo docker compose logs -f app
+sudo docker compose ps                 # health column, not just "running"
+sudo docker compose exec app sh        # poke around; rootfs is read-only
+ss -tlnp | grep 8787                   # 127.0.0.1:8787 only, never *:8787
+curl -s localhost:8787/api/health      # bypasses caddy and basicauth
+ls -ln /srv/canalcik/data              # every entry should be 10001 10001
 ```
 
-What actually goes wrong, in rough order of frequency:
+What actually goes wrong:
 
-- **Drive auth works, then stops.** `token.json` was created by the wrong user.
-  `ls -l` it; `sudo chown canalcik:canalcik` and re-run `pnpm run auth` as
-  above.
-- **`203/EXEC` on start.** `ProtectHome=yes` hides `/home`, so an nvm-installed
-  node or a pnpm shim in a home directory does not exist as far as the unit is
-  concerned. Install both system-wide.
-- **`SQLITE_CANTOPEN` / `SQLITE_READONLY` on a file that exists.** Either
-  `data/db` is not owned by `canalcik`, or `ReadWritePaths=` no longer covers
-  it. Never put this directory on an NFS or SMB mount — SQLite locking is
-  unreliable there.
-- **403 from Caddy on the frontend.** `web/` or one of its parents lost `o+x`
-  or `o+r`; that is what `--chmod=D755,F644` on the rsync prevents. Do not fix
-  it by adding `caddy` to the `canalcik` group — that would give it `.env`.
-- **The service cannot read its own code after a deploy.** A deploy run under a
-  tight umask leaves the checkout's files `600`. `sudo chmod -R g+rX
-  /srv/canalcik/app`, and keep the `umask 022` above.
-- **`usermod -aG` has not taken effect.** It only applies to new sessions, so
-  `ls /srv/canalcik/data` stays denied until you re-login.
+- **Caddy gets `ECONNREFUSED` on `/api`.** `HOST` is unset or `127.0.0.1`, so
+  the server bound the container's loopback and the published port forwards to
+  eth0. It must be `HOST=0.0.0.0`; the exposure is controlled by the
+  `127.0.0.1:` prefix in `ports:`, not by the bind address.
+- **The API answers from another machine.** Something dropped that prefix.
+  Docker inserts its own iptables rules ahead of ufw, so `"8787:8787"` is
+  world-reachable even with ufw denying the port — ufw is not a backstop here.
+- **`EACCES` under `/data`.** The bind mount is not owned by 10001. `sudo chown
+  -R 10001:10001 /srv/canalcik/data`. Anything written from the host — a
+  `sudo sqlite3` run outside the container, an `rsync` — reintroduces this.
+- **`EROFS` somewhere unexpected.** `read_only: true` means only `/data` and
+  the `/tmp` tmpfs are writable. That is the intended failure, not a bug to
+  work around by dropping the flag.
+- **403 from Caddy on the frontend.** `/srv/canalcik/web` or a parent lost
+  `o+x`/`o+r`; the `publish` service ends with `chmod -R a+rX /web` for exactly
+  this. Do not fix it by giving `caddy` group access to `/srv/canalcik`.
+- **Nothing comes back after a reboot.** `restart: unless-stopped` only fires
+  if `docker.service` itself is enabled.
+- **Values arriving with quotes attached.** Unquote them in
+  `/srv/canalcik/.env`; `systemctl show`-style debugging has no equivalent here,
+  so check with `sudo docker compose run --rm app env | sort`.

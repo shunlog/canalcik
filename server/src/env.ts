@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 // which is server/ when started through `pnpm --filter`, so the path is
 // resolved from this module instead.
 //
-// In prod there is no .env in the checkout: systemd injects the same variables
+// In prod there is no .env in the image: compose injects the same variables
 // from /srv/canalcik/.env (see deploy/). dotenv never overwrites a
 // variable that is already set, and a missing file is not an error, so the same
 // call is correct in both cases.

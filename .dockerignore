@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+**/node_modules
+frontend/dist
+data
+coverage
+test-output
+test-data
+scratch
+.env
+token.json
+drive-config.json
+picker-config.json
+deploy
+*.md

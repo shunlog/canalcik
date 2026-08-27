@@ -1,0 +1,46 @@
+name: canalcik
+
+# Shared by the long-running service and the one-off `run` invocations, so a
+# CLI script gets exactly the sandbox and environment the server gets.
+x-canalcik: &canalcik
+  image: canalcik:latest
+  user: "10001:10001"
+  read_only: true
+  tmpfs: ["/tmp"]
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  # Outside the checkout on purpose. Values must be unquoted here — compose
+  # does not run a shell over this file.
+  env_file: /srv/canalcik/.env
+  volumes:
+    - /srv/canalcik/data:/data
+
+services:
+  app:
+    <<: *canalcik
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    # Loopback only. Docker writes its own iptables rules ahead of ufw, so
+    # "8787:8787" would be reachable from the LAN even with ufw denying it.
+    ports: ["127.0.0.1:8787:8787"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # Copies the built SPA out of the image onto the host path caddy serves.
+  # Under a profile so `up` never touches it: `docker compose run --rm publish`.
+  publish:
+    <<: *canalcik
+    profiles: ["tools"]
+    volumes:
+      - /srv/canalcik/data:/data
+      - /srv/canalcik/web:/web
+    command:
+      - sh
+      - -c
+      - rm -rf /web/* && cp -a /app/frontend/dist/. /web/ && chmod -R a+rX /web

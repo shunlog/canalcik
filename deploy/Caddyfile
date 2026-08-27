@@ -9,8 +9,8 @@
 	}
 
 	handle {
-		# A copy of frontend/dist, never the checkout: caddy reads it as
-		# "other", so it has to be world-readable and the checkout must not be.
+		# Copied out of the image by `docker compose run --rm publish`; caddy
+		# reads it as "other", so it has to stay world-readable.
 		root * /srv/canalcik/web
 
 		# vite content-hashes everything under assets/, so those can be cached

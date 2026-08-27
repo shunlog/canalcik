@@ -5,11 +5,7 @@ import { URL } from "node:url";
 import { TOKEN_PATH, authUrl, exchangeCode, oauthClient } from "../utils/googleAuth.ts";
 
 // Generates token.json — the OAuth credentials the app uses to reach the user's
-// Google Drive. Run once (and again if you add scopes or the refresh token is
-// revoked): `pnpm run auth`. Pass --force to overwrite an existing token.json.
-// The web app can do the same thing through the "Conectează Drive" button in
-// its header (see server/src/routes/drive.ts); this script is the terminal-only
-// path, useful before the server can start.
+// Google Drive.
 //
 // It opens a local server on PORT to catch Google's redirect, so add
 // http://localhost:53682/oauth2callback as an authorized redirect URI on the
