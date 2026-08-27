@@ -8,13 +8,17 @@ import { type Auth, google } from "googleapis";
 // environment but never loads .env itself — the caller decides that (scripts do
 // `import "dotenv/config"`, the server does it in server/src/env.ts).
 
-// Resolved from this module, not process.cwd(): the server is started as
-// `pnpm --filter @canalcik/server start`, whose cwd is server/. Same reason
-// server/src/env.ts resolves .env this way.
+// The token is rewritten on every silent refresh, so on the server it belongs
+// in the writable data dir rather than in the read-only checkout — hence the
+// TOKEN_PATH override. The fallback is resolved from this module, not
+// process.cwd(): the server is started as `pnpm --filter @canalcik/server
+// start`, whose cwd is server/. Same reason server/src/env.ts resolves .env
+// this way.
 //
 // Note: `import.meta` means this module cannot be loaded by Jest (which
 // transpiles to CommonJS). Tests mock it — see utils/drive.test.ts.
-export const TOKEN_PATH = fileURLToPath(new URL("../token.json", import.meta.url));
+export const TOKEN_PATH =
+  process.env.TOKEN_PATH || fileURLToPath(new URL("../token.json", import.meta.url));
 
 // The only scope the app needs: it creates its own folders and uploads its own
 // documents, and drive.file also lets it see (list, re-open) exactly those.

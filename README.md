@@ -39,7 +39,8 @@ The generated documents will be stored on the my Google Drive.
 The app will have its own folder `canalcik`. 
 It will need to generate the folder itself, so that it has access to it (that's how `drive.file` works).
 
-Drive access is a user OAuth token in `token.json` at the repo root.
+Drive access is a user OAuth token in `token.json` at the repo root (override
+the location with `TOKEN_PATH`).
 Authorization happens once, from the
 terminal: `pnpm run auth`
 

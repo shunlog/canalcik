@@ -1,6 +1,5 @@
 # Copied (not symlinked) to /etc/systemd/system/canalcik.service — see
 # deploy/README.md; a symlink into the checkout would be canalcik-writable.
-# No EnvironmentFile: server/src/env.ts loads the repo-root .env itself.
 
 [Unit]
 Description=canalcik API (Hono)
@@ -9,14 +8,22 @@ After=network.target
 [Service]
 Type=simple
 User=canalcik
+Group=canalcik
 WorkingDirectory=/srv/canalcik
+EnvironmentFile=/etc/canalcik/canalcik.env
 ExecStart=/usr/bin/env pnpm --filter @canalcik/server start
 Restart=always
 RestartSec=2
 
+# Created/chowned on every start, and implicitly the only writable paths under
+# ProtectSystem=strict. 2770 so the deploy user (in group canalcik) can run
+# migrations, backups and `pnpm run fetch` against them.
+StateDirectory=canalcik/db canalcik/templates canalcik/backups
+StateDirectoryMode=2770
+
 NoNewPrivileges=yes
 PrivateTmp=yes
-ProtectSystem=full
+ProtectSystem=strict
 
 [Install]
 WantedBy=multi-user.target
