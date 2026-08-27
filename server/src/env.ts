@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 // resolved from this module instead.
 //
 // In prod there is no .env in the checkout: systemd injects the same variables
-// from /etc/canalcik/canalcik.env (see deploy/). dotenv never overwrites a
+// from /srv/canalcik/.env (see deploy/). dotenv never overwrites a
 // variable that is already set, and a missing file is not an error, so the same
 // call is correct in both cases.
 config({ path: fileURLToPath(new URL("../../.env", import.meta.url)), quiet: true });

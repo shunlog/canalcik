@@ -3,27 +3,55 @@
 
 [Unit]
 Description=canalcik API (Hono)
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=canalcik
 Group=canalcik
-WorkingDirectory=/srv/canalcik
-EnvironmentFile=/etc/canalcik/canalcik.env
+WorkingDirectory=/srv/canalcik/app
+EnvironmentFile=/srv/canalcik/.env
+# pnpm and tsx need a writable HOME, and it has to be outside /home, which
+# ProtectHome= masks. Set explicitly so a wrong passwd entry fails loudly.
+Environment=HOME=/var/lib/canalcik
 ExecStart=/usr/bin/env pnpm --filter @canalcik/server start
 Restart=always
 RestartSec=2
+SyslogIdentifier=canalcik
 
-# Created/chowned on every start, and implicitly the only writable paths under
-# ProtectSystem=strict. 2770 so the deploy user (in group canalcik) can run
-# migrations, backups and `pnpm run fetch` against them.
-StateDirectory=canalcik/db canalcik/templates canalcik/backups
-StateDirectoryMode=2770
+# data/ is the only writable path: the checkout and the published frontend stay
+# read-only to the service even at runtime. The dirs are created once by hand
+# (see README) — there is no StateDirectory= to create them, because that only
+# works under /var/lib.
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/srv/canalcik/data
+PrivateTmp=yes
+# 0027: downloads land canalcik:canalcik 640 — readable by the deploy user
+# through the group, invisible to everyone else.
+UMask=0027
 
 NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
+PrivateDevices=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectProc=invisible
+RemoveIPC=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Deliberately absent: MemoryDenyWriteExecute= (kills the V8 JIT) and
+# IPAddressDeny= (the token refresh and Drive downloads need egress).
 
 [Install]
 WantedBy=multi-user.target
