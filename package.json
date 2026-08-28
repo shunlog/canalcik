@@ -19,13 +19,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.0.9",
-      "onFail": "download"
-    }
-  },
+  "packageManager": "pnpm@11.2.2",
   "type": "module",
   "dependencies": {
     "csv-parse": "^6.2.1",

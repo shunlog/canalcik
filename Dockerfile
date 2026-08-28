@@ -21,6 +21,9 @@ RUN --mount=type=cache,target=/pnpm-store \
 # --- build ------------------------------------------------------------------
 FROM deps AS build
 COPY . .
+# The ERD generator drives mermaid-cli/puppeteer, which has no business
+# launching a browser inside the image build.
+ENV DISABLE_ERD=true
 RUN pnpm exec prisma generate && pnpm build
 
 # --- runtime ----------------------------------------------------------------
