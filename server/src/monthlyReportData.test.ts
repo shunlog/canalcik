@@ -48,13 +48,15 @@ describe("intervalMonths", () => {
   });
 });
 
+const MONTH = "2026-05";
+
 const bon = (overrides: Partial<MonthlyReportBon> = {}): MonthlyReportBon => ({
   id: 1,
-  data: "2026-05-10",
+  data: `${MONTH}-10`,
   soferId: 1,
   vehiculId: 1,
   sofer: { nume: "Celpan Ion", cod: 4984 },
-  vehicul: { litere: "CBE", cifre: "276" },
+  vehicul: { litere: "CBE", cifre: "276", nrInventar: 42691696 },
   linii: [],
   ...overrides,
 });
@@ -62,12 +64,13 @@ const bon = (overrides: Partial<MonthlyReportBon> = {}): MonthlyReportBon => ({
 describe("buildMonthlyReport", () => {
   it("groups bonuri by vehicul+sofer into one sheet each, ordered by (litere, cifre, sofer)", () => {
     const input: BuildMonthlyReportInput = {
+      month: MONTH,
       bonuri: [
         bon({
           id: 1,
           vehiculId: 2,
           soferId: 2,
-          vehicul: { litere: "CBE", cifre: "277" },
+          vehicul: { litere: "CBE", cifre: "277", nrInventar: 42691697 },
           sofer: { nume: "Rusu Maria", cod: 1111 },
           linii: [
             {
@@ -106,8 +109,25 @@ describe("buildMonthlyReport", () => {
     expect(sheets[1].nume_sofer).toBe("Rusu Maria");
   });
 
+  it("stamps each sheet with the vehicle's inventory number and the month in romanian", () => {
+    const [sheet] = buildMonthlyReport({
+      month: "2026-05",
+      bonuri: [
+        bon({
+          linii: [{ id: 1, materialId: 1, materialNume: "Motorina", um: "l", cantitate: 10 }],
+        }),
+      ],
+      facturaLinii: [{ materialId: 1, nrCart: "2111", pretUnitar: 20 }],
+    });
+
+    expect(sheet.nr_inventar).toBe("42691696");
+    expect(sheet.luna).toBe("Mai");
+    expect(sheet.anul).toBe("2026");
+  });
+
   it("orders rows within a sheet by (data, bonId, lineId)", () => {
     const input: BuildMonthlyReportInput = {
+      month: MONTH,
       bonuri: [
         bon({
           id: 2,
@@ -129,6 +149,7 @@ describe("buildMonthlyReport", () => {
 
   it("splits price and total into lei/bani, rounding the total from cents", () => {
     const input: BuildMonthlyReportInput = {
+      month: MONTH,
       bonuri: [
         bon({
           linii: [
@@ -155,6 +176,7 @@ describe("buildMonthlyReport", () => {
 
   it("throws, naming every unmatched material, when a bon line's material has no factura line at all", () => {
     const input: BuildMonthlyReportInput = {
+      month: MONTH,
       bonuri: [
         bon({
           linii: [
@@ -185,6 +207,7 @@ describe("buildMonthlyReport", () => {
 
   it("resolves a bon line by materialId when the factura carries exactly one line for it", () => {
     const input: BuildMonthlyReportInput = {
+      month: MONTH,
       bonuri: [
         bon({
           linii: [{ id: 1, materialId: 1, materialNume: "Motorina", um: "l", cantitate: 1 }],
@@ -199,6 +222,7 @@ describe("buildMonthlyReport", () => {
 
   it("drops a bon that ends up with no rows", () => {
     const input: BuildMonthlyReportInput = {
+      month: MONTH,
       bonuri: [bon({ linii: [] })],
       facturaLinii: [],
     };
@@ -218,6 +242,7 @@ describe("buildMonthlyReport row merging", () => {
 
   it("sums two lines of one bon for the same day and material", () => {
     const [sheet] = buildMonthlyReport({
+      month: MONTH,
       bonuri: [
         bon({
           linii: [line({ id: 1, cantitate: 5 }), line({ id: 2, cantitate: 1 })],
@@ -235,6 +260,7 @@ describe("buildMonthlyReport row merging", () => {
 
   it("merges across two bonuri on the same date for the same vehicul and sofer", () => {
     const [sheet] = buildMonthlyReport({
+      month: MONTH,
       bonuri: [
         bon({ id: 1, linii: [line({ id: 1, cantitate: 5 })] }),
         bon({ id: 2, linii: [line({ id: 2, cantitate: 2.5 })] }),
@@ -248,6 +274,7 @@ describe("buildMonthlyReport row merging", () => {
 
   it("sums floats without leaving binary noise in the cell", () => {
     const [sheet] = buildMonthlyReport({
+      month: MONTH,
       bonuri: [
         bon({
           linii: [line({ id: 1, cantitate: 0.1 }), line({ id: 2, cantitate: 0.2 })],
@@ -261,6 +288,7 @@ describe("buildMonthlyReport row merging", () => {
 
   it("keeps the same material on two dates as two rows", () => {
     const [sheet] = buildMonthlyReport({
+      month: MONTH,
       bonuri: [
         bon({ id: 1, data: "2026-05-04", linii: [line({ id: 1, cantitate: 5 })] }),
         bon({ id: 2, data: "2026-05-18", linii: [line({ id: 2, cantitate: 3 })] }),
@@ -276,6 +304,7 @@ describe("buildMonthlyReport row merging", () => {
 
   it("does not add together two different units", () => {
     const [sheet] = buildMonthlyReport({
+      month: MONTH,
       bonuri: [
         bon({
           linii: [line({ id: 1, um: "L", cantitate: 5 }), line({ id: 2, um: "KG", cantitate: 3 })],

@@ -179,7 +179,7 @@ monthlyReport.post("/:month/generate", async (c) => {
         soferId: true,
         vehiculId: true,
         sofer: { select: { nume: true, cod: true } },
-        vehicul: { select: { litere: true, cifre: true } },
+        vehicul: { select: { litere: true, cifre: true, nrInventar: true } },
         materiale: bonuriLinesSelect,
       },
     }),
@@ -252,6 +252,7 @@ monthlyReport.post("/:month/generate", async (c) => {
   let sheets: ReturnType<typeof buildMonthlyReport>;
   try {
     sheets = buildMonthlyReport({
+      month,
       bonuri: bonuriPentruLuna,
       facturaLinii: factura.materiale,
     });

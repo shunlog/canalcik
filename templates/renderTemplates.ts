@@ -64,8 +64,9 @@ export type DataFisaLimitaSheet = {
   nr_inregistrare: string; // "Nr inregistrare": registration nr, e.g. "CBE 276"
   nume_sofer: string; // "Numele soferului": driver full name, e.g. "Celpan Ion"
   cod_sofer: string; // "Nr. soferului": driver code, e.g. "4984"
-  // TODO "nr inventar" of vehicle
-  // TODO add date (month, year)
+  nr_inventar: string; // "Nr inventar": inventory number of the vehicle, e.g. "12345"
+  luna: string; // "Luna": month in romanian, e.g. "Mai"
+  anul: string; // "An": year, e.g. "2026"
   tbl: Array<{
     data: string; // "Data": date, e.g. "26.05.2026"
     nr_cart: string; // "Nr. cartelei": material code, e.g. "2111121795" 

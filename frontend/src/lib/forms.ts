@@ -3,6 +3,7 @@
  * the API and the database use null — so each value crosses exactly twice, here
  * and nowhere else.
  */
+import { formatLuna } from "../../../utils/luni.ts";
 
 export const nullToEmpty = (v: string | null | undefined): string => v ?? "";
 
@@ -50,9 +51,4 @@ export const formatMoney = (n: number): string =>
 export const formatQty = (n: number): string => Number(n.toFixed(3)).toLocaleString("ro-RO");
 
 /** Displays a "YYYY-MM" string as "Iunie 2026". The server has its own numeFisierFisaLimita for the filename. */
-export const formatMonth = (v: string): string => {
-  const [y, m] = v.split("-").map(Number);
-  if (!y || !m) return v;
-  const nume = new Date(y, m - 1, 1).toLocaleDateString("ro-RO", { month: "long" });
-  return `${nume.charAt(0).toUpperCase()}${nume.slice(1)} ${y}`;
-};
+export const formatMonth = formatLuna;

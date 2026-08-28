@@ -1,4 +1,5 @@
 import type { DataFisaLimita, DataFisaLimitaSheet } from "../../templates/renderTemplates.ts";
+import { lunaSiAnul } from "../../utils/luni.ts";
 
 // This module is pure: no `../db.ts` (instantiates PrismaClient, demands
 // DATABASE_URL) and no `utils/drive.ts` (reaches googleAuth.ts, whose
@@ -85,7 +86,7 @@ export type MonthlyReportBon = {
   soferId: number;
   vehiculId: number;
   sofer: { nume: string; cod: number };
-  vehicul: { litere: string; cifre: string };
+  vehicul: { litere: string; cifre: string; nrInventar: number };
   linii: MonthlyReportBonLine[];
 };
 
@@ -96,6 +97,8 @@ export type MonthlyReportFacturaLine = {
 };
 
 export type BuildMonthlyReportInput = {
+  /** The month being reported, "YYYY-MM" — printed on every sheet. */
+  month: string;
   bonuri: MonthlyReportBon[];
   facturaLinii: MonthlyReportFacturaLine[];
 };
@@ -152,6 +155,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     key: string;
     litere: string;
     cifre: string;
+    nrInventar: number;
     numeSofer: string;
     codSofer: number;
     /**
@@ -181,6 +185,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
           key,
           litere: bon.vehicul.litere,
           cifre: bon.vehicul.cifre,
+          nrInventar: bon.vehicul.nrInventar,
           numeSofer: bon.sofer.nume,
           codSofer: bon.sofer.cod,
           rows: new Map(),
@@ -221,6 +226,8 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
           : a.numeSofer.localeCompare(b.numeSofer),
     );
 
+  const { luna, anul } = lunaSiAnul(input.month);
+
   return sortedGroups.map((g): DataFisaLimitaSheet => {
     const rows = [...g.rows.values()].sort((a, b) =>
       a.data !== b.data
@@ -233,6 +240,9 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
       nr_inregistrare: `${g.litere} ${g.cifre}`,
       nume_sofer: g.numeSofer,
       cod_sofer: String(g.codSofer),
+      nr_inventar: String(g.nrInventar),
+      luna,
+      anul,
       tbl: rows.map((r) => {
         const pretSplit = baniSplit(r.pretUnitar);
         // Rounded once, from the raw product — not from an already-rounded

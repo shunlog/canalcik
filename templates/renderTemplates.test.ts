@@ -145,6 +145,9 @@ const FISA_SHEET_DATA: DataFisaLimitaSheet = {
   nr_inregistrare: "CBE 276",
   nume_sofer: "Celpan Ion",
   cod_sofer: "4984",
+  nr_inventar: "42691696",
+  luna: "Mai",
+  anul: "2026",
   tbl: [
     fisaRow("26.05.2026", "2111121795", "Motorina"),
     fisaRow("27.05.2026", "2111121796", "Ulei motor"),
@@ -159,6 +162,7 @@ const FISA_DATA: DataFisaLimita = [
     nr_inregistrare: "CBE 277",
     nume_sofer: "Rusu Maria",
     cod_sofer: "1111",
+    nr_inventar: "42691697",
   },
 ];
 
@@ -183,6 +187,10 @@ describe("renderFisaLimita", () => {
     expect(workbook.match(/<sheet\b/g)).toHaveLength(2);
     expect(rendered).toContain("Celpan Ion");
     expect(rendered).toContain("Rusu Maria");
+    expect(rendered).toContain("42691696");
+    expect(rendered).toContain("42691697");
+    expect(rendered).toContain("Mai");
+    expect(rendered).toContain("2026");
   });
 
   it(`writes to ${OUTPUT_DIR} for visual inspection`, () => {
