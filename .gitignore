@@ -11,3 +11,5 @@ dist
 /test-output/
 /data/
 /coverage/
+
+/deploy/

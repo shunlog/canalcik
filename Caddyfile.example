@@ -1,0 +1,23 @@
+# Not read by anything — copy this block into the main Caddyfile on the server
+# and reload. Kept here so the proxy side of the deployment is documented with
+# the code; re-copy it if it ever changes.
+
+canalcik.example.com {
+	basic_auth {
+		# caddy hash-password
+		user $2a$14$replace-with-a-real-bcrypt-hash
+	}
+
+	encode zstd gzip
+
+	handle /api/* {
+		# The API expects the /api prefix, so don't strip it.
+		reverse_proxy 127.0.0.1:8787
+	}
+
+	handle {
+		root * /srv/canalcik/deploy/www
+		try_files {path} /index.html
+		file_server
+	}
+}

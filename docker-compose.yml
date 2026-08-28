@@ -1,0 +1,28 @@
+services:
+  canalcik:
+    build: .
+    image: canalcik
+    container_name: canalcik
+    restart: unless-stopped
+    env_file: .env
+    # Match the host user that owns ./deploy, so the sqlite db and token.json
+    # stay readable and editable from the host without sudo. `id -u` / `id -g`
+    # on the server; the image's own default is 1000.
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    environment:
+      # A uid with no /etc/passwd entry gets HOME=/, and corepack then dies
+      # trying to write /.cache. Anything writable will do.
+      HOME: /tmp
+      # Overrides the dev values in .env: inside the container everything
+      # runtime lives under /data, and the port is published to loopback only.
+      HOST: 0.0.0.0
+      PORT: 8787
+      DATABASE_URL: file:/data/db/prod.db
+      TEMPLATES_DIR: /data/templates
+      TOKEN_PATH: /data/token.json
+      DISABLE_ERD: "true"
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./deploy/data:/data
+      - ./deploy/www:/web

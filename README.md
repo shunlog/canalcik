@@ -133,6 +133,58 @@ format, so no `Date` object is ever constructed. `main.tsx` registers dayjs's
 - Right now, there when rendering docx, there is error checking so there are no missing placeholder values, but there is no error checking for missing placeholders in the template itself
 
 
+# Deploy
+
+One container: the Hono API + SQLite. The host's Caddy serves the built SPA and
+proxies `/api/*` to it, so nothing but loopback:8787 is exposed.
+
+On the server, in the checkout (assumed `/srv/canalcik`):
+
+- `.env` — from `.env.example`, with the real Google credentials and template
+  URLs. `HOST`, `PORT`, `DATABASE_URL`, `TEMPLATES_DIR` and `TOKEN_PATH` are
+  overridden by compose, so whatever they hold is ignored.
+- `deploy/data/` — bind-mounted at `/data`: `db/prod.db`, `templates/`, `token.json`.
+- `deploy/www/` — bind-mounted at `/web`, Caddy's root.
+
+```sh
+docker compose up -d --build
+```
+
+The entrypoint runs `prisma migrate deploy` and republishes `frontend/dist`
+into `deploy/www/` on every start.
+
+The container runs unprivileged as `APP_UID`:`APP_GID` from `.env` (`id -u`,
+`id -g`). Point them at your own user and the bind mounts need no `chown` — the
+db and `token.json` stay yours to edit. The SPA lands 644 in 755 dirs, so Caddy
+reads it as its own user.
+
+Drive authorization can't run on the server — the OAuth callback wants a browser
+on `localhost:53682` — so do it on the laptop and carry the token over:
+
+```sh
+pnpm run auth
+scp token.json server:/srv/canalcik/deploy/data/token.json
+ssh server 'cd /srv/canalcik && docker compose run --rm canalcik pnpm run fetch'
+```
+
+Caddy: copy the block from `Caddyfile.example` into the main Caddyfile, fill in
+the domain and a `caddy hash-password` hash, then reload. It is not imported from
+here on purpose — the hash would end up in git, and a missing imported file makes
+Caddy reject its whole config.
+
+## redeploy updates
+
+```sh
+git pull && docker compose up -d --build
+```
+
+Frontend changes need the rebuild too — `dist` ships in the image. Templates
+changed on Drive need no rebuild:
+
+```sh
+docker compose run --rm canalcik pnpm run fetch
+```
+
 # Existing solutions explored
 
 - [Docassemble](https://docassemble.org/)
