@@ -22,6 +22,8 @@ export type ApiErrorCode =
   | "DRIVE_NOT_CONNECTED"
   /** data/templates/ has not been fetched from Drive yet — see routes/monthlyReport.ts. */
   | "TEMPLATE_MISSING"
+  /** Re-downloading the templates from Drive failed — see routes/templates.ts. */
+  | "TEMPLATE_FETCH_FAILED"
   | "INTERNAL";
 
 export interface ApiErrorBody {
@@ -49,6 +51,25 @@ export interface DriveStatusBody {
   connected: boolean;
   /** Set when connected is true. */
   folder?: { id: string; name: string; webViewLink: string };
+}
+
+// -------------------------------------------------------------- templates
+
+/**
+ * One document template: where it comes from on Drive, and how fresh the local
+ * copy under TEMPLATES_DIR is.
+ */
+export interface TemplateInfo {
+  /** Its key in the manifest, e.g. "fisaLimita". */
+  key: string;
+  /** The document's name on Drive, which is also the local base file name. */
+  driveName: string;
+  /** The Drive share URL it is downloaded from; null when its .env variable is unset. */
+  driveUrl: string | null;
+  /** The local file name, e.g. "template_fisa_limita.xlsx". */
+  fileName: string;
+  /** When the local copy was last downloaded; null when it is missing. */
+  fetchedAt: string | null;
 }
 
 // ---------------------------------------------------------------- references

@@ -4,6 +4,7 @@ import {
   IconFileSpreadsheet,
   IconFileText,
   IconPackages,
+  IconSettings,
   IconTruck,
   IconUsers,
 } from "@tabler/icons-react";
@@ -16,6 +17,7 @@ const ITEMS = [
   { to: "/facturi", label: "Facturi de expediție", icon: IconFileInvoice },
   { to: "/monthly-report", label: "Fișa limită", icon: IconFileSpreadsheet },
   { to: "/materiale", label: "Materiale de întreținere", icon: IconPackages },
+  { to: "/setari", label: "Setări", icon: IconSettings },
 ];
 
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

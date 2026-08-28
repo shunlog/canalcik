@@ -40,3 +40,8 @@ export const monthlyReportKeys = {
   all: ["monthlyReport"] as const,
   detail: (month: string) => ["monthlyReport", "detail", month] as const,
 };
+
+export const templateKeys = {
+  all: ["templates"] as const,
+  list: ["templates", "list"] as const,
+};

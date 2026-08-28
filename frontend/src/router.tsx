@@ -11,6 +11,7 @@ import { MaterialDetailPage } from "./pages/materiale/MaterialDetailPage.tsx";
 import { MaterialeListPage } from "./pages/materiale/MaterialeListPage.tsx";
 import { MonthlyReportDetailPage } from "./pages/monthlyReport/MonthlyReportDetailPage.tsx";
 import { MonthlyReportListPage } from "./pages/monthlyReport/MonthlyReportListPage.tsx";
+import { SetariPage } from "./pages/SetariPage.tsx";
 import { SoferCreatePage } from "./pages/soferi/SoferCreatePage.tsx";
 import { SoferDetailPage } from "./pages/soferi/SoferDetailPage.tsx";
 import { SoferiListPage } from "./pages/soferi/SoferiListPage.tsx";
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { path: "/monthly-report/:month", element: <MonthlyReportDetailPage /> },
       { path: "/materiale", element: <MaterialeListPage /> },
       { path: "/materiale/:id", element: <MaterialDetailPage /> },
+      { path: "/setari", element: <SetariPage /> },
     ],
   },
 ]);

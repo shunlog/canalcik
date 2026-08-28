@@ -8,6 +8,7 @@ import { facturi } from "./routes/facturi.ts";
 import { materiale } from "./routes/materiale.ts";
 import { monthlyReport } from "./routes/monthlyReport.ts";
 import { soferi } from "./routes/soferi.ts";
+import { templates } from "./routes/templates.ts";
 import { vehicule } from "./routes/vehicule.ts";
 
 export const app = new Hono();
@@ -32,6 +33,7 @@ app.route("/api/materiale", materiale);
 app.route("/api/facturi", facturi);
 app.route("/api/monthly-report", monthlyReport);
 app.route("/api/drive", drive);
+app.route("/api/templates", templates);
 
 // No CORS middleware on purpose: in dev the browser only ever talks to Vite,
 // which proxies /api here, so everything is same-origin.
