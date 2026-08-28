@@ -46,7 +46,46 @@ export function MonthlyReportDetailPage() {
             }
           />
 
-          <Fieldset legend="Luna" mb="md">
+          <Fieldset legend="Fișa limită" mb="md">
+            <Group gap="xl">
+              {m.document ? (
+                <>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Document generat
+                    </Text>
+                    <Anchor href={m.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
+                      {m.document.nume}
+                    </Anchor>
+
+                  </Group>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Data
+                    </Text>
+                    <Text size="sm">
+                      {new Date(m.document.createdAt).toLocaleString("ro-RO")}
+                    </Text>
+                  </Group>
+                </>
+              ) : (
+                <Text size="sm">{formatIsoDate(null)}</Text>
+              )
+              }
+
+              <GenerateButton report={m} loading={gen.isPending} onGenerate={generate} size="sm" />
+              {generateBlock(m).inconsistent && (
+                <Alert color="red" variant="light" py="xs">
+                  {INCONSISTENT_MESSAGE}
+                </Alert>
+              )}
+
+            </Group>
+          </Fieldset>
+
+          <SablonFieldset />
+
+          <Fieldset legend="Date lunare" mb="md">
             <Group gap="xl">
               <Group gap="xs">
                 <Text size="sm" c="dimmed">
@@ -66,31 +105,8 @@ export function MonthlyReportDetailPage() {
                   <Text size="sm">{formatIsoDate(null)}</Text>
                 )}
               </Group>
-              <Group gap="xs">
-                <Text size="sm" c="dimmed">
-                  Document
-                </Text>
-                {m.document ? (
-                  <Anchor href={m.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
-                    {new Date(m.document.createdAt).toLocaleString("ro-RO")}
-                  </Anchor>
-                ) : (
-                  <Text size="sm">{formatIsoDate(null)}</Text>
-                )}
-              </Group>
             </Group>
           </Fieldset>
-
-          <SablonFieldset />
-
-          <Group mb="md" align="center">
-            <GenerateButton report={m} loading={gen.isPending} onGenerate={generate} size="sm" />
-            {generateBlock(m).inconsistent && (
-              <Alert color="red" variant="light" py="xs">
-                {INCONSISTENT_MESSAGE}
-              </Alert>
-            )}
-          </Group>
 
           {m.linii.length === 0 ? (
             <Text size="sm" c="dimmed">
