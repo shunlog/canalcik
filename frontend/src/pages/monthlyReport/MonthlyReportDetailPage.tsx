@@ -3,11 +3,13 @@ import { Alert, Anchor, Badge, Button, Fieldset, Group, Table, Text } from "@man
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
+import { useTemplate } from "../../api/templates.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
+import { SyncTemplatesButton } from "../../components/SyncTemplatesButton.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatMonth, formatQty } from "../../lib/forms.ts";
+import { formatIsoDate, formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
 import { GenerateButton, INCONSISTENT_MESSAGE, generateBlock } from "./GenerateButton.tsx";
 
 /**
@@ -79,6 +81,8 @@ export function MonthlyReportDetailPage() {
             </Group>
           </Fieldset>
 
+          <SablonFieldset />
+
           <Group mb="md" align="center">
             <GenerateButton report={m} loading={gen.isPending} onGenerate={generate} size="sm" />
             {generateBlock(m).inconsistent && (
@@ -100,6 +104,42 @@ export function MonthlyReportDetailPage() {
         </>
       )}
     </QueryBoundary>
+  );
+}
+
+/**
+ * The fișa limită template this month's spreadsheet is rendered from. It sits on
+ * this page because a stale local copy is only visible in the generated file —
+ * so the fix (Sincronizează) belongs next to the button that generates it.
+ */
+function SablonFieldset() {
+  const query = useTemplate("fisaLimita");
+  const t = query.data;
+
+  return (
+    <Fieldset legend="Șablon" mb="md">
+      <Group gap="xl">
+        <Group gap="xs">
+          <Text size="sm" c="dimmed">
+            Fișier
+          </Text>
+          {t?.driveUrl ? (
+            <Anchor href={t.driveUrl} target="_blank" rel="noreferrer" size="sm">
+              {t.driveName}
+            </Anchor>
+          ) : (
+            <Text size="sm">{t?.driveName ?? "—"}</Text>
+          )}
+        </Group>
+        <Group gap="xs">
+          <Text size="sm" c="dimmed">
+            Ultima descărcare
+          </Text>
+          <Text size="sm">{formatTimestamp(t?.fetchedAt)}</Text>
+        </Group>
+        <SyncTemplatesButton size="xs" />
+      </Group>
+    </Fieldset>
   );
 }
 

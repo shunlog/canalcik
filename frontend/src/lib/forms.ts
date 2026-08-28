@@ -31,6 +31,10 @@ export const formatIsoDate = (v: string | null | undefined): string => {
   return y && m && d ? `${d}.${m}.${y}` : v;
 };
 
+/** An instant from the API as "28.08.2026, 21:08:36". */
+export const formatTimestamp = (v: string | null | undefined): string =>
+  v ? new Date(v).toLocaleString("ro-RO") : "—";
+
 /**
  * Money as "1.234,56", the Romanian convention. The currency (lei) is named in
  * the column header rather than repeated on every number.
