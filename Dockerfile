@@ -20,8 +20,11 @@ COPY server/package.json server/
 COPY frontend/package.json frontend/
 RUN pnpm install --frozen-lockfile
 
+COPY prisma prisma/
+RUN pnpm exec prisma generate
+
 COPY . .
-RUN pnpm exec prisma generate && pnpm build
+RUN pnpm build
 
 COPY docker-entrypoint.sh /usr/local/bin/
 

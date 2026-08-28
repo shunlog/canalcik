@@ -14,3 +14,4 @@ drive-config.json
 picker-config.json
 deploy
 *.md
+prisma/schema.svg
