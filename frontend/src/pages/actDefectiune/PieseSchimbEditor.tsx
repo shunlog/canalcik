@@ -22,8 +22,8 @@ export function PieseSchimbEditor({
           <Table.Thead>
             <Table.Tr>
               <Table.Th w={50}>Nr.</Table.Th>
-              <Table.Th w={140}>Nr. nomenclator</Table.Th>
               <Table.Th miw={280}>Piesa de schimb</Table.Th>
+              <Table.Th w={140}>Nr. nomenclator</Table.Th>
               <Table.Th w={100}>UM</Table.Th>
               <Table.Th w={120}>Cantitate</Table.Th>
               <Table.Th w={180}>Cauza (rând tab. 1)</Table.Th>
@@ -35,13 +35,6 @@ export function PieseSchimbEditor({
             {rows.map((row, i) => (
               <Table.Tr key={row.key}>
                 <Table.Td>{i + 1}</Table.Td>
-                <Table.Td>
-                  <AutoFillTextInput
-                    placeholder="120673"
-                    status={statusCamp(row.auto?.nrNomenclator, row.nrNomenclator)}
-                    {...form.getInputProps(`pieseSchimb.${i}.nrNomenclator`)}
-                  />
-                </Table.Td>
                 <Table.Td>
                   <ProdusCombobox
                     produse={produse}
@@ -57,6 +50,13 @@ export function PieseSchimbEditor({
                       form.setFieldValue(`pieseSchimb.${i}.piesaSchimb`, auto.piesaSchimb);
                       form.setFieldValue(`pieseSchimb.${i}.um`, auto.um);
                     }}
+                  />
+                </Table.Td>
+                <Table.Td>
+                  <AutoFillTextInput
+                    placeholder="120673"
+                    status={statusCamp(row.auto?.nrNomenclator, row.nrNomenclator)}
+                    {...form.getInputProps(`pieseSchimb.${i}.nrNomenclator`)}
                   />
                 </Table.Td>
                 <Table.Td>
