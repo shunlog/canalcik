@@ -1,9 +1,12 @@
 // The wire contract between the server and the frontend.
 //
-// This file must not import anything: the frontend consumes it as
-// `@canalcik/server/api-types` with type-only imports, so nothing here may pull
-// server code into the browser bundle. The zod schemas in schemas/ are pinned
-// to these types with compile-time equality checks, so the two cannot drift.
+// The frontend consumes this as `@canalcik/server/api-types` with type-only
+// imports, so nothing here may pull server code into the browser bundle. The
+// one import below is types-only and imports nothing itself, which is why it is
+// allowed; add no others. The zod schemas in schemas/ are pinned to these types
+// with compile-time equality checks, so the two cannot drift.
+
+import type { DataActDefectiune } from "../../templates/templateData.ts";
 
 /** A calendar date, "YYYY-MM-DD". Never an instant — see the comment in schema.prisma. */
 export type IsoDate = string;
@@ -388,3 +391,47 @@ export interface MonthlyReportLine {
 export interface MonthlyReportDetail extends MonthlyReport {
   linii: MonthlyReportLine[];
 }
+
+// -------------------------------------------------------------- actDefectiune
+
+// The three tables are stored and sent exactly as the template consumes them,
+// so generating a document is a field rename away and the two cannot drift.
+export type DefectiuneLine = DataActDefectiune["defectiuni"][number];
+export type PiesaSchimbLine = DataActDefectiune["pieseSchimb"][number];
+export type LucrareLine = DataActDefectiune["lucrari"][number];
+
+export interface ActDefectiuneScalars {
+  data: IsoDate;
+  vehiculId: number;
+  /** "Informatie activ" — copied off the vehicul, then editable. */
+  nrInventar: string;
+  nrInregistrare: string;
+  denumireVehicul: string;
+  anProducerii: string;
+}
+
+/** An act as it appears in the list. */
+export interface ActDefectiuneListItem {
+  id: number;
+  data: IsoDate;
+  vehicul: VehiculRef;
+  nrDefectiuni: number;
+  nrPieseSchimb: number;
+}
+
+export interface ActDefectiuneDetail extends ActDefectiuneScalars {
+  id: number;
+  updatedAt: string;
+  vehicul: VehiculRef;
+  defectiuni: DefectiuneLine[];
+  pieseSchimb: PiesaSchimbLine[];
+  lucrari: LucrareLine[];
+}
+
+export interface ActDefectiuneCreateBody extends ActDefectiuneScalars {
+  defectiuni: DefectiuneLine[];
+  pieseSchimb: PiesaSchimbLine[];
+  lucrari: LucrareLine[];
+}
+
+export type ActDefectiuneUpdateBody = ActDefectiuneCreateBody;

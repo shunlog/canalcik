@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useCreateBon } from "../../api/bonuri.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { BonFields } from "./BonFields.tsx";
 import { bonValidation, emptyBonForm, fromBonForm, type BonFormValues } from "./bonForm.ts";
 
@@ -30,7 +30,7 @@ export function BonCreatePage() {
   };
 
   return (
-    <form onSubmit={form.onSubmit(submit)}>
+    <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
       <PageHeader title="Bon nou" />
       <BonFields form={form} />
       <Group mt="md">

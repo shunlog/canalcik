@@ -8,7 +8,7 @@ import { DeleteButton } from "../../components/DeleteButton.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, requiredText } from "../../lib/forms.ts";
 import { plate } from "../../lib/labels.ts";
 
@@ -71,7 +71,7 @@ export function MaterialDetailPage() {
             }
           />
 
-          <form onSubmit={form.onSubmit(submit)}>
+          <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <Fieldset legend="Material">
               <TextInput
                 label="Denumire"

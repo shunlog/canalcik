@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useCreateSofer } from "../../api/soferi.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredNum, requiredText } from "../../lib/forms.ts";
 import { SoferFields } from "./SoferFields.tsx";
 import { emptySoferForm, fromSoferForm, type SoferFormValues } from "./soferForm.ts";
@@ -32,7 +32,7 @@ export function SoferCreatePage() {
   };
 
   return (
-    <form onSubmit={form.onSubmit(submit)}>
+    <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
       <PageHeader title="Șofer nou" />
       <SoferFields form={form} />
       <Group mt="md">

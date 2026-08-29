@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useCreateVehicul } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredNum, requiredText } from "../../lib/forms.ts";
 import { VehiculFields } from "./VehiculFields.tsx";
 import { emptyVehiculForm, fromVehiculForm, type VehiculFormValues } from "./vehiculForm.ts";
@@ -38,7 +38,7 @@ export function VehiculCreatePage() {
   };
 
   return (
-    <form onSubmit={form.onSubmit(submit)}>
+    <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
       <PageHeader title="Vehicul nou" />
       <VehiculFields form={form} />
       <Group mt="md">

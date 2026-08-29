@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useCreateFactura } from "../../api/facturi.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { FacturaFields } from "./FacturaFields.tsx";
 import {
   emptyFacturaForm,
@@ -35,7 +35,7 @@ export function FacturaCreatePage() {
   };
 
   return (
-    <form onSubmit={form.onSubmit(submit)}>
+    <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
       <PageHeader title="Factură nouă" />
       <FacturaFields form={form} />
       <Group mt="md">

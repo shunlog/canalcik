@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import { AppLayout } from "./layout/AppLayout.tsx";
-import { ActDefectiunePage } from "./pages/actDefectiune/ActDefectiunePage.tsx";
+import { ActDefectiuneCreatePage } from "./pages/actDefectiune/ActDefectiuneCreatePage.tsx";
+import { ActDefectiuneDetailPage } from "./pages/actDefectiune/ActDefectiuneDetailPage.tsx";
+import { ActDefectiuneListPage } from "./pages/actDefectiune/ActDefectiuneListPage.tsx";
 import { BonCreatePage } from "./pages/bonuri/BonCreatePage.tsx";
 import { BonDetailPage } from "./pages/bonuri/BonDetailPage.tsx";
 import { BonuriListPage } from "./pages/bonuri/BonuriListPage.tsx";
@@ -46,7 +48,9 @@ export const router = createBrowserRouter([
       { path: "/materiale", element: <MaterialeListPage /> },
       { path: "/materiale/:id", element: <MaterialDetailPage /> },
       { path: "/produse", element: <ProdusePage /> },
-      { path: "/act-defectiune", element: <ActDefectiunePage /> },
+      { path: "/act-defectiune", element: <ActDefectiuneListPage /> },
+      { path: "/act-defectiune/nou", element: <ActDefectiuneCreatePage /> },
+      { path: "/act-defectiune/:id", element: <ActDefectiuneDetailPage /> },
       { path: "/setari", element: <SetariPage /> },
     ],
   },

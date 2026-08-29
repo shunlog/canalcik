@@ -1,0 +1,70 @@
+import type {
+  ActDefectiuneCreateBody,
+  ActDefectiuneDetail,
+  ActDefectiuneListItem,
+  ActDefectiuneUpdateBody,
+} from "@canalcik/server/api-types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, query } from "../lib/api.ts";
+import { actDefectiuneKeys } from "./keys.ts";
+
+export interface ActDefectiuneFilters {
+  vehiculId?: number;
+  from?: string;
+  to?: string;
+}
+
+/**
+ * Nothing outside the act points at it — the vehicul it names is a plain
+ * reference, and its pieces are catalogue products rather than MaterialeIntretinere
+ * rows — so unlike a bon or a factura, saving one invalidates nothing else.
+ */
+function useActInvalidation() {
+  const qc = useQueryClient();
+  return () => {
+    void qc.invalidateQueries({ queryKey: actDefectiuneKeys.all });
+  };
+}
+
+export function useActeDefectiune(filters: ActDefectiuneFilters = {}) {
+  const qs = query({ ...filters });
+  return useQuery({
+    queryKey: actDefectiuneKeys.list(qs),
+    queryFn: () => api.get<ActDefectiuneListItem[]>(`/acte-defectiune${qs}`),
+  });
+}
+
+export function useActDefectiune(id: number) {
+  return useQuery({
+    queryKey: actDefectiuneKeys.detail(id),
+    queryFn: () => api.get<ActDefectiuneDetail>(`/acte-defectiune/${id}`),
+    enabled: Number.isInteger(id) && id > 0,
+  });
+}
+
+export function useCreateActDefectiune() {
+  const invalidate = useActInvalidation();
+  return useMutation({
+    mutationFn: (body: ActDefectiuneCreateBody) =>
+      api.post<ActDefectiuneDetail>("/acte-defectiune", body),
+    onSuccess: invalidate,
+  });
+}
+
+/** PUT, not PATCH: the act is one form and is saved whole. */
+export function useUpdateActDefectiune(id: number) {
+  const invalidate = useActInvalidation();
+  return useMutation({
+    mutationFn: (body: ActDefectiuneUpdateBody) =>
+      api.put<ActDefectiuneDetail>(`/acte-defectiune/${id}`, body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteActDefectiune(id: number) {
+  const invalidate = useActInvalidation();
+  return useMutation({
+    mutationFn: () => api.del(`/acte-defectiune/${id}`),
+    onSuccess: invalidate,
+  });
+}

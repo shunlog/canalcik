@@ -11,7 +11,7 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredNum, requiredText } from "../../lib/forms.ts";
 import { plate, soferLabel } from "../../lib/labels.ts";
 import { VehiculFields } from "./VehiculFields.tsx";
@@ -82,7 +82,7 @@ export function VehiculDetailPage() {
             }
           />
 
-          <form onSubmit={form.onSubmit(submit)}>
+          <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <VehiculFields form={form} />
             <Group mt="md">
               <Button type="submit" loading={update.isPending}>

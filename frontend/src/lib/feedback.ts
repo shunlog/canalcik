@@ -14,3 +14,15 @@ export function showError(err: unknown, title = "Eroare") {
 export function showSaved(message = "Salvat") {
   notifications.show({ color: "green", message });
 }
+
+/**
+ * A form that failed client-side validation. Pass it as the second argument to
+ * `form.onSubmit` — Mantine calls it with the errors, which it ignores, since
+ * the offending inputs are already marked in red on the page itself.
+ */
+export function notifyIncomplete() {
+  notifications.show({
+    color: "red",
+    message: "Au rămas câmpuri care trebuie completate",
+  });
+}

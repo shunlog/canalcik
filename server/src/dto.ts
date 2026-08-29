@@ -1,7 +1,12 @@
 import { Prisma } from "@prisma/client";
 import type {
+  ActDefectiuneDetail,
+  ActDefectiuneListItem,
   BonDetail,
   BonRef,
+  DefectiuneLine,
+  LucrareLine,
+  PiesaSchimbLine,
   FacturaDetail,
   FacturaRef,
   FisaLimitaDocRef,
@@ -315,4 +320,69 @@ type FisaLimitaDocRow = Prisma.GeneratedDocumentGetPayload<{ select: typeof fisa
 export const toFisaLimitaDocRef = ({ createdAt, ...d }: FisaLimitaDocRow): FisaLimitaDocRef => ({
   ...d,
   createdAt: createdAt.toISOString(),
+});
+
+// ------------------------------------------------------------- actDefectiune
+
+/**
+ * The act's three tables are one JSON column each — this is the only place they
+ * are read back, so the cast lives here and nowhere else. What went in was
+ * validated by schemas/actDefectiune.ts, so the shape is the wire type's.
+ */
+const parseLines = <T>(json: string): T[] => JSON.parse(json) as T[];
+
+export const actDefectiuneListSelect = {
+  id: true,
+  data: true,
+  vehicul: { select: vehiculRefSelect },
+  defectiuni: true,
+  pieseSchimb: true,
+} satisfies Prisma.ActDefectiuneDataSelect;
+
+type ActDefectiuneListRow = Prisma.ActDefectiuneDataGetPayload<{
+  select: typeof actDefectiuneListSelect;
+}>;
+
+// The two counts come from parsing rather than from a _count: the lines are not
+// rows. The list is one company's acts, so the parse is cheaper than the tables
+// it would take to make `_count` possible.
+export const toActDefectiuneListItem = (r: ActDefectiuneListRow): ActDefectiuneListItem => ({
+  id: r.id,
+  data: r.data,
+  vehicul: r.vehicul,
+  nrDefectiuni: parseLines<DefectiuneLine>(r.defectiuni).length,
+  nrPieseSchimb: parseLines<PiesaSchimbLine>(r.pieseSchimb).length,
+});
+
+export const actDefectiuneDetailSelect = {
+  id: true,
+  updatedAt: true,
+  data: true,
+  vehiculId: true,
+  vehicul: { select: vehiculRefSelect },
+  nrInventar: true,
+  nrInregistrare: true,
+  denumireVehicul: true,
+  anProducerii: true,
+  defectiuni: true,
+  pieseSchimb: true,
+  lucrari: true,
+} satisfies Prisma.ActDefectiuneDataSelect;
+
+type ActDefectiuneDetailRow = Prisma.ActDefectiuneDataGetPayload<{
+  select: typeof actDefectiuneDetailSelect;
+}>;
+
+export const toActDefectiuneDetail = ({
+  updatedAt,
+  defectiuni,
+  pieseSchimb,
+  lucrari,
+  ...a
+}: ActDefectiuneDetailRow): ActDefectiuneDetail => ({
+  ...a,
+  updatedAt: updatedAt.toISOString(),
+  defectiuni: parseLines<DefectiuneLine>(defectiuni),
+  pieseSchimb: parseLines<PiesaSchimbLine>(pieseSchimb),
+  lucrari: parseLines<LucrareLine>(lucrari),
 });

@@ -1,8 +1,11 @@
-import type { VehiculListItem } from "@canalcik/server/api-types";
+import type {
+  ActDefectiuneCreateBody,
+  ActDefectiuneDetail,
+  VehiculListItem,
+} from "@canalcik/server/api-types";
 import { randomId } from "@mantine/hooks";
-import { formatIsoDate, numOrZero, todayLocalIso } from "../../lib/forms.ts";
+import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
 import { plate } from "../../lib/labels.ts";
-import type { DataActDefectiune } from "../../../../templates/templateData.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 
 // ------------------------------------------------------------- auto-fill state
@@ -130,10 +133,13 @@ export const emptyActForm = (): ActFormValues => ({
   lucrari: [newLucrareRow()],
 });
 
-// ----------------------------------------------------------------- to the doc
+// ------------------------------------------------------------------ the wire
 
-export const fromActForm = (v: ActFormValues): DataActDefectiune => ({
-  data: formatIsoDate(v.data ?? todayLocalIso()),
+// The three tables are sent in the document's own shape, `nr` included, so the
+// server stores what the template will consume — see api-types.ts.
+export const fromActForm = (v: ActFormValues): ActDefectiuneCreateBody => ({
+  data: v.data ?? todayLocalIso(),
+  vehiculId: Number(v.vehiculId),
   nrInventar: v.nrInventar.trim(),
   nrInregistrare: v.nrInregistrare.trim(),
   denumireVehicul: v.denumireVehicul.trim(),
@@ -173,6 +179,7 @@ const cauzaValida = (v: number | string) =>
 
 export const actValidation = {
   data: (v: string | null) => (v ? null : "Data este obligatorie"),
+  vehiculId: (v: string | null) => (v ? null : "Vehiculul este obligatoriu"),
   nrInventar: required,
   nrInregistrare: required,
   denumireVehicul: required,
@@ -192,3 +199,38 @@ export const actValidation = {
     cauza: cauzaValida,
   },
 };
+
+export const toActForm = (a: ActDefectiuneDetail): ActFormValues => ({
+  data: a.data,
+  vehiculId: String(a.vehiculId),
+  // A saved act does not record which fields the search filled, so nothing is
+  // flagged as auto-filled until a new pick replaces them.
+  autoVehicul: null,
+  nrInventar: a.nrInventar,
+  nrInregistrare: a.nrInregistrare,
+  denumireVehicul: a.denumireVehicul,
+  anProducerii: a.anProducerii,
+  // `nr` is dropped: it is the row's position, which fromActForm derives again.
+  defectiuni: a.defectiuni.map((d) => ({
+    key: randomId(),
+    defectiunea: d.defectiunea,
+    cauze: d.cauze,
+  })),
+  pieseSchimb: a.pieseSchimb.map((p) => ({
+    key: randomId(),
+    auto: null,
+    nrNomenclator: p.nrNomenclator,
+    piesaSchimb: p.piesaSchimb,
+    um: p.um,
+    cantitate: p.cantitate,
+    cauza: p.cauza,
+    necesitaInlocuire: p.necesitaInlocuire,
+  })),
+  lucrari: a.lucrari.map((l) => ({
+    key: randomId(),
+    denumire: l.denumire,
+    um: l.um,
+    cantitate: l.cantitate,
+    cauza: l.cauza,
+  })),
+});

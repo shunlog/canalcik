@@ -9,7 +9,7 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { ApiError } from "../../lib/api.ts";
-import { showError, showSaved } from "../../lib/feedback.ts";
+import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatMoney } from "../../lib/forms.ts";
 import { FacturaFields } from "./FacturaFields.tsx";
 import {
@@ -81,7 +81,7 @@ export function FacturaDetailPage() {
             />
           </Fieldset>
 
-          <form onSubmit={form.onSubmit(submit)}>
+          <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <FacturaFields form={form} />
             <Group mt="md">
               <Button type="submit" loading={update.isPending}>

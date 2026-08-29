@@ -38,8 +38,9 @@ model Vehicul {
   utilajeAuxiliare    String? // "Utilaje auxiliare"
   lucrariLunaViitoare String? // "Lucrari necesate efectuat luna viitoare"
 
-  soferi Sofer[]        @relation("VehiculSofer")
-  bonuri BonEliberare[]
+  soferi         Sofer[]             @relation("VehiculSofer")
+  bonuri         BonEliberare[]
+  acteDefectiune ActDefectiuneData[]
 
   @@unique([litere, cifre])
 }
@@ -171,7 +172,8 @@ model GeneratedDocument {
   driveFileId String @unique
   driveUrl    String
 
-  fisaLimita FisaLimitaDoc?
+  fisaLimita    FisaLimitaDoc?
+  actDefectiune ActDefectiuneDoc?
 }
 
 // One month's "fisa limita" — at most one per month, re-generation updates
@@ -180,6 +182,51 @@ model FisaLimitaDoc {
   id Int @id @default(autoincrement())
 
   month String @unique // "YYYY-MM"
+
+  documentId Int               @unique
+  document   GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+// A saved "act de constatare a defectiunilor" — the form the document is
+// rendered from. Its three tables are stored as JSON rather than as line
+// tables of their own: unlike a bon's materials, they are never summed across
+// documents, and a piece names a product from the CSV catalogue, which has no
+// table here to point at. The shape is DataActDefectiune's in
+// templates/templateData.ts; dto.ts is the only place that parses it.
+model ActDefectiuneData {
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Calendar date (ISO "YYYY-MM-DD")
+  data String
+
+  vehiculId Int
+  vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
+
+  // "Informatie activ". Copied off the vehicul when the form is filled and
+  // editable afterwards, so an act keeps what was true the day it was written
+  // even after the fleet record changes.
+  nrInventar      String
+  nrInregistrare  String
+  denumireVehicul String
+  anProducerii    String
+
+  // JSON arrays — "Lista defecțiunilor", "Lista pieselor de schimb" and
+  // "Lista lucrărilor de reparații necesare".
+  defectiuni  String
+  pieseSchimb String
+  lucrari     String
+
+  doc ActDefectiuneDoc?
+}
+
+// One act's generated document — at most one per act, re-generation updates
+// the same row. Mirrors FisaLimitaDoc, keyed by the act instead of a month.
+model ActDefectiuneDoc {
+  id Int @id @default(autoincrement())
+
+  actId Int               @unique
+  act   ActDefectiuneData @relation(fields: [actId], references: [id], onDelete: Cascade)
 
   documentId Int               @unique
   document   GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)

@@ -41,6 +41,12 @@ export const facturaKeys = {
   detail: (id: number) => ["facturi", "detail", id] as const,
 };
 
+export const actDefectiuneKeys = {
+  all: ["acteDefectiune"] as const,
+  list: (filters: string) => ["acteDefectiune", "list", filters] as const,
+  detail: (id: number) => ["acteDefectiune", "detail", id] as const,
+};
+
 export const monthlyReportKeys = {
   all: ["monthlyReport"] as const,
   detail: (month: string) => ["monthlyReport", "detail", month] as const,
