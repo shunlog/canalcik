@@ -1,10 +1,11 @@
-import { Button, Group } from "@mantine/core";
+import { Anchor, Button, Fieldset, Group, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   useActDefectiune,
   useDeleteActDefectiune,
+  useGenerateActDefectiune,
   useUpdateActDefectiune,
 } from "../../api/acteDefectiune.ts";
 import { useProduse } from "../../api/produse.ts";
@@ -32,6 +33,7 @@ export function ActDefectiuneDetailPage() {
   const query = useActDefectiune(id);
   const update = useUpdateActDefectiune(id);
   const remove = useDeleteActDefectiune(id);
+  const gen = useGenerateActDefectiune(id);
   const produse = useProduse();
 
   const form = useForm<ActFormValues>({
@@ -60,6 +62,13 @@ export function ActDefectiuneDetailPage() {
     });
   };
 
+  const generate = () => {
+    gen.mutate(undefined, {
+      onSuccess: () => showSaved("Act de defecțiune generat"),
+      onError: (err) => showError(err, "Generarea a eșuat"),
+    });
+  };
+
   return (
     <QueryBoundary query={query}>
       {(a) => (
@@ -81,6 +90,35 @@ export function ActDefectiuneDetailPage() {
               </>
             }
           />
+
+          <Fieldset legend="Document generat" mb="md">
+            <Group gap="xl">
+              {a.document ? (
+                <>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Fișier
+                    </Text>
+                    <Anchor href={a.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
+                      {a.document.nume}
+                    </Anchor>
+                  </Group>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Data
+                    </Text>
+                    <Text size="sm">{new Date(a.document.createdAt).toLocaleString("ro-RO")}</Text>
+                  </Group>
+                </>
+              ) : (
+                <Text size="sm">{formatIsoDate(null)}</Text>
+              )}
+
+              <Button size="sm" loading={gen.isPending} onClick={generate}>
+                {a.document ? "Re-generează" : "Generează"}
+              </Button>
+            </Group>
+          </Fieldset>
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <ActFields form={form} produse={produseIndexate} />

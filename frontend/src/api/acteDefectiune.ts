@@ -61,6 +61,14 @@ export function useUpdateActDefectiune(id: number) {
   });
 }
 
+export function useGenerateActDefectiune(id: number) {
+  const invalidate = useActInvalidation();
+  return useMutation({
+    mutationFn: () => api.post<ActDefectiuneDetail>(`/acte-defectiune/${id}/generate`, {}),
+    onSuccess: invalidate,
+  });
+}
+
 export function useDeleteActDefectiune(id: number) {
   const invalidate = useActInvalidation();
   return useMutation({

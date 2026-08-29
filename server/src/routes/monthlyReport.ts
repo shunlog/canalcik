@@ -10,9 +10,9 @@ import {
 import { hasToken } from "../../../utils/googleAuth.ts";
 import { loadTemplate, TEMPLATES } from "../../../templates/templateManifest.ts";
 import { renderFisaLimita } from "../../../templates/renderTemplates.ts";
-import type { FisaLimitaDocRef, MonthlyReport, MonthlyReportDetail } from "../api-types.ts";
+import type { GeneratedDocRef, MonthlyReport, MonthlyReportDetail } from "../api-types.ts";
 import { db } from "../db.ts";
-import { fisaLimitaDocSelect, toFisaLimitaDocRef } from "../dto.ts";
+import { generatedDocSelect, toGeneratedDocRef } from "../dto.ts";
 import {
   type ReconcilereLinie,
   UnmatchedMaterialeError,
@@ -70,7 +70,7 @@ async function loadMonthsData() {
       },
     }),
     db.fisaLimitaDoc.findMany({
-      select: { month: true, document: { select: fisaLimitaDocSelect } },
+      select: { month: true, document: { select: generatedDocSelect } },
     }),
   ]);
 
@@ -86,8 +86,8 @@ async function loadMonthsData() {
   const facturaByMonth = new Map<string, (typeof facturi)[number]>();
   for (const f of facturi) facturaByMonth.set(f.month, f);
 
-  const docByMonth = new Map<string, FisaLimitaDocRef>();
-  for (const d of docs) docByMonth.set(d.month, toFisaLimitaDocRef(d.document));
+  const docByMonth = new Map<string, GeneratedDocRef>();
+  for (const d of docs) docByMonth.set(d.month, toGeneratedDocRef(d.document));
 
   return { bonuriByMonth, facturaByMonth, docByMonth };
 }

@@ -9,7 +9,7 @@ import type {
   PiesaSchimbLine,
   FacturaDetail,
   FacturaRef,
-  FisaLimitaDocRef,
+  GeneratedDocRef,
   MaterialDetail,
   MaterialListItem,
   SoferDetail,
@@ -307,17 +307,17 @@ export const toFacturaDetail = ({
   materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
 });
 
-// ------------------------------------------------------------- fisaLimitaDoc
+// --------------------------------------------------------- generatedDocument
 
-export const fisaLimitaDocSelect = {
+export const generatedDocSelect = {
   nume: true,
   driveUrl: true,
   createdAt: true,
 } satisfies Prisma.GeneratedDocumentSelect;
 
-type FisaLimitaDocRow = Prisma.GeneratedDocumentGetPayload<{ select: typeof fisaLimitaDocSelect }>;
+type GeneratedDocRow = Prisma.GeneratedDocumentGetPayload<{ select: typeof generatedDocSelect }>;
 
-export const toFisaLimitaDocRef = ({ createdAt, ...d }: FisaLimitaDocRow): FisaLimitaDocRef => ({
+export const toGeneratedDocRef = ({ createdAt, ...d }: GeneratedDocRow): GeneratedDocRef => ({
   ...d,
   createdAt: createdAt.toISOString(),
 });
@@ -367,6 +367,7 @@ export const actDefectiuneDetailSelect = {
   defectiuni: true,
   pieseSchimb: true,
   lucrari: true,
+  doc: { select: { document: { select: generatedDocSelect } } },
 } satisfies Prisma.ActDefectiuneDataSelect;
 
 type ActDefectiuneDetailRow = Prisma.ActDefectiuneDataGetPayload<{
@@ -378,6 +379,7 @@ export const toActDefectiuneDetail = ({
   defectiuni,
   pieseSchimb,
   lucrari,
+  doc,
   ...a
 }: ActDefectiuneDetailRow): ActDefectiuneDetail => ({
   ...a,
@@ -385,4 +387,5 @@ export const toActDefectiuneDetail = ({
   defectiuni: parseLines<DefectiuneLine>(defectiuni),
   pieseSchimb: parseLines<PiesaSchimbLine>(pieseSchimb),
   lucrari: parseLines<LucrareLine>(lucrari),
+  document: doc ? toGeneratedDocRef(doc.document) : null,
 });

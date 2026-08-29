@@ -1,5 +1,17 @@
 import { Hono } from "hono";
-import type { ActDefectiuneCreateBody } from "../api-types.ts";
+import {
+  ACT_DEFECTIUNE_FOLDER,
+  MIME,
+  findOrCreateChildFolder,
+  findOrCreateFolder,
+  isAuthError,
+  uploadBuffer,
+} from "../../../utils/drive.ts";
+import { hasToken } from "../../../utils/googleAuth.ts";
+import { isoToDDMMYYYY } from "../../../utils/luni.ts";
+import { renderActDefectiune } from "../../../templates/renderTemplates.ts";
+import { TEMPLATES, loadTemplate } from "../../../templates/templateManifest.ts";
+import type { ActDefectiuneCreateBody, ActDefectiuneDetail } from "../api-types.ts";
 import { db } from "../db.ts";
 import {
   actDefectiuneDetailSelect,
@@ -7,7 +19,7 @@ import {
   toActDefectiuneDetail,
   toActDefectiuneListItem,
 } from "../dto.ts";
-import { badRef, notFound } from "../http/errors.ts";
+import { badRef, driveNotConnected, notFound, templateMissing } from "../http/errors.ts";
 import { optionalIdQuery, parseIdParam, readJson } from "../http/read.ts";
 import { actDefectiuneCreate, actDefectiuneUpdate } from "../schemas/actDefectiune.ts";
 
@@ -79,9 +91,97 @@ acteDefectiune.put("/:id", async (c) => {
   return c.json(toActDefectiuneDetail(row));
 });
 
+/**
+ * The act's own fields are already the template's, so the only translation is
+ * the date: stored ISO, printed "25.06.2026". Nothing here can be inconsistent
+ * the way a month's bonuri can be, so unlike the fisa limita there is no
+ * precondition beyond the act existing.
+ */
+acteDefectiune.post("/:id/generate", async (c) => {
+  const id = parseIdParam(c);
+  const row = await db.actDefectiuneData.findUnique({
+    where: { id },
+    select: actDefectiuneDetailSelect,
+  });
+  if (!row) throw notFound("Actul de defecțiune");
+  const act = toActDefectiuneDetail(row);
+
+  let template: Buffer;
+  try {
+    template = loadTemplate(TEMPLATES.actDefectiune);
+  } catch {
+    throw templateMissing();
+  }
+  // Field by field, not a spread: the renderer rejects any value no tag reads,
+  // and the detail also carries id, vehicul and the document ref.
+  const buffer = renderActDefectiune(template, {
+    data: isoToDDMMYYYY(act.data),
+    nrInventar: act.nrInventar,
+    nrInregistrare: act.nrInregistrare,
+    denumireVehicul: act.denumireVehicul,
+    anProducerii: act.anProducerii,
+    defectiuni: act.defectiuni,
+    pieseSchimb: act.pieseSchimb,
+    lucrari: act.lucrari,
+  });
+  const nume = numeFisierActDefectiune(act);
+
+  // driveClient() throws a plain Error when token.json is absent, which
+  // isAuthError() doesn't recognize — check up front so a never-authorized box
+  // gets the same 409 as a dead token instead of a 500.
+  if (!hasToken()) throw driveNotConnected();
+
+  let uploaded: { id: string; webViewLink: string };
+  try {
+    const folder = await findOrCreateFolder();
+    const child = await findOrCreateChildFolder(ACT_DEFECTIUNE_FOLDER, folder.id);
+    uploaded = await uploadBuffer({ buffer, name: nume, mimeType: MIME.docx, folderId: child.id });
+  } catch (err) {
+    if (isAuthError(err)) throw driveNotConnected();
+    throw err;
+  }
+
+  await db.actDefectiuneDoc.upsert({
+    where: { actId: id },
+    create: {
+      act: { connect: { id } },
+      document: {
+        create: {
+          kind: "actDefectiune",
+          nume,
+          driveFileId: uploaded.id,
+          driveUrl: uploaded.webViewLink,
+        },
+      },
+    },
+    update: {
+      document: {
+        update: {
+          nume,
+          driveFileId: uploaded.id,
+          driveUrl: uploaded.webViewLink,
+          createdAt: new Date(),
+        },
+      },
+    },
+  });
+
+  const updated = await db.actDefectiuneData.findUniqueOrThrow({
+    where: { id },
+    select: actDefectiuneDetailSelect,
+  });
+  return c.json(toActDefectiuneDetail(updated), 201);
+});
+
 acteDefectiune.delete("/:id", async (c) => {
   // ActDefectiuneDoc is onDelete: Cascade, so a generated document's row goes
   // with it; the file on Drive is not touched.
   await db.actDefectiuneData.delete({ where: { id: parseIdParam(c) } });
   return c.body(null, 204);
 });
+
+/** "2026-06-25_act_defectiune_CA-786.docx" — dated first so Drive sorts it. */
+function numeFisierActDefectiune(act: ActDefectiuneDetail): string {
+  const plate = act.nrInregistrare.trim().replace(/\s+/g, "-").replace(/[\\/]/g, "-");
+  return `${act.data}_act_defectiune${plate ? `_${plate}` : ""}.docx`;
+}

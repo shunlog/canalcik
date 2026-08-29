@@ -1,5 +1,5 @@
 import type { DataFisaLimita, DataFisaLimitaSheet } from "../../templates/renderTemplates.ts";
-import { lunaSiAnul } from "../../utils/luni.ts";
+import { isoToDDMMYYYY, lunaSiAnul } from "../../utils/luni.ts";
 
 // This module is pure: no `../db.ts` (instantiates PrismaClient, demands
 // DATABASE_URL) and no `utils/drive.ts` (reaches googleAuth.ts, whose
@@ -61,11 +61,6 @@ export function baniSplit(n: number): { lei: number; bani: string } {
  * 0.30000000000000004.
  */
 export const roundQty = (n: number): number => Math.round(n * 1000) / 1000;
-
-const isoToDDMMYYYY = (iso: string): string => {
-  const [y, m, d] = iso.split("-");
-  return `${d}.${m}.${y}`;
-};
 
 // ------------------------------------------------------------- input shapes
 

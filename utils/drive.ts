@@ -103,6 +103,9 @@ export async function findOrCreateFolder(
 /** The subfolder generated "fisa limita" documents are uploaded into. */
 export const FISA_LIMITA_FOLDER = "fisa_limita";
 
+/** The subfolder generated "act de defectiune" documents are uploaded into. */
+export const ACT_DEFECTIUNE_FOLDER = "act_defectiune";
+
 /**
  * Resolves a subfolder of `parentId` by name, creating it on first use. Keyed
  * by `${parentId}/${name}` since, unlike the app's root folder, there can be

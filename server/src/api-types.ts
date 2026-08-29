@@ -341,14 +341,16 @@ export interface FacturaUpdateBody {
   materiale?: FacturaLine[];
 }
 
-// --------------------------------------------------------- monthly report
+// ---------------------------------------------------- generated documents
 
-/** A generated "fisa limita" document as it points at a Drive file. */
-export interface FisaLimitaDocRef {
+/** A document the app generated, as it points at its file on Drive. */
+export interface GeneratedDocRef {
   nume: string;
   driveUrl: string;
   createdAt: string;
 }
+
+// --------------------------------------------------------- monthly report
 
 /**
  * One row of the monthly report list. `month` carries the raw "YYYY-MM"; the
@@ -358,7 +360,7 @@ export interface MonthlyReport {
   month: IsoMonth;
   nrBonuri: number;
   factura: { id: number; data: IsoDate } | null;
-  document: FisaLimitaDocRef | null;
+  document: GeneratedDocRef | null;
   /**
    * How many reconciliation rows disagree with the factura. null when there is
    * nothing to compare — no bonuri, or no factura — so the client's "not enough
@@ -426,6 +428,7 @@ export interface ActDefectiuneDetail extends ActDefectiuneScalars {
   defectiuni: DefectiuneLine[];
   pieseSchimb: PiesaSchimbLine[];
   lucrari: LucrareLine[];
+  document: GeneratedDocRef | null;
 }
 
 export interface ActDefectiuneCreateBody extends ActDefectiuneScalars {

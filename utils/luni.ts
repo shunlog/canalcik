@@ -30,3 +30,9 @@ export function formatLuna(month: string): string {
   const { luna, anul } = lunaSiAnul(month);
   return luna && anul ? `${luna} ${anul}` : month;
 }
+
+/** An ISO "YYYY-MM-DD" date as "25.06.2026", the form the documents print. */
+export const isoToDDMMYYYY = (iso: string): string => {
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+};
