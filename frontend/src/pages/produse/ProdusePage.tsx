@@ -59,7 +59,7 @@ export function ProdusePage() {
     const trimmed = search.trim();
     if (trimmed === "") return null;
     return fuzzysort.go(trimmed, produseIndexate, {
-      keys: [(p) => p.nume, (p) => p.cale.join(" › ")],
+      keys: [(p) => p.nume, (p) => p.cale.join(" › "), (p) => p.cod],
       limit: 50,
     });
   }, [search, produseIndexate]);
@@ -95,13 +95,13 @@ export function ProdusePage() {
           ) : (
             <Stack gap="xs">
               {rezultate.map((r) => {
-                const [rezNume, rezCale] = r;
+                const [rezNume, rezCale, rezCod] = r;
                 return (
                   <Paper key={r.obj.cod} p="xs" withBorder>
                     <Text fw={500}>
                       {evidentiaza(rezNume, r.obj.nume)}{" "}
                       <Text span c="dimmed" size="sm">
-                        · {r.obj.unitate}
+                        · {r.obj.unitate} · {evidentiaza(rezCod, r.obj.cod)}
                       </Text>
                     </Text>
                     <Text size="sm" c="dimmed">
