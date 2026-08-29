@@ -27,8 +27,11 @@ function ArboreCategorie({ categorie, nivel = 0 }: { categorie: CategorieProduse
       label={categorie.nume}
       childrenOffset={16}
       py={4}
-      bg={`color-mix(in srgb, var(--mantine-color-text) ${nivel * 4}%, transparent)`}
-      styles={{ children: { borderInlineStart: "1px solid var(--mantine-color-default-border)" } }}
+      bg={`color-mix(in srgb, var(--mantine-color-text) ${(nivel + 1) * 4}%, transparent)`}
+      styles={{
+        children: { borderInlineStart: "1px solid var(--mantine-color-default-border)" },
+        section: { order: -1, marginInlineStart: 0, marginInlineEnd: "var(--mantine-spacing-xs)" },
+      }}
     >
       {categorie.copii?.map((c) => <ArboreCategorie key={c.nume} categorie={c} nivel={nivel + 1} />)}
       {categorie.produse?.map((p) => (
