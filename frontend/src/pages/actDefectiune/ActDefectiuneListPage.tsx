@@ -87,7 +87,6 @@ export function ActDefectiuneListPage() {
                     <Table.Th>Vehicul</Table.Th>
                     <Table.Th w={130}>Defecțiuni</Table.Th>
                     <Table.Th w={150}>Piese de schimb</Table.Th>
-                    <Table.Th w={110} />
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -108,11 +107,6 @@ export function ActDefectiuneListPage() {
                       </Table.Td>
                       <Table.Td>
                         <Badge variant="light">{a.nrPieseSchimb}</Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/act-defectiune/${a.id}`} size="sm">
-                          Deschide
-                        </Anchor>
                       </Table.Td>
                     </Table.Tr>
                   ))}

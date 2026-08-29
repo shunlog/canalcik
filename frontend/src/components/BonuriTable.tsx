@@ -23,7 +23,6 @@ export function BonuriTable({
             {!hideSofer && <Table.Th>Șofer</Table.Th>}
             {!hideVehicul && <Table.Th>Vehicul</Table.Th>}
             <Table.Th>Materiale</Table.Th>
-            <Table.Th />
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -50,11 +49,6 @@ export function BonuriTable({
               )}
               <Table.Td>
                 <Badge variant="light">{b.nrLinii}</Badge>
-              </Table.Td>
-              <Table.Td>
-                <Anchor component={Link} to={`/bonuri/${b.id}`} size="sm">
-                  Deschide
-                </Anchor>
               </Table.Td>
             </Table.Tr>
           ))}

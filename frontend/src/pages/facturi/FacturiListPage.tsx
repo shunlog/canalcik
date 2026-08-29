@@ -65,7 +65,6 @@ export function FacturiListPage() {
                     <Table.Th>Data</Table.Th>
                     <Table.Th w={130}>Materiale</Table.Th>
                     <Table.Th w={160}>Valoare (lei)</Table.Th>
-                    <Table.Th w={110} />
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -82,11 +81,6 @@ export function FacturiListPage() {
                         </Badge>
                       </Table.Td>
                       <Table.Td>{formatMoney(f.total)}</Table.Td>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/facturi/${f.id}`} size="sm">
-                          Deschide
-                        </Anchor>
-                      </Table.Td>
                     </Table.Tr>
                   ))}
                 </Table.Tbody>
