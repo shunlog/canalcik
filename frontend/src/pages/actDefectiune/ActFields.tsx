@@ -24,16 +24,14 @@ export function ActFields({
 
   return (
     <>
-      <Fieldset legend="Act">
-        <DateInput
-          label="Data"
-          valueFormat="DD.MM.YYYY"
-          placeholder="ZZ.LL.AAAA"
-          withAsterisk
-          w={200}
-          {...form.getInputProps("data")}
-        />
-      </Fieldset>
+      <DateInput
+        label="Data"
+        valueFormat="DD.MM.YYYY"
+        placeholder="ZZ.LL.AAAA"
+        withAsterisk
+        w={200}
+        {...form.getInputProps("data")}
+      />
 
       <Fieldset legend="Vehicul" mt="md">
         <Select
