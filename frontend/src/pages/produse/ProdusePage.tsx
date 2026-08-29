@@ -23,7 +23,7 @@ function aplatizeaza(categorie: CategorieProduse, cale: string[]): ProdusIndexat
 
 function ArboreCategorie({ categorie }: { categorie: CategorieProduse }) {
   return (
-    <NavLink label={categorie.nume} childrenOffset={24} defaultOpened>
+    <NavLink label={categorie.nume} childrenOffset={24}>
       {categorie.copii?.map((c) => <ArboreCategorie key={c.nume} categorie={c} />)}
       {categorie.produse?.map((p) => (
         <NavLink
