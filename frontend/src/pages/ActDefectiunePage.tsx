@@ -1,10 +1,22 @@
-import { Combobox, Fieldset, SimpleGrid, Text, TextInput, Tooltip, useCombobox } from "@mantine/core";
+import {
+  Combobox,
+  Fieldset,
+  Select,
+  SimpleGrid,
+  Text,
+  TextInput,
+  Tooltip,
+  useCombobox,
+} from "@mantine/core";
 import { IconAlertTriangle, IconSearch, IconWand } from "@tabler/icons-react";
 import fuzzysort from "fuzzysort";
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useProduse } from "../api/produse.ts";
+import { useVehicule } from "../api/vehicule.ts";
 import { PageHeader } from "../components/PageHeader.tsx";
+import { plate, vehiculLabel } from "../lib/labels.ts";
 import { aplatizeaza, evidentiaza } from "../lib/produse.tsx";
+import { fuzzyOptionsFilter } from "../lib/search.ts";
 
 export interface AutoFillInputHandle {
   setAuto: (value: string) => void;
@@ -16,9 +28,17 @@ export function ActDefectiunePage() {
   const [selectedProdus, setSelectedProdus] = useState<{ cod: string; nume: string } | null>(null);
   const query = useProduse();
 
+  const [vehiculId, setVehiculId] = useState<string | null>(null);
+  const vehicule = useVehicule();
+
   const nrNomenclatorRef = useRef<AutoFillInputHandle>(null);
   const piesaDeSchimbRef = useRef<AutoFillInputHandle>(null);
   const umRef = useRef<AutoFillInputHandle>(null);
+
+  const nrInventarRef = useRef<AutoFillInputHandle>(null);
+  const nrInregistrareRef = useRef<AutoFillInputHandle>(null);
+  const denumireVehiculRef = useRef<AutoFillInputHandle>(null);
+  const anProducereRef = useRef<AutoFillInputHandle>(null);
 
   const produseIndexate = useMemo(
     () => (query.data ?? []).flatMap((c) => aplatizeaza(c, [])),
@@ -108,6 +128,35 @@ export function ActDefectiunePage() {
           <AutoFillTextInput ref={nrNomenclatorRef} label="Nr. nomenclator" />
           <AutoFillTextInput ref={piesaDeSchimbRef} label="Piesa de schimb" />
           <AutoFillTextInput ref={umRef} label="UM" />
+        </SimpleGrid>
+      </Fieldset>
+
+      <Fieldset legend="Vehicul" mt="md">
+        <Select
+          placeholder="Caută un vehicul după număr, model sau nr. inventar"
+          searchable
+          clearable
+          filter={fuzzyOptionsFilter}
+          maw={480}
+          data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
+          value={vehiculId}
+          onChange={(id) => {
+            setVehiculId(id);
+            const ales = (vehicule.data ?? []).find((v) => String(v.id) === id);
+            if (ales) {
+              nrInventarRef.current?.setAuto(String(ales.nrInventar));
+              nrInregistrareRef.current?.setAuto(plate(ales));
+              denumireVehiculRef.current?.setAuto(`${ales.tip} ${ales.model}`);
+              anProducereRef.current?.setAuto(ales.anProducere?.toString() ?? "");
+            }
+          }}
+        />
+
+        <SimpleGrid cols={{ base: 1, sm: 2 }} mt="md">
+          <AutoFillTextInput ref={nrInventarRef} label="Nr. inventar" />
+          <AutoFillTextInput ref={nrInregistrareRef} label="Nr. de înregistrare" />
+          <AutoFillTextInput ref={denumireVehiculRef} label="Denumire conform datelor contabile" />
+          <AutoFillTextInput ref={anProducereRef} label="Anul producerii" />
         </SimpleGrid>
       </Fieldset>
     </>
