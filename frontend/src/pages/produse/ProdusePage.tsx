@@ -21,16 +21,24 @@ function aplatizeaza(categorie: CategorieProduse, cale: string[]): ProdusIndexat
   return [...produseProprii, ...produseCopii];
 }
 
-function ArboreCategorie({ categorie }: { categorie: CategorieProduse }) {
+function ArboreCategorie({ categorie, nivel = 0 }: { categorie: CategorieProduse; nivel?: number }) {
   return (
-    <NavLink label={categorie.nume} childrenOffset={24}>
-      {categorie.copii?.map((c) => <ArboreCategorie key={c.nume} categorie={c} />)}
+    <NavLink
+      label={categorie.nume}
+      childrenOffset={16}
+      py={4}
+      bg={`color-mix(in srgb, var(--mantine-color-text) ${nivel * 4}%, transparent)`}
+      styles={{ children: { borderInlineStart: "1px solid var(--mantine-color-default-border)" } }}
+    >
+      {categorie.copii?.map((c) => <ArboreCategorie key={c.nume} categorie={c} nivel={nivel + 1} />)}
       {categorie.produse?.map((p) => (
         <NavLink
           key={p.cod}
+          py={4}
+          c="blue"
           label={
             <>
-              {p.nume} <Text span c="dimmed" size="sm">· {p.unitate}</Text>
+              {p.nume} <Text span c="dimmed" size="sm">· {p.unitate} · {p.cod}</Text>
             </>
           }
         />
