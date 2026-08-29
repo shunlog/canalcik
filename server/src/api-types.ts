@@ -261,6 +261,26 @@ export interface MaterialCreateBody {
 
 export type MaterialUpdateBody = Partial<MaterialCreateBody>;
 
+// ------------------------------------------------------------------ produse
+
+/**
+ * A leaf product within a category. Demo data only for now, hardcoded on the
+ * server — the real catalogue will come from importing
+ * data_source/categorii_produse.csv into SQLite.
+ */
+export interface ProdusCategorie {
+  cod: string;
+  nume: string;
+  unitate: string;
+}
+
+/** One node of the product category tree. A leaf node carries `produse`; others carry `copii`. */
+export interface CategorieProduse {
+  nume: string;
+  copii?: CategorieProduse[];
+  produse?: ProdusCategorie[];
+}
+
 // ----------------------------------------------------- facturaExpeditie
 
 /**
