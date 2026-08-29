@@ -22,20 +22,23 @@ function aplatizeaza(categorie: CategorieProduse, cale: string[]): ProdusIndexat
 }
 
 function ArboreCategorie({ categorie, nivel = 0 }: { categorie: CategorieProduse; nivel?: number }) {
+  const fundal = `color-mix(in srgb, var(--mantine-color-text) ${(nivel + 1) * 4}%, transparent)`;
   return (
     <NavLink
       label={categorie.nume}
       childrenOffset={16}
       py={4}
-      bg={`color-mix(in srgb, var(--mantine-color-text) ${(nivel + 1) * 4}%, transparent)`}
+      bg={fundal}
       styles={{
-        children: { borderInlineStart: "1px solid var(--mantine-color-default-border)" },
+        children: {
+          backgroundColor: fundal,
+        },
         section: { order: -1, marginInlineStart: 0, marginInlineEnd: "var(--mantine-spacing-xs)" },
       }}
     >
       {categorie.copii?.map((c) => <ArboreCategorie key={c.nume} categorie={c} nivel={nivel + 1} />)}
       {categorie.produse?.map((p) => (
-        <Text key={p.cod} py={4} px="sm" c="blue" size="sm">
+        <Text key={p.cod} py={4} px="sm" size="sm" bg="var(--mantine-color-body)">
           {p.nume} <Text span c="dimmed" size="sm">· {p.unitate} · {p.cod}</Text>
         </Text>
       ))}
