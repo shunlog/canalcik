@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { AppLayout } from "./layout/AppLayout.tsx";
+import { ActDefectiunePage } from "./pages/ActDefectiunePage.tsx";
 import { BonCreatePage } from "./pages/bonuri/BonCreatePage.tsx";
 import { BonDetailPage } from "./pages/bonuri/BonDetailPage.tsx";
 import { BonuriListPage } from "./pages/bonuri/BonuriListPage.tsx";
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
       { path: "/materiale", element: <MaterialeListPage /> },
       { path: "/materiale/:id", element: <MaterialDetailPage /> },
       { path: "/produse", element: <ProdusePage /> },
+      { path: "/act-defectiune", element: <ActDefectiunePage /> },
       { path: "/setari", element: <SetariPage /> },
     ],
   },

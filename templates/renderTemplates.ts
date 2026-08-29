@@ -35,9 +35,9 @@ export type DataActDefectiune = {
   pieseSchimb: Array<{
     nr: number; // row number
     nrNomenclator: string; // "Nr. nomenclator": material code, e.g. "120673"
-    piesaSchimb: string; // "Piesa de schimb/ ansamblul component": material name, e.g. "Bara reactiva K-3 MAZ 5337"
+    piesaSchimb: string; // material name, e.g. "Bara reactiva K-3 MAZ 5337"
     um: string; // "UM": measurement unit, e.g. "buc", "set", "l"
-    cantitate: number; // "Cantitate": number
+    cantitate: number; // number
     cauza: number; // "Cauza (rând din tab. 1)": row index from tab 1
     necesitaInlocuire: "da" | "nu"; // "Necesită înlocuire": "da" or "nu"
   }>;

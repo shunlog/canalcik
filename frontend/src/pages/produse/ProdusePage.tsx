@@ -1,25 +1,12 @@
-import { Mark, NavLink, Paper, Stack, Text, TextInput } from "@mantine/core";
+import { NavLink, Paper, Stack, Text, TextInput } from "@mantine/core";
 import type { CategorieProduse } from "@canalcik/server/api-types";
 import { IconSearch } from "@tabler/icons-react";
-import fuzzysort, { type Result } from "fuzzysort";
+import fuzzysort from "fuzzysort";
 import { useMemo, useState } from "react";
 import { useProduse } from "../../api/produse.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
-
-interface ProdusIndexat {
-  cod: string;
-  nume: string;
-  unitate: string;
-  cale: string[];
-}
-
-function aplatizeaza(categorie: CategorieProduse, cale: string[]): ProdusIndexat[] {
-  const caleCurenta = [...cale, categorie.nume];
-  const produseProprii = (categorie.produse ?? []).map((p) => ({ ...p, cale: caleCurenta }));
-  const produseCopii = (categorie.copii ?? []).flatMap((c) => aplatizeaza(c, caleCurenta));
-  return [...produseProprii, ...produseCopii];
-}
+import { aplatizeaza, evidentiaza } from "../../lib/produse.tsx";
 
 function ArboreCategorie({ categorie, nivel = 0 }: { categorie: CategorieProduse; nivel?: number }) {
   const fundal = `color-mix(in srgb, var(--mantine-color-text) ${(nivel + 1) * 4}%, transparent)`;
@@ -118,12 +105,4 @@ export function ProdusePage() {
       </QueryBoundary>
     </>
   );
-}
-
-// When only one of the two keys matches, fuzzysort's Result for the other key
-// carries an empty string as its `.target` rather than the original text, so
-// `.highlight()` must be skipped in favor of the source value in that case.
-function evidentiaza(rezultat: Result, textOriginal: string) {
-  if (rezultat.indexes.length === 0) return textOriginal;
-  return rezultat.highlight((m, i) => <Mark key={i}>{m}</Mark>);
 }
