@@ -329,6 +329,9 @@ importers:
       '@hono/node-server':
         specifier: ^2.0.4
         version: 2.0.4(hono@4.12.23)
+      csv-parse:
+        specifier: ^6.2.1
+        version: 6.2.1
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
