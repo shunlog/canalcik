@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM node:24-slim
 
 # openssl: required by the Prisma query engine.
@@ -18,7 +19,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY server/package.json server/
 COPY frontend/package.json frontend/
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY prisma prisma/
 RUN pnpm exec prisma generate
