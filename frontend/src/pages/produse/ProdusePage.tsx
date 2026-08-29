@@ -32,16 +32,9 @@ function ArboreCategorie({ categorie, nivel = 0 }: { categorie: CategorieProduse
     >
       {categorie.copii?.map((c) => <ArboreCategorie key={c.nume} categorie={c} nivel={nivel + 1} />)}
       {categorie.produse?.map((p) => (
-        <NavLink
-          key={p.cod}
-          py={4}
-          c="blue"
-          label={
-            <>
-              {p.nume} <Text span c="dimmed" size="sm">· {p.unitate} · {p.cod}</Text>
-            </>
-          }
-        />
+        <Text key={p.cod} py={4} px="sm" c="blue" size="sm">
+          {p.nume} <Text span c="dimmed" size="sm">· {p.unitate} · {p.cod}</Text>
+        </Text>
       ))}
     </NavLink>
   );
