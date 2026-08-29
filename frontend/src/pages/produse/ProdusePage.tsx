@@ -30,8 +30,10 @@ function ArboreCategorie({ categorie, nivel = 0 }: { categorie: CategorieProduse
       py={4}
       bg={fundal}
       styles={{
+        // 8px = half of the chevron icon's default 16px width, so the border lands under its center.
         children: {
-          backgroundColor: fundal,
+          marginInlineStart: "calc(var(--mantine-spacing-sm) + 8px)",
+          borderInlineStart: "1px dashed black",
         },
         section: { order: -1, marginInlineStart: 0, marginInlineEnd: "var(--mantine-spacing-xs)" },
       }}
