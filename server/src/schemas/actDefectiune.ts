@@ -14,11 +14,11 @@ const defectiune = z.object({
   cauze: z.string().trim(),
 });
 
+// Only the code: routes/actDefectiune.ts checks it against the catalogue, which
+// is then what the name and the UM are read from.
 const piesaSchimb = z.object({
   nr,
-  nrNomenclator: z.string().trim(),
-  piesaSchimb: requiredText("Piesa de schimb"),
-  um: requiredText("Unitatea de măsură"),
+  nrNomenclator: requiredText("Piesa de schimb"),
   cantitate: z.number().positive("Cantitatea trebuie să fie mai mare decât 0"),
   cauza: nr,
   necesitaInlocuire: z.enum(["da", "nu"]),
@@ -32,15 +32,11 @@ const lucrare = z.object({
   cauza: nr,
 });
 
-// The UM is left as typed, unlike a bon's or a factura's: an act is never
-// reconciled against anything, so there is nothing for a shared case to serve.
+// A lucrare's UM is left as typed, unlike a bon's or a factura's: it describes
+// work rather than a catalogue product, so there is nothing to read it off.
 export const actDefectiuneCreate = z.object({
   data: isoDate,
   vehiculId: z.number().int().positive(),
-  nrInventar: requiredText("Nr. inventar"),
-  nrInregistrare: requiredText("Nr. de înregistrare"),
-  denumireVehicul: requiredText("Denumirea vehiculului"),
-  anProducerii: z.string().trim(),
   defectiuni: z.array(defectiune),
   pieseSchimb: z.array(piesaSchimb),
   lucrari: z.array(lucrare),

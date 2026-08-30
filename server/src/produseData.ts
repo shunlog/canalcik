@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse } from "csv-parse/sync";
-import type { CategorieProduse } from "./api-types.ts";
+import type { CategorieProduse, ProdusCategorie } from "./api-types.ts";
 
 const CSV_PATH = fileURLToPath(new URL("../../data_source/categorii_produse.csv", import.meta.url));
 
@@ -83,4 +83,26 @@ function adaugaProdus(categorie: CategorieProduse, raw: string) {
   const nume = parti.slice(1, -1).join(" - ").trim();
   if (cod === "-" || nume === "") return;
   (categorie.produse ??= []).push({ cod, nume, unitate });
+}
+
+// Parsed once on first use: the source CSV does not change at runtime.
+let categorii: CategorieProduse[] | null = null;
+let dupaCod: Map<string, ProdusCategorie> | null = null;
+
+export const categoriiProduse = (): CategorieProduse[] => (categorii ??= loadCategoriiProduse());
+
+/**
+ * The catalogue keyed by nomenclator code — the key an act's piesa stores.
+ * Codes are unique across the tree; names are not.
+ */
+export function produsDupaCod(cod: string): ProdusCategorie | undefined {
+  if (!dupaCod) {
+    dupaCod = new Map();
+    const indexeaza = (c: CategorieProduse) => {
+      for (const p of c.produse ?? []) dupaCod!.set(p.cod, p);
+      for (const k of c.copii ?? []) indexeaza(k);
+    };
+    for (const r of categoriiProduse()) indexeaza(r);
+  }
+  return dupaCod.get(cod);
 }

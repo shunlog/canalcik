@@ -13,6 +13,7 @@ import { renderActDefectiune } from "../../../templates/renderTemplates.ts";
 import { TEMPLATES, loadTemplate } from "../../../templates/templateManifest.ts";
 import type { ActDefectiuneCreateBody, ActDefectiuneDetail } from "../api-types.ts";
 import { db } from "../db.ts";
+import { produsDupaCod } from "../produseData.ts";
 import {
   actDefectiuneDetailSelect,
   actDefectiuneListSelect,
@@ -39,6 +40,17 @@ async function assertVehicul(vehiculId: number) {
   }
 }
 
+// The stored code is the only handle on a piesa's name and UM, so an unknown one
+// would save a line the document cannot print.
+function assertProduse(pieseSchimb: ActDefectiuneCreateBody["pieseSchimb"]) {
+  const necunoscute = pieseSchimb
+    .map((p) => p.nrNomenclator)
+    .filter((cod) => produsDupaCod(cod) === undefined);
+  if (necunoscute.length > 0) {
+    throw badRef(`Nu există în catalog: ${[...new Set(necunoscute)].join(", ")}`);
+  }
+}
+
 acteDefectiune.get("/", async (c) => {
   const vehiculId = optionalIdQuery(c, "vehiculId");
   const from = c.req.query("from")?.trim() || undefined;
@@ -60,6 +72,7 @@ acteDefectiune.get("/", async (c) => {
 acteDefectiune.post("/", async (c) => {
   const body = await readJson(c, actDefectiuneCreate);
   await assertVehicul(body.vehiculId);
+  assertProduse(body.pieseSchimb);
 
   const row = await db.actDefectiuneData.create({
     data: toRow(body),
@@ -82,6 +95,7 @@ acteDefectiune.get("/:id", async (c) => {
 acteDefectiune.put("/:id", async (c) => {
   const body = await readJson(c, actDefectiuneUpdate);
   await assertVehicul(body.vehiculId);
+  assertProduse(body.pieseSchimb);
 
   const row = await db.actDefectiuneData.update({
     where: { id: parseIdParam(c) },
@@ -92,10 +106,11 @@ acteDefectiune.put("/:id", async (c) => {
 });
 
 /**
- * The act's own fields are already the template's, so the only translation is
- * the date: stored ISO, printed "25.06.2026". Nothing here can be inconsistent
- * the way a month's bonuri can be, so unlike the fisa limita there is no
- * precondition beyond the act existing.
+ * The detail already carries the derived "Informatie activ" and the resolved
+ * piesa lines, so the only translation left is the date: stored ISO, printed
+ * "25.06.2026". Nothing here can be inconsistent the way a month's bonuri can
+ * be, so unlike the fisa limita there is no precondition beyond the act
+ * existing.
  */
 acteDefectiune.post("/:id/generate", async (c) => {
   const id = parseIdParam(c);

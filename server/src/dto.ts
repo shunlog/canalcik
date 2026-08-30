@@ -14,9 +14,12 @@ import type {
   MaterialListItem,
   SoferDetail,
   SoferListItem,
+  PiesaSchimbInput,
   VehiculDetail,
   VehiculListItem,
 } from "./api-types.ts";
+import { infoVehicul, piesaCompleta } from "./derived.ts";
+import { produsDupaCod } from "./produseData.ts";
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -354,16 +357,14 @@ export const toActDefectiuneListItem = (r: ActDefectiuneListRow): ActDefectiuneL
   nrPieseSchimb: parseLines<PiesaSchimbLine>(r.pieseSchimb).length,
 });
 
+// anProducere rides along only to feed infoVehicul; it is stripped below rather
+// than widening VehiculRef, which every other endpoint shares.
 export const actDefectiuneDetailSelect = {
   id: true,
   updatedAt: true,
   data: true,
   vehiculId: true,
-  vehicul: { select: vehiculRefSelect },
-  nrInventar: true,
-  nrInregistrare: true,
-  denumireVehicul: true,
-  anProducerii: true,
+  vehicul: { select: { ...vehiculRefSelect, anProducere: true } },
   defectiuni: true,
   pieseSchimb: true,
   lucrari: true,
@@ -376,16 +377,24 @@ type ActDefectiuneDetailRow = Prisma.ActDefectiuneDataGetPayload<{
 
 export const toActDefectiuneDetail = ({
   updatedAt,
+  vehicul,
   defectiuni,
   pieseSchimb,
   lucrari,
   doc,
   ...a
-}: ActDefectiuneDetailRow): ActDefectiuneDetail => ({
-  ...a,
-  updatedAt: updatedAt.toISOString(),
-  defectiuni: parseLines<DefectiuneLine>(defectiuni),
-  pieseSchimb: parseLines<PiesaSchimbLine>(pieseSchimb),
-  lucrari: parseLines<LucrareLine>(lucrari),
-  document: doc ? toGeneratedDocRef(doc.document) : null,
-});
+}: ActDefectiuneDetailRow): ActDefectiuneDetail => {
+  const { anProducere, ...ref } = vehicul;
+  return {
+    ...a,
+    ...infoVehicul(vehicul),
+    vehicul: ref,
+    updatedAt: updatedAt.toISOString(),
+    defectiuni: parseLines<DefectiuneLine>(defectiuni),
+    pieseSchimb: parseLines<PiesaSchimbInput>(pieseSchimb).map((l) =>
+      piesaCompleta(l, produsDupaCod(l.nrNomenclator)),
+    ),
+    lucrari: parseLines<LucrareLine>(lucrari),
+    document: doc ? toGeneratedDocRef(doc.document) : null,
+  };
+};

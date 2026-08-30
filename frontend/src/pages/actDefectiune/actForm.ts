@@ -1,34 +1,11 @@
-import type {
-  ActDefectiuneCreateBody,
-  ActDefectiuneDetail,
-  VehiculListItem,
-} from "@canalcik/server/api-types";
+import type { ActDefectiuneCreateBody, ActDefectiuneDetail } from "@canalcik/server/api-types";
 import { randomId } from "@mantine/hooks";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
-import { plate } from "../../lib/labels.ts";
+import type { ProdusIndexat } from "../../lib/produse.tsx";
 
-// ------------------------------------------------------- fields the search fills
-
-export interface VehiculAuto {
-  nrInventar: string;
-  nrInregistrare: string;
-  denumireVehicul: string;
-  anProducerii: string;
-}
-
-export const vehiculAuto = (v: VehiculListItem): VehiculAuto => ({
-  nrInventar: String(v.nrInventar),
-  nrInregistrare: plate(v),
-  denumireVehicul: `${v.tip} ${v.model}`,
-  anProducerii: v.anProducere?.toString() ?? "",
-});
-
-export const vehiculGol = (): VehiculAuto => ({
-  nrInventar: "",
-  nrInregistrare: "",
-  denumireVehicul: "",
-  anProducerii: "",
-});
+// The form holds only what the act stores. The vehicul's four fields and a
+// piesa's name and UM are read off the record they belong to wherever they are
+// shown — see derived.ts, which the server renders the document from.
 
 // ------------------------------------------------------------------ form values
 
@@ -41,9 +18,8 @@ export interface DefectiuneRow {
 
 export interface PiesaRow {
   key: string;
+  /** The catalogue code — the piesa's identity, and all of it that is stored. */
   nrNomenclator: string;
-  piesaSchimb: string;
-  um: string;
   cantitate: number | string;
   /** "Cauza (rând din tab. 1)": a row number in the defectiuni table. */
   cauza: number | string;
@@ -61,10 +37,6 @@ export interface LucrareRow {
 export interface ActFormValues {
   data: string | null;
   vehiculId: string | null;
-  nrInventar: string;
-  nrInregistrare: string;
-  denumireVehicul: string;
-  anProducerii: string;
   defectiuni: DefectiuneRow[];
   pieseSchimb: PiesaRow[];
   lucrari: LucrareRow[];
@@ -79,8 +51,6 @@ export const newDefectiuneRow = (): DefectiuneRow => ({
 export const newPiesaRow = (): PiesaRow => ({
   key: randomId(),
   nrNomenclator: "",
-  piesaSchimb: "",
-  um: "",
   cantitate: "",
   cauza: "",
   necesitaInlocuire: "da",
@@ -94,11 +64,15 @@ export const newLucrareRow = (): LucrareRow => ({
   cauza: "",
 });
 
-/** The tab-2 defaults tab 3 documents: "de inlocuit <piesa>", same UM, quantity and cause. */
-export const lucrareDinPiesa = (p: PiesaRow): LucrareRow => ({
+/**
+ * The tab-2 defaults tab 3 documents: "de inlocuit <piesa>", same UM, quantity
+ * and cause. A lucrare's own denumire and UM are free text once seeded — they
+ * describe work, not a catalogue product — so this copies rather than derives.
+ */
+export const lucrareDinPiesa = (p: PiesaRow, produs: ProdusIndexat): LucrareRow => ({
   key: randomId(),
-  denumire: `de inlocuit ${p.piesaSchimb.trim()}`,
-  um: p.um,
+  denumire: `de inlocuit ${produs.nume.trim()}`,
+  um: produs.unitate,
   cantitate: p.cantitate,
   cauza: p.cauza,
 });
@@ -106,10 +80,6 @@ export const lucrareDinPiesa = (p: PiesaRow): LucrareRow => ({
 export const emptyActForm = (): ActFormValues => ({
   data: todayLocalIso(),
   vehiculId: null,
-  nrInventar: "",
-  nrInregistrare: "",
-  denumireVehicul: "",
-  anProducerii: "",
   defectiuni: [newDefectiuneRow()],
   pieseSchimb: [newPiesaRow()],
   lucrari: [newLucrareRow()],
@@ -122,10 +92,6 @@ export const emptyActForm = (): ActFormValues => ({
 export const fromActForm = (v: ActFormValues): ActDefectiuneCreateBody => ({
   data: v.data ?? todayLocalIso(),
   vehiculId: Number(v.vehiculId),
-  nrInventar: v.nrInventar.trim(),
-  nrInregistrare: v.nrInregistrare.trim(),
-  denumireVehicul: v.denumireVehicul.trim(),
-  anProducerii: v.anProducerii.trim(),
   defectiuni: v.defectiuni.map((d, i) => ({
     nr: i + 1,
     defectiunea: d.defectiunea.trim(),
@@ -134,8 +100,6 @@ export const fromActForm = (v: ActFormValues): ActDefectiuneCreateBody => ({
   pieseSchimb: v.pieseSchimb.map((p, i) => ({
     nr: i + 1,
     nrNomenclator: p.nrNomenclator.trim(),
-    piesaSchimb: p.piesaSchimb.trim(),
-    um: p.um.trim(),
     cantitate: numOrZero(p.cantitate),
     cauza: numOrZero(p.cauza),
     necesitaInlocuire: p.necesitaInlocuire,
@@ -162,15 +126,11 @@ const cauzaValida = (v: number | string) =>
 export const actValidation = {
   data: (v: string | null) => (v ? null : "Data este obligatorie"),
   vehiculId: (v: string | null) => (v ? null : "Vehiculul este obligatoriu"),
-  nrInventar: required,
-  nrInregistrare: required,
-  denumireVehicul: required,
   defectiuni: {
     defectiunea: required,
   },
   pieseSchimb: {
-    piesaSchimb: required,
-    um: required,
+    nrNomenclator: required,
     cantitate: cantitateValida,
     cauza: cauzaValida,
   },
@@ -185,21 +145,17 @@ export const actValidation = {
 export const toActForm = (a: ActDefectiuneDetail): ActFormValues => ({
   data: a.data,
   vehiculId: String(a.vehiculId),
-  nrInventar: a.nrInventar,
-  nrInregistrare: a.nrInregistrare,
-  denumireVehicul: a.denumireVehicul,
-  anProducerii: a.anProducerii,
   // `nr` is dropped: it is the row's position, which fromActForm derives again.
   defectiuni: a.defectiuni.map((d) => ({
     key: randomId(),
     defectiunea: d.defectiunea,
     cauze: d.cauze,
   })),
+  // The detail's piesaSchimb and um came from the catalogue on the way out; only
+  // the code goes back into the form.
   pieseSchimb: a.pieseSchimb.map((p) => ({
     key: randomId(),
     nrNomenclator: p.nrNomenclator,
-    piesaSchimb: p.piesaSchimb,
-    um: p.um,
     cantitate: p.cantitate,
     cauza: p.cauza,
     necesitaInlocuire: p.necesitaInlocuire,

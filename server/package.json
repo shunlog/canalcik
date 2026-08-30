@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./api-types": "./src/api-types.ts"
+    "./api-types": "./src/api-types.ts",
+    "./derived": "./src/derived.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

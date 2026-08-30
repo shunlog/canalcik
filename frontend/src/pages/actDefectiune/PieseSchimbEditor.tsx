@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useMemo } from "react";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { fuzzySearch } from "../../lib/search.ts";
 import { newPiesaRow, type ActFormValues } from "./actForm.ts";
@@ -65,12 +65,13 @@ export function PieseSchimbEditor({
             </Table.Thead>
             <Table.Tbody>
               {rows.map((row, i) => {
-                // A saved act can name a part the catalogue has since dropped; it keeps
-                // its own option so the row still shows what it was written with.
-                const lipsaDinCatalog = row.nrNomenclator !== "" && !dupaCod.has(row.nrNomenclator);
-                const optiuniRand = lipsaDinCatalog
-                  ? [...optiuni, { value: row.nrNomenclator, label: row.piesaSchimb }]
-                  : optiuni;
+                const produs = dupaCod.get(row.nrNomenclator);
+                // A saved act can name a part the catalogue has since dropped.
+                // Its code is all that is left of it, so that is what shows.
+                const optiuniRand =
+                  row.nrNomenclator !== "" && !produs
+                    ? [...optiuni, { value: row.nrNomenclator, label: row.nrNomenclator }]
+                    : optiuni;
 
                 return (
                   <Table.Tr key={row.key}>
@@ -89,20 +90,17 @@ export function PieseSchimbEditor({
                           <OptiuneProdus option={option} produs={dupaCod.get(option.value)} />
                         )}
                         value={row.nrNomenclator || null}
-                        error={form.errors[`pieseSchimb.${i}.piesaSchimb`]}
-                        onChange={(cod) => {
-                          const ales = cod ? dupaCod.get(cod) : undefined;
-                          form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, ales?.cod ?? "");
-                          form.setFieldValue(`pieseSchimb.${i}.piesaSchimb`, ales?.nume ?? "");
-                          form.setFieldValue(`pieseSchimb.${i}.um`, ales?.unitate ?? "");
-                        }}
+                        error={form.errors[`pieseSchimb.${i}.nrNomenclator`]}
+                        onChange={(cod) =>
+                          form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, cod ?? "")
+                        }
                       />
                     </Table.Td>
                     <Table.Td style={{ verticalAlign: "middle" }}>
                       <CelulaDinCatalog value={row.nrNomenclator} />
                     </Table.Td>
                     <Table.Td style={{ verticalAlign: "middle" }}>
-                      <CelulaDinCatalog value={row.um} error={form.errors[`pieseSchimb.${i}.um`]} />
+                      <CelulaDinCatalog value={produs?.unitate ?? ""} />
                     </Table.Td>
                     <Table.Td>
                       <NumberInput
@@ -192,22 +190,15 @@ function OptiuneProdus({
   );
 }
 
-/** A cell the catalogue answers for: shown, not typed. */
-function CelulaDinCatalog({ value, error }: { value: string; error?: ReactNode }) {
+/** A cell the catalogue answers for: shown, not typed, not stored. */
+function CelulaDinCatalog({ value }: { value: string }) {
   return (
-    <>
-      <Text size="sm">
-        {value.trim() || (
-          <Text span c="dimmed" inherit>
-            —
-          </Text>
-        )}
-      </Text>
-      {error && (
-        <Text size="xs" c="red" mt={2}>
-          {error}
+    <Text size="sm">
+      {value.trim() || (
+        <Text span c="dimmed" inherit>
+          —
         </Text>
       )}
-    </>
+    </Text>
   );
 }

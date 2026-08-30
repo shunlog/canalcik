@@ -1,6 +1,7 @@
 import type { SoferRef, VehiculRef } from "@canalcik/server/api-types";
+import { plate } from "@canalcik/server/derived";
 
-export const plate = (v: Pick<VehiculRef, "litere" | "cifre">) => `${v.litere} ${v.cifre}`;
+export { plate };
 
 export const vehiculLabel = (v: VehiculRef) => `${plate(v)} — ${v.model} (inv. ${v.nrInventar})`;
 

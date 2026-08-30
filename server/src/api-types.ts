@@ -402,14 +402,25 @@ export type DefectiuneLine = DataActDefectiune["defectiuni"][number];
 export type PiesaSchimbLine = DataActDefectiune["pieseSchimb"][number];
 export type LucrareLine = DataActDefectiune["lucrari"][number];
 
+/**
+ * "Informatie activ". Read off the vehicul every time rather than stored, so an
+ * act cannot disagree with the fleet record — see infoVehicul in derived.ts.
+ */
+export type InfoVehicul = Pick<
+  DataActDefectiune,
+  "nrInventar" | "nrInregistrare" | "denumireVehicul" | "anProducerii"
+>;
+
+/**
+ * A piesa as stored and as sent by the client: the nomenclator code identifies
+ * a catalogue product, which is what the name and the UM are then read from.
+ * Codes are unique in the catalogue; names are not, so the code is the key.
+ */
+export type PiesaSchimbInput = Omit<PiesaSchimbLine, "piesaSchimb" | "um">;
+
 export interface ActDefectiuneScalars {
   data: IsoDate;
   vehiculId: number;
-  /** "Informatie activ" — copied off the vehicul, then editable. */
-  nrInventar: string;
-  nrInregistrare: string;
-  denumireVehicul: string;
-  anProducerii: string;
 }
 
 /** An act as it appears in the list. */
@@ -421,7 +432,8 @@ export interface ActDefectiuneListItem {
   nrPieseSchimb: number;
 }
 
-export interface ActDefectiuneDetail extends ActDefectiuneScalars {
+/** Everything derived is resolved here, so a reader never has to look it up. */
+export interface ActDefectiuneDetail extends ActDefectiuneScalars, InfoVehicul {
   id: number;
   updatedAt: string;
   vehicul: VehiculRef;
@@ -433,7 +445,7 @@ export interface ActDefectiuneDetail extends ActDefectiuneScalars {
 
 export interface ActDefectiuneCreateBody extends ActDefectiuneScalars {
   defectiuni: DefectiuneLine[];
-  pieseSchimb: PiesaSchimbLine[];
+  pieseSchimb: PiesaSchimbInput[];
   lucrari: LucrareLine[];
 }
 

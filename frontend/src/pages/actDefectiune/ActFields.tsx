@@ -28,7 +28,7 @@ export function ActFields({
       <VehiculSection form={form} />
       <DefectiuniEditor form={form} />
       <PieseSchimbEditor form={form} produse={produse} />
-      <LucrariEditor form={form} />
+      <LucrariEditor form={form} produse={produse} />
     </Stack>
   );
 }

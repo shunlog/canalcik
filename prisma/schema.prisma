@@ -191,8 +191,12 @@ model FisaLimitaDoc {
 // rendered from. Its three tables are stored as JSON rather than as line
 // tables of their own: unlike a bon's materials, they are never summed across
 // documents, and a piece names a product from the CSV catalogue, which has no
-// table here to point at. The shape is DataActDefectiune's in
-// templates/templateData.ts; dto.ts is the only place that parses it.
+// table here to point at. dto.ts is the only place that parses it.
+//
+// Only what nothing else answers for is stored. The "Informatie activ" block
+// comes off the vehicul and a piesa's name and UM off its nomenclator code, all
+// resolved on read by derived.ts — so an act always prints today's fleet and
+// catalogue rather than a copy taken the day it was written.
 model ActDefectiuneData {
   id        Int      @id @default(autoincrement())
   updatedAt DateTime @default(now()) @updatedAt
@@ -202,14 +206,6 @@ model ActDefectiuneData {
 
   vehiculId Int
   vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
-
-  // "Informatie activ". Copied off the vehicul when the form is filled and
-  // editable afterwards, so an act keeps what was true the day it was written
-  // even after the fleet record changes.
-  nrInventar      String
-  nrInregistrare  String
-  denumireVehicul String
-  anProducerii    String
 
   // JSON arrays — "Lista defecțiunilor", "Lista pieselor de schimb" and
   // "Lista lucrărilor de reparații necesare".
