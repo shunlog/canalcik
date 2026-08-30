@@ -5,7 +5,7 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatMonth } from "../../lib/forms.ts";
-import { GenerateButton } from "./GenerateButton.tsx";
+import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
 export function MonthlyReportListPage() {
   const query = useMonthlyReports();
@@ -73,7 +73,7 @@ export function MonthlyReportListPage() {
                           )}
                         </Table.Td>
                         <Table.Td>
-                          <GenerateButton
+                          <GenerateMonthlyReportButton
                             report={m}
                             loading={isLoading}
                             onGenerate={() => generate(m.month)}

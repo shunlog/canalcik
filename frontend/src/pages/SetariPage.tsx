@@ -1,12 +1,14 @@
-import { Anchor, Group, Paper, Table, Text, Title } from "@mantine/core";
-import { useTemplates } from "../api/templates.ts";
+import { Anchor, Button, Group, Paper, Table, Text, Title } from "@mantine/core";
+import { IconRefresh } from "@tabler/icons-react";
+import { useSyncTemplates, useTemplates } from "../api/templates.ts";
 import { PageHeader } from "../components/PageHeader.tsx";
 import { QueryBoundary } from "../components/QueryBoundary.tsx";
-import { SyncTemplatesButton } from "../components/SyncTemplatesButton.tsx";
+import { showError, showSaved } from "../lib/feedback.ts";
 import { formatTimestamp } from "../lib/forms.ts";
 
 export function SetariPage() {
   const query = useTemplates();
+  const sync = useSyncTemplates();
 
   return (
     <>
@@ -15,7 +17,18 @@ export function SetariPage() {
       <Paper withBorder p="md">
         <Group justify="space-between" align="center" mb="md" wrap="nowrap">
           <Title order={3}>Șabloane</Title>
-          <SyncTemplatesButton />
+          <Button
+            leftSection={<IconRefresh size={16} />}
+            loading={sync.isPending}
+            onClick={() =>
+              sync.mutate(undefined, {
+                onSuccess: () => showSaved("Șabloane sincronizate"),
+                onError: (err) => showError(err, "Sincronizarea a eșuat"),
+              })
+            }
+          >
+            Sincronizează
+          </Button>
         </Group>
 
         <Text size="sm" c="dimmed" mb="md">

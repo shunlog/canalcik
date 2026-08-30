@@ -34,7 +34,7 @@ const INCONSISTENT_STYLE: CSSProperties = {
  * stays with the caller: the list drives one mutation for every row and tells
  * them apart by `gen.variables`.
  */
-export function GenerateButton({
+export function GenerateMonthlyReportButton({
   report,
   loading,
   onGenerate,

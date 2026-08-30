@@ -1,7 +1,7 @@
-import { Anchor, Button, Fieldset, Group, Text } from "@mantine/core";
+import { Anchor, Button, Fieldset, Group, Stack, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import {
   useActDefectiune,
   useDeleteActDefectiune,
@@ -92,32 +92,39 @@ export function ActDefectiuneDetailPage() {
           />
 
           <Fieldset legend="Document generat" mb="md">
-            <Group gap="xl">
-              {a.document ? (
-                <>
-                  <Group gap="xs">
-                    <Text size="sm" c="dimmed">
-                      Fișier
-                    </Text>
-                    <Anchor href={a.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
-                      {a.document.nume}
-                    </Anchor>
-                  </Group>
-                  <Group gap="xs">
-                    <Text size="sm" c="dimmed">
-                      Data
-                    </Text>
-                    <Text size="sm">{new Date(a.document.createdAt).toLocaleString("ro-RO")}</Text>
-                  </Group>
-                </>
-              ) : (
-                <Text size="sm">{formatIsoDate(null)}</Text>
-              )}
+            <Stack gap="sm" align="flex-start">
+              <Group gap="xl">
+                {a.document ? (
+                  <>
+                    <Group gap="xs">
+                      <Text size="sm" c="dimmed">
+                        Fișier
+                      </Text>
+                      <Anchor href={a.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
+                        {a.document.nume}
+                      </Anchor>
+                    </Group>
+                    <Group gap="xs">
+                      <Text size="sm" c="dimmed">
+                        Data
+                      </Text>
+                      <Text size="sm">{new Date(a.document.createdAt).toLocaleString("ro-RO")}</Text>
+                    </Group>
+                  </>
+                ) : (
+                  <Text size="sm">{formatIsoDate(null)}</Text>
+                )}
+              </Group>
 
-              <Button size="sm" loading={gen.isPending} onClick={generate}>
-                {a.document ? "Re-generează" : "Generează"}
-              </Button>
-            </Group>
+              <Group gap="md">
+                <Button size="sm" loading={gen.isPending} onClick={generate}>
+                  {a.document ? "Re-generează" : "Generează"}
+                </Button>
+                <Anchor component={Link} to="/setari" size="sm">
+                  Vezi șablonul
+                </Anchor>
+              </Group>
+            </Stack>
           </Fieldset>
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
