@@ -6,18 +6,8 @@ import type {
 import { randomId } from "@mantine/hooks";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
 import { plate } from "../../lib/labels.ts";
-import type { ProdusIndexat } from "../../lib/produse.tsx";
 
-// ------------------------------------------------------------- auto-fill state
-
-export type StatusCamp = "auto" | "manual" | null;
-
-/** What the catalogue put in a row's fields, kept so an edit can be told from it. */
-export interface ProdusAuto {
-  nrNomenclator: string;
-  piesaSchimb: string;
-  um: string;
-}
+// ------------------------------------------------------- fields the search fills
 
 export interface VehiculAuto {
   nrInventar: string;
@@ -26,12 +16,6 @@ export interface VehiculAuto {
   anProducerii: string;
 }
 
-export const produsAuto = (p: ProdusIndexat): ProdusAuto => ({
-  nrNomenclator: p.cod,
-  piesaSchimb: p.nume,
-  um: p.unitate,
-});
-
 export const vehiculAuto = (v: VehiculListItem): VehiculAuto => ({
   nrInventar: String(v.nrInventar),
   nrInregistrare: plate(v),
@@ -39,10 +23,12 @@ export const vehiculAuto = (v: VehiculListItem): VehiculAuto => ({
   anProducerii: v.anProducere?.toString() ?? "",
 });
 
-export const statusCamp = (auto: string | undefined, value: string): StatusCamp => {
-  if (auto === undefined) return null;
-  return value === auto ? "auto" : "manual";
-};
+export const vehiculGol = (): VehiculAuto => ({
+  nrInventar: "",
+  nrInregistrare: "",
+  denumireVehicul: "",
+  anProducerii: "",
+});
 
 // ------------------------------------------------------------------ form values
 
@@ -55,7 +41,6 @@ export interface DefectiuneRow {
 
 export interface PiesaRow {
   key: string;
-  auto: ProdusAuto | null;
   nrNomenclator: string;
   piesaSchimb: string;
   um: string;
@@ -76,7 +61,6 @@ export interface LucrareRow {
 export interface ActFormValues {
   data: string | null;
   vehiculId: string | null;
-  autoVehicul: VehiculAuto | null;
   nrInventar: string;
   nrInregistrare: string;
   denumireVehicul: string;
@@ -94,7 +78,6 @@ export const newDefectiuneRow = (): DefectiuneRow => ({
 
 export const newPiesaRow = (): PiesaRow => ({
   key: randomId(),
-  auto: null,
   nrNomenclator: "",
   piesaSchimb: "",
   um: "",
@@ -123,7 +106,6 @@ export const lucrareDinPiesa = (p: PiesaRow): LucrareRow => ({
 export const emptyActForm = (): ActFormValues => ({
   data: todayLocalIso(),
   vehiculId: null,
-  autoVehicul: null,
   nrInventar: "",
   nrInregistrare: "",
   denumireVehicul: "",
@@ -203,9 +185,6 @@ export const actValidation = {
 export const toActForm = (a: ActDefectiuneDetail): ActFormValues => ({
   data: a.data,
   vehiculId: String(a.vehiculId),
-  // A saved act does not record which fields the search filled, so nothing is
-  // flagged as auto-filled until a new pick replaces them.
-  autoVehicul: null,
   nrInventar: a.nrInventar,
   nrInregistrare: a.nrInregistrare,
   denumireVehicul: a.denumireVehicul,
@@ -218,7 +197,6 @@ export const toActForm = (a: ActDefectiuneDetail): ActFormValues => ({
   })),
   pieseSchimb: a.pieseSchimb.map((p) => ({
     key: randomId(),
-    auto: null,
     nrNomenclator: p.nrNomenclator,
     piesaSchimb: p.piesaSchimb,
     um: p.um,
