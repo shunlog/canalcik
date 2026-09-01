@@ -38,9 +38,10 @@ model Vehicul {
   utilajeAuxiliare    String? // "Utilaje auxiliare"
   lucrariLunaViitoare String? // "Lucrari necesate efectuat luna viitoare"
 
-  soferi         Sofer[]             @relation("VehiculSofer")
+  soferi         Sofer[]                    @relation("VehiculSofer")
   bonuri         BonEliberare[]
   acteDefectiune ActDefectiuneData[]
+  comenzi        ComandaMaterialeMaterial[]
 
   @@unique([litere, cifre])
 }
@@ -172,8 +173,9 @@ model GeneratedDocument {
   driveFileId String @unique
   driveUrl    String
 
-  fisaLimita    FisaLimitaDoc?
-  actDefectiune ActDefectiuneDoc?
+  fisaLimita       FisaLimitaDoc?
+  actDefectiune    ActDefectiuneDoc?
+  comandaMateriale ComandaMaterialeDoc?
 }
 
 // One month's "fisa limita" — at most one per month, re-generation updates
@@ -223,6 +225,60 @@ model ActDefectiuneDoc {
 
   actId Int               @unique
   act   ActDefectiuneData @relation(fields: [actId], references: [id], onDelete: Cascade)
+
+  documentId Int               @unique
+  document   GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+// A saved "comanda de materiale" — the ~daily materials order the document is
+// rendered from. It has no vehicul of its own: one comanda covers the 2-3 acte
+// de defectiune written that day, so the vehicul is per line.
+model ComandaMaterialeData {
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Calendar date (ISO "YYYY-MM-DD")
+  data String
+
+  materiale ComandaMaterialeMaterial[]
+
+  doc ComandaMaterialeDoc?
+}
+
+// One line on a comanda. A real table rather than JSON like an act's tables:
+// the line names the vehicul it is ordered for, and that is a row here — the
+// document's "Specificația materialului" is its plate, resolved on read by
+// derived.ts. The material itself stays free text plus its catalogue code, as
+// on an act's piesa: that catalogue is the CSV, which has no table here.
+model ComandaMaterialeMaterial {
+  id Int @id @default(autoincrement())
+
+  comandaId Int
+  comanda   ComandaMaterialeData @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+
+  // Lines pin the vehicul (no onDelete), so one named by a comanda cannot be
+  // deleted — same rule as a bon's material.
+  vehiculId Int
+  vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
+
+  // The row's own number in the document's table, assigned from the order the
+  // lines were sent in. Stored rather than read off the row ids: Prisma's
+  // nested create does not hand them out in input order.
+  nr Int
+
+  nume      String // "Denumirea materialului"
+  cod       String // "Nomenclator D365" — blank for a material the catalogue lacks
+  um        String // "buc", "set", "l"
+  cantitate Float
+}
+
+// One comanda's generated document — at most one per comanda, re-generation
+// updates the same row. Mirrors ActDefectiuneDoc.
+model ComandaMaterialeDoc {
+  id Int @id @default(autoincrement())
+
+  comandaId Int                  @unique
+  comanda   ComandaMaterialeData @relation(fields: [comandaId], references: [id], onDelete: Cascade)
 
   documentId Int               @unique
   document   GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)

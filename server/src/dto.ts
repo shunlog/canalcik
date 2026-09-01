@@ -4,6 +4,8 @@ import type {
   ActDefectiuneListItem,
   BonDetail,
   BonRef,
+  ComandaMaterialeDetail,
+  ComandaMaterialeListItem,
   DefectiuneLine,
   LucrareLine,
   PiesaSchimbLine,
@@ -17,7 +19,7 @@ import type {
   VehiculDetail,
   VehiculListItem,
 } from "./api-types.ts";
-import { infoVehicul } from "./derived.ts";
+import { infoVehicul, plate } from "./derived.ts";
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -394,3 +396,67 @@ export const toActDefectiuneDetail = ({
     document: doc ? toGeneratedDocRef(doc.document) : null,
   };
 };
+
+// ---------------------------------------------------------- comandaMateriale
+
+export const comandaMaterialeListSelect = {
+  id: true,
+  data: true,
+  _count: { select: { materiale: true } },
+  materiale: { select: { vehicul: { select: vehiculRefSelect } }, orderBy: { nr: "asc" } },
+} satisfies Prisma.ComandaMaterialeDataSelect;
+
+type ComandaMaterialeListRow = Prisma.ComandaMaterialeDataGetPayload<{
+  select: typeof comandaMaterialeListSelect;
+}>;
+
+// A comanda covers the day's 2-3 acte, so the list names the vehicles rather
+// than counting them — deduplicated here, since a vehicul usually has several
+// lines and the list would otherwise repeat its plate.
+export const toComandaMaterialeListItem = (r: ComandaMaterialeListRow): ComandaMaterialeListItem => {
+  const vehicule = new Map(r.materiale.map((m) => [m.vehicul.id, m.vehicul]));
+  return {
+    id: r.id,
+    data: r.data,
+    nrMateriale: r._count.materiale,
+    vehicule: [...vehicule.values()],
+  };
+};
+
+export const comandaMaterialeDetailSelect = {
+  id: true,
+  updatedAt: true,
+  data: true,
+  materiale: {
+    select: {
+      id: true,
+      nr: true,
+      vehiculId: true,
+      vehicul: { select: vehiculRefSelect },
+      nume: true,
+      cod: true,
+      um: true,
+      cantitate: true,
+    },
+    orderBy: { nr: "asc" },
+  },
+  doc: { select: { document: { select: generatedDocSelect } } },
+} satisfies Prisma.ComandaMaterialeDataSelect;
+
+type ComandaMaterialeDetailRow = Prisma.ComandaMaterialeDataGetPayload<{
+  select: typeof comandaMaterialeDetailSelect;
+}>;
+
+// `spec` is the plate, resolved off the vehicul on every read rather than
+// stored — so a comanda cannot disagree with the fleet record.
+export const toComandaMaterialeDetail = ({
+  updatedAt,
+  materiale,
+  doc,
+  ...c
+}: ComandaMaterialeDetailRow): ComandaMaterialeDetail => ({
+  ...c,
+  updatedAt: updatedAt.toISOString(),
+  materiale: materiale.map((m) => ({ ...m, spec: plate(m.vehicul) })),
+  document: doc ? toGeneratedDocRef(doc.document) : null,
+});

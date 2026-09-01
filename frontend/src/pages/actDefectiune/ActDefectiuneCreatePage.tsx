@@ -1,13 +1,10 @@
 import { Button, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useCreateActDefectiune } from "../../api/acteDefectiune.ts";
-import { useProduse } from "../../api/produse.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
-import { aplatizeaza } from "../../lib/produse.tsx";
 import { ActFields } from "./ActFields.tsx";
 import {
   actValidation,
@@ -19,17 +16,11 @@ import {
 export function ActDefectiuneCreatePage() {
   const navigate = useNavigate();
   const create = useCreateActDefectiune();
-  const produse = useProduse();
 
   const form = useForm<ActFormValues>({
     initialValues: emptyActForm(),
     validate: actValidation,
   });
-
-  const produseIndexate = useMemo(
-    () => (produse.data ?? []).flatMap((c) => aplatizeaza(c, [])),
-    [produse.data],
-  );
 
   const submit = (values: ActFormValues) => {
     create.mutate(fromActForm(values), {
@@ -47,7 +38,7 @@ export function ActDefectiuneCreatePage() {
   return (
     <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
       <PageHeader title="Act de defecțiune nou" />
-      <ActFields form={form} produse={produseIndexate} />
+      <ActFields form={form} />
       <Group mt="md">
         <Button type="submit" loading={create.isPending}>
           Salvează

@@ -11,39 +11,59 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { useMemo } from "react";
+import { useVehicule } from "../../api/vehicule.ts";
 import {
   CautaProdus,
   useCatalogProduse,
   type CatalogProduse,
 } from "../../components/CautaProdus.tsx";
 import { usePulse } from "../../components/usePulse.ts";
+import { vehiculLabel } from "../../lib/labels.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
-import { newPiesaRow, type ActFormValues } from "./actForm.ts";
+import { fuzzyOptionsFilter } from "../../lib/search.ts";
+import { newMaterialRow, type ComandaFormValues } from "./comandaForm.ts";
 
-export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormValues> }) {
-  const rows = form.getValues().pieseSchimb;
+export function MaterialeComandaEditor({
+  form,
+}: {
+  form: UseFormReturnType<ComandaFormValues>;
+}) {
+  const rows = form.getValues().materiale;
   const catalog = useCatalogProduse();
+  const vehicule = useVehicule();
+
+  const optiuniVehicul = useMemo(
+    () => (vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) })),
+    [vehicule.data],
+  );
 
   return (
-    <Fieldset legend="Lista pieselor de schimb">
+    <Fieldset legend="Lista materialelor">
       <Stack gap="xs">
         <Table.ScrollContainer minWidth={1100}>
           <Table withTableBorder verticalSpacing="xs">
             <Table.Thead>
               <Table.Tr>
                 <Table.Th w={50}>Nr.</Table.Th>
-                <Table.Th miw={280}>Piesa de schimb</Table.Th>
-                <Table.Th w={140}>Nr. nomenclator</Table.Th>
+                <Table.Th miw={280}>Denumirea materialului</Table.Th>
+                <Table.Th w={280}>Specificația (vehicul)</Table.Th>
                 <Table.Th w={100}>UM</Table.Th>
                 <Table.Th w={120}>Cantitate</Table.Th>
-                <Table.Th w={180}>Cauza (rând tab. 1)</Table.Th>
-                <Table.Th w={130}>Necesită înlocuire</Table.Th>
+                <Table.Th w={150}>Nomenclator D365</Table.Th>
                 <Table.Th w={50} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {rows.map((row, i) => (
-                <RandPiesa key={row.key} nr={i + 1} index={i} form={form} catalog={catalog} />
+                <RandMaterial
+                  key={row.key}
+                  nr={i + 1}
+                  index={i}
+                  form={form}
+                  catalog={catalog}
+                  optiuniVehicul={optiuniVehicul}
+                />
               ))}
             </Table.Tbody>
           </Table>
@@ -53,7 +73,9 @@ export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormVal
           variant="light"
           w="fit-content"
           leftSection={<IconPlus size={16} />}
-          onClick={() => form.insertListItem("pieseSchimb", newPiesaRow())}
+          onClick={() =>
+            form.insertListItem("materiale", newMaterialRow(rows.at(-1)?.vehiculId ?? null))
+          }
         >
           Adaugă linie
         </Button>
@@ -62,26 +84,28 @@ export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormVal
   );
 }
 
-function RandPiesa({
+function RandMaterial({
   nr,
   index: i,
   form,
   catalog,
+  optiuniVehicul,
 }: {
   nr: number;
   index: number;
-  form: UseFormReturnType<ActFormValues>;
+  form: UseFormReturnType<ComandaFormValues>;
   catalog: CatalogProduse;
+  optiuniVehicul: { value: string; label: string }[];
 }) {
   const { pulse, pulseProps } = usePulse();
 
   // Picking a catalogue product prefills the three fields; they stay ordinary
   // editable text afterward, so a picked product can still be hand-corrected
-  // and a part the catalogue doesn't carry can be typed in from scratch.
+  // and a material the catalogue doesn't carry can be typed in from scratch.
   const alege = (produs: ProdusIndexat) => {
-    form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, produs.cod);
-    form.setFieldValue(`pieseSchimb.${i}.piesaSchimb`, produs.nume);
-    form.setFieldValue(`pieseSchimb.${i}.um`, produs.unitate);
+    form.setFieldValue(`materiale.${i}.cod`, produs.cod);
+    form.setFieldValue(`materiale.${i}.nume`, produs.nume);
+    form.setFieldValue(`materiale.${i}.um`, produs.unitate);
     pulse();
   };
 
@@ -92,26 +116,27 @@ function RandPiesa({
         <Group gap={4} wrap="nowrap">
           <TextInput
             style={{ flex: 1 }}
-            placeholder="Denumirea piesei"
-            {...form.getInputProps(`pieseSchimb.${i}.piesaSchimb`)}
+            placeholder="Denumirea materialului"
+            {...form.getInputProps(`materiale.${i}.nume`)}
             {...pulseProps}
           />
           <CautaProdus catalog={catalog} onAlege={alege} />
         </Group>
       </Table.Td>
       <Table.Td>
-        <TextInput
-          placeholder="120673"
-          {...form.getInputProps(`pieseSchimb.${i}.nrNomenclator`)}
-          {...pulseProps}
+        {/* The document prints this vehicul's plate — see derived.ts. */}
+        <Select
+          placeholder="Caută un vehicul"
+          searchable
+          clearable
+          filter={fuzzyOptionsFilter}
+          nothingFoundMessage="Niciun rezultat"
+          data={optiuniVehicul}
+          {...form.getInputProps(`materiale.${i}.vehiculId`)}
         />
       </Table.Td>
       <Table.Td>
-        <TextInput
-          placeholder="buc"
-          {...form.getInputProps(`pieseSchimb.${i}.um`)}
-          {...pulseProps}
-        />
+        <TextInput placeholder="buc" {...form.getInputProps(`materiale.${i}.um`)} {...pulseProps} />
       </Table.Td>
       <Table.Td>
         <NumberInput
@@ -119,26 +144,14 @@ function RandPiesa({
           step={1}
           decimalScale={3}
           placeholder="2"
-          {...form.getInputProps(`pieseSchimb.${i}.cantitate`)}
+          {...form.getInputProps(`materiale.${i}.cantitate`)}
         />
       </Table.Td>
       <Table.Td>
-        <NumberInput
-          min={1}
-          step={1}
-          allowDecimal={false}
-          placeholder="1"
-          {...form.getInputProps(`pieseSchimb.${i}.cauza`)}
-        />
-      </Table.Td>
-      <Table.Td>
-        <Select
-          data={["da", "nu"]}
-          allowDeselect={false}
-          value={form.getValues().pieseSchimb[i].necesitaInlocuire}
-          onChange={(v) =>
-            form.setFieldValue(`pieseSchimb.${i}.necesitaInlocuire`, v === "nu" ? "nu" : "da")
-          }
+        <TextInput
+          placeholder="120673"
+          {...form.getInputProps(`materiale.${i}.cod`)}
+          {...pulseProps}
         />
       </Table.Td>
       <Table.Td>
@@ -146,7 +159,7 @@ function RandPiesa({
           color="red"
           variant="subtle"
           aria-label="Șterge linia"
-          onClick={() => form.removeListItem("pieseSchimb", i)}
+          onClick={() => form.removeListItem("materiale", i)}
         >
           <IconTrash size={16} />
         </ActionIcon>

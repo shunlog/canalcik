@@ -47,6 +47,12 @@ export const actDefectiuneKeys = {
   detail: (id: number) => ["acteDefectiune", "detail", id] as const,
 };
 
+export const comandaMaterialeKeys = {
+  all: ["comenziMateriale"] as const,
+  list: (filters: string) => ["comenziMateriale", "list", filters] as const,
+  detail: (id: number) => ["comenziMateriale", "detail", id] as const,
+};
+
 export const monthlyReportKeys = {
   all: ["monthlyReport"] as const,
   detail: (month: string) => ["monthlyReport", "detail", month] as const,

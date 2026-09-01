@@ -6,7 +6,7 @@
 // allowed; add no others. The zod schemas in schemas/ are pinned to these types
 // with compile-time equality checks, so the two cannot drift.
 
-import type { DataActDefectiune } from "../../templates/templateData.ts";
+import type { DataActDefectiune, DataComandaMateriale } from "../../templates/templateData.ts";
 
 /** A calendar date, "YYYY-MM-DD". Never an instant — see the comment in schema.prisma. */
 export type IsoDate = string;
@@ -443,3 +443,61 @@ export interface ActDefectiuneCreateBody extends ActDefectiuneScalars {
 }
 
 export type ActDefectiuneUpdateBody = ActDefectiuneCreateBody;
+
+// ---------------------------------------------------------- comandaMateriale
+
+/** One row of the document's materials table, as the template consumes it. */
+type MaterialComanda = DataComandaMateriale["materiale"][number];
+
+/**
+ * One line on a comanda, as sent by the client. It carries the document's own
+ * fields except the two nothing has to store — `nr` is the row's position and
+ * `spec` the plate of the vehicul below — and holds `cantitate` as a number,
+ * which the document prints as text.
+ */
+export interface ComandaMaterialLine extends Omit<MaterialComanda, "nr" | "spec" | "cantitate"> {
+  /**
+   * The vehicul the material is ordered for. Per line, not per document: one
+   * comanda covers the 2-3 acte written that day — see schema.prisma.
+   */
+  vehiculId: number;
+  cantitate: number;
+}
+
+/**
+ * A line as stored. As on a bon, `id` is informational only: a save replaces
+ * the whole set, so line ids are NOT stable across saves.
+ */
+export interface ComandaMaterialLineOut extends ComandaMaterialLine {
+  id: number;
+  /** The row's number in the document's table, assigned from the order sent. */
+  nr: number;
+  vehicul: VehiculRef;
+  /** "CA 786" — the vehicul's plate, as the document prints it. */
+  spec: string;
+}
+
+/** A comanda as it appears in the list. */
+export interface ComandaMaterialeListItem {
+  id: number;
+  data: IsoDate;
+  nrMateriale: number;
+  /** The vehicles its lines name, each once, in line order. */
+  vehicule: VehiculRef[];
+}
+
+/** Everything derived is resolved here, so a reader never has to look it up. */
+export interface ComandaMaterialeDetail {
+  id: number;
+  updatedAt: string;
+  data: IsoDate;
+  materiale: ComandaMaterialLineOut[];
+  document: GeneratedDocRef | null;
+}
+
+export interface ComandaMaterialeCreateBody {
+  data: IsoDate;
+  materiale: ComandaMaterialLine[];
+}
+
+export type ComandaMaterialeUpdateBody = ComandaMaterialeCreateBody;

@@ -3,49 +3,48 @@ import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import {
-  useActDefectiune,
-  useDeleteActDefectiune,
-  useGenerateActDefectiune,
-  useUpdateActDefectiune,
-} from "../../api/acteDefectiune.ts";
+  useComandaMateriale,
+  useDeleteComandaMateriale,
+  useGenerateComandaMateriale,
+  useUpdateComandaMateriale,
+} from "../../api/comenziMateriale.ts";
 import { DeleteButton } from "../../components/DeleteButton.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
-import { vehiculLabel } from "../../lib/labels.ts";
-import { ActFields } from "./ActFields.tsx";
+import { ComandaFields } from "./ComandaFields.tsx";
 import {
-  actValidation,
-  emptyActForm,
-  fromActForm,
-  toActForm,
-  type ActFormValues,
-} from "./actForm.ts";
+  comandaValidation,
+  emptyComandaForm,
+  fromComandaForm,
+  toComandaForm,
+  type ComandaFormValues,
+} from "./comandaForm.ts";
 
-export function ActDefectiuneDetailPage() {
+export function ComandaMaterialeDetailPage() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
 
-  const query = useActDefectiune(id);
-  const update = useUpdateActDefectiune(id);
-  const remove = useDeleteActDefectiune(id);
-  const gen = useGenerateActDefectiune(id);
+  const query = useComandaMateriale(id);
+  const update = useUpdateComandaMateriale(id);
+  const remove = useDeleteComandaMateriale(id);
+  const gen = useGenerateComandaMateriale(id);
 
-  const form = useForm<ActFormValues>({
-    initialValues: emptyActForm(),
-    validate: actValidation,
+  const form = useForm<ComandaFormValues>({
+    initialValues: emptyComandaForm(),
+    validate: comandaValidation,
   });
 
-  const act = query.data;
+  const comanda = query.data;
   useEffect(() => {
-    if (act) form.setValues(toActForm(act));
+    if (comanda) form.setValues(toComandaForm(comanda));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [act]);
+  }, [comanda]);
 
-  const submit = (values: ActFormValues) => {
-    update.mutate(fromActForm(values), {
+  const submit = (values: ComandaFormValues) => {
+    update.mutate(fromComandaForm(values), {
       onSuccess: () => showSaved("Modificări salvate"),
       onError: (err) => {
         if (err instanceof ApiError && err.fields) form.setErrors(err.fields);
@@ -56,26 +55,26 @@ export function ActDefectiuneDetailPage() {
 
   const generate = () => {
     gen.mutate(undefined, {
-      onSuccess: () => showSaved("Act de defecțiune generat"),
+      onSuccess: () => showSaved("Comandă de materiale generată"),
       onError: (err) => showError(err, "Generarea a eșuat"),
     });
   };
 
   return (
     <QueryBoundary query={query}>
-      {(a) => (
+      {(c) => (
         <>
           <PageHeader
-            title={`Act de defecțiune din ${formatIsoDate(a.data)}`}
-            subtitle={`${vehiculLabel(a.vehicul)} · modificat ${formatTimestamp(a.updatedAt)}`}
+            title={`Comandă de materiale din ${formatIsoDate(c.data)}`}
+            subtitle={`${c.materiale.length} materiale · modificat ${formatTimestamp(c.updatedAt)}`}
             actions={
               <>
-                <Button variant="default" onClick={() => void navigate("/act-defectiune")}>
+                <Button variant="default" onClick={() => void navigate("/comanda-materiale")}>
                   Înapoi
                 </Button>
                 <DeleteButton
-                  confirmText={`Ștergeți actul din ${formatIsoDate(a.data)}?`}
-                  backTo="/act-defectiune"
+                  confirmText={`Ștergeți comanda din ${formatIsoDate(c.data)}?`}
+                  backTo="/comanda-materiale"
                   loading={remove.isPending}
                   onDelete={() => remove.mutateAsync()}
                 />
@@ -86,21 +85,21 @@ export function ActDefectiuneDetailPage() {
           <Fieldset legend="Document generat" mb="md">
             <Stack gap="sm" align="flex-start">
               <Group gap="xl">
-                {a.document ? (
+                {c.document ? (
                   <>
                     <Group gap="xs">
                       <Text size="sm" c="dimmed">
                         Fișier
                       </Text>
-                      <Anchor href={a.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
-                        {a.document.nume}
+                      <Anchor href={c.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
+                        {c.document.nume}
                       </Anchor>
                     </Group>
                     <Group gap="xs">
                       <Text size="sm" c="dimmed">
                         Data
                       </Text>
-                      <Text size="sm">{new Date(a.document.createdAt).toLocaleString("ro-RO")}</Text>
+                      <Text size="sm">{new Date(c.document.createdAt).toLocaleString("ro-RO")}</Text>
                     </Group>
                   </>
                 ) : (
@@ -110,7 +109,7 @@ export function ActDefectiuneDetailPage() {
 
               <Group gap="md">
                 <Button size="sm" loading={gen.isPending} onClick={generate}>
-                  {a.document ? "Re-generează" : "Generează"}
+                  {c.document ? "Re-generează" : "Generează"}
                 </Button>
                 <Anchor component={Link} to="/setari" size="sm">
                   Vezi șablonul
@@ -120,14 +119,14 @@ export function ActDefectiuneDetailPage() {
           </Fieldset>
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
-            <ActFields form={form} />
+            <ComandaFields form={form} />
             <Group mt="md">
               <Button type="submit" loading={update.isPending}>
                 Salvează
               </Button>
               <Button
                 variant="subtle"
-                onClick={() => form.setValues(toActForm(a))}
+                onClick={() => form.setValues(toComandaForm(c))}
                 disabled={update.isPending}
               >
                 Resetează

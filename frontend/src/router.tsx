@@ -6,6 +6,9 @@ import { ActDefectiuneListPage } from "./pages/actDefectiune/ActDefectiuneListPa
 import { BonCreatePage } from "./pages/bonuri/BonCreatePage.tsx";
 import { BonDetailPage } from "./pages/bonuri/BonDetailPage.tsx";
 import { BonuriListPage } from "./pages/bonuri/BonuriListPage.tsx";
+import { ComandaMaterialeCreatePage } from "./pages/comandaMateriale/ComandaMaterialeCreatePage.tsx";
+import { ComandaMaterialeDetailPage } from "./pages/comandaMateriale/ComandaMaterialeDetailPage.tsx";
+import { ComandaMaterialeListPage } from "./pages/comandaMateriale/ComandaMaterialeListPage.tsx";
 import { FacturaCreatePage } from "./pages/facturi/FacturaCreatePage.tsx";
 import { FacturaDetailPage } from "./pages/facturi/FacturaDetailPage.tsx";
 import { FacturiListPage } from "./pages/facturi/FacturiListPage.tsx";
@@ -51,6 +54,9 @@ export const router = createBrowserRouter([
       { path: "/act-defectiune", element: <ActDefectiuneListPage /> },
       { path: "/act-defectiune/nou", element: <ActDefectiuneCreatePage /> },
       { path: "/act-defectiune/:id", element: <ActDefectiuneDetailPage /> },
+      { path: "/comanda-materiale", element: <ComandaMaterialeListPage /> },
+      { path: "/comanda-materiale/nou", element: <ComandaMaterialeCreatePage /> },
+      { path: "/comanda-materiale/:id", element: <ComandaMaterialeDetailPage /> },
       { path: "/setari", element: <SetariPage /> },
     ],
   },

@@ -106,6 +106,9 @@ export const FISA_LIMITA_FOLDER = "fisa_limita";
 /** The subfolder generated "act de defectiune" documents are uploaded into. */
 export const ACT_DEFECTIUNE_FOLDER = "act_defectiune";
 
+/** The subfolder generated "comanda de materiale" documents are uploaded into. */
+export const COMANDA_MATERIALE_FOLDER = "comanda_materiale";
+
 /**
  * Resolves a subfolder of `parentId` by name, creating it on first use. Keyed
  * by `${parentId}/${name}` since, unlike the app's root folder, there can be

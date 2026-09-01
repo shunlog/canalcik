@@ -2,6 +2,7 @@ import { NavLink } from "@mantine/core";
 import {
   IconAlertTriangle,
   IconBoxSeam,
+  IconClipboardList,
   IconFileInvoice,
   IconFileSpreadsheet,
   IconFileText,
@@ -21,6 +22,7 @@ const ITEMS = [
   { to: "/facturi", label: "Facturi de expediție", icon: IconFileInvoice },
   { to: "/monthly-report", label: "Fișa limită", icon: IconFileSpreadsheet },
   { to: "/act-defectiune", label: "Act defecțiune", icon: IconAlertTriangle },
+  { to: "/comanda-materiale", label: "Comandă materiale", icon: IconClipboardList },
   { to: "/setari", label: "Setări", icon: IconSettings },
 ];
 

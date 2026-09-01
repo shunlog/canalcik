@@ -1,20 +1,13 @@
 import { Stack } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import type { UseFormReturnType } from "@mantine/form";
-import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { DefectiuniEditor } from "./DefectiuniEditor.tsx";
 import { LucrariEditor } from "./LucrariEditor.tsx";
 import { PieseSchimbEditor } from "./PieseSchimbEditor.tsx";
 import { VehiculSection } from "./VehiculSection.tsx";
 import type { ActFormValues } from "./actForm.ts";
 
-export function ActFields({
-  form,
-  produse,
-}: {
-  form: UseFormReturnType<ActFormValues>;
-  produse: ProdusIndexat[];
-}) {
+export function ActFields({ form }: { form: UseFormReturnType<ActFormValues> }) {
   return (
     <Stack gap="md">
       <DateInput
@@ -27,7 +20,7 @@ export function ActFields({
       />
       <VehiculSection form={form} />
       <DefectiuniEditor form={form} />
-      <PieseSchimbEditor form={form} produse={produse} />
+      <PieseSchimbEditor form={form} />
       <LucrariEditor form={form} />
     </Stack>
   );
