@@ -116,7 +116,6 @@ function RandPiesa({
       <Table.Td>
         <NumberInput
           min={0}
-          step={1}
           decimalScale={3}
           placeholder="2"
           {...form.getInputProps(`pieseSchimb.${i}.cantitate`)}
@@ -125,7 +124,6 @@ function RandPiesa({
       <Table.Td>
         <NumberInput
           min={1}
-          step={1}
           allowDecimal={false}
           placeholder="1"
           {...form.getInputProps(`pieseSchimb.${i}.cauza`)}

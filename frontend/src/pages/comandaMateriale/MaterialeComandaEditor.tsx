@@ -141,7 +141,6 @@ function RandMaterial({
       <Table.Td>
         <NumberInput
           min={0}
-          step={1}
           decimalScale={3}
           placeholder="2"
           {...form.getInputProps(`materiale.${i}.cantitate`)}

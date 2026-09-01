@@ -88,7 +88,6 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
                   <Table.Td>
                     <NumberInput
                       min={0}
-                      step={0.1}
                       decimalScale={3}
                       placeholder="12.5"
                       {...form.getInputProps(`materiale.${i}.cantitate`)}

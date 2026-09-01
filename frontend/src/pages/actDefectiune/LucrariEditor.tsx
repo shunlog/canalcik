@@ -50,7 +50,6 @@ export function LucrariEditor({ form }: { form: UseFormReturnType<ActFormValues>
                   <Table.Td>
                     <NumberInput
                       min={0}
-                      step={1}
                       decimalScale={3}
                       placeholder="2"
                       {...form.getInputProps(`lucrari.${i}.cantitate`)}
@@ -59,7 +58,6 @@ export function LucrariEditor({ form }: { form: UseFormReturnType<ActFormValues>
                   <Table.Td>
                     <NumberInput
                       min={1}
-                      step={1}
                       allowDecimal={false}
                       placeholder="1"
                       {...form.getInputProps(`lucrari.${i}.cauza`)}

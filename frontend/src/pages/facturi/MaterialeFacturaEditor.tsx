@@ -100,7 +100,6 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
                   <Table.Td>
                     <NumberInput
                       min={0}
-                      step={0.1}
                       decimalScale={3}
                       placeholder="12.5"
                       {...form.getInputProps(`materiale.${i}.cantitate`)}
@@ -109,7 +108,6 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
                   <Table.Td>
                     <NumberInput
                       min={0}
-                      step={0.01}
                       decimalScale={2}
                       placeholder="33.25"
                       {...form.getInputProps(`materiale.${i}.pretUnitar`)}
