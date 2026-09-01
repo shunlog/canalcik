@@ -1,7 +1,7 @@
 import { Anchor, Badge, Button, Group, Select, Table, Text } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link } from "react-router";
 import { useComenziMateriale } from "../../api/comenziMateriale.ts";
 import { useVehicule } from "../../api/vehicule.ts";
@@ -98,13 +98,16 @@ export function ComandaMaterialeListPage() {
                         </Anchor>
                       </Table.Td>
                       <Table.Td>
-                        <Group gap="xs">
-                          {c.vehicule.map((v) => (
-                            <Anchor key={v.id} component={Link} to={`/vehicule/${v.id}`} size="sm">
-                              {plate(v)}
-                            </Anchor>
+                        <Text size="sm">
+                          {c.vehicule.map((v, i) => (
+                            <Fragment key={v.id}>
+                              {i > 0 && ", "}
+                              <Anchor component={Link} to={`/vehicule/${v.id}`} size="sm">
+                                {plate(v)}
+                              </Anchor>
+                            </Fragment>
                           ))}
-                        </Group>
+                        </Text>
                       </Table.Td>
                       <Table.Td>
                         <Badge variant="light">{c.nrMateriale}</Badge>
