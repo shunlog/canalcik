@@ -10,24 +10,14 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash, IconWand } from "@tabler/icons-react";
-import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { lucrareDinPiesa, newLucrareRow, type ActFormValues } from "./actForm.ts";
 
-export function LucrariEditor({
-  form,
-  produse,
-}: {
-  form: UseFormReturnType<ActFormValues>;
-  produse: ProdusIndexat[];
-}) {
+export function LucrariEditor({ form }: { form: UseFormReturnType<ActFormValues> }) {
   const values = form.getValues();
   const rows = values.lucrari;
-  // Only rows naming a product the catalogue still has can seed a lucrare —
-  // the name and the UM come from it, not from the row.
-  const dinPiese = values.pieseSchimb.flatMap((p) => {
-    const produs = produse.find((x) => x.cod === p.nrNomenclator);
-    return produs ? [{ piesa: p, produs }] : [];
-  });
+  // Any piesa row naming a part can seed a lucrare — the name and UM are read
+  // off the row itself.
+  const dinPiese = values.pieseSchimb.filter((p) => p.piesaSchimb.trim() !== "");
 
   return (
     <Fieldset legend="Lista lucrărilor de reparații necesare">
@@ -104,9 +94,9 @@ export function LucrariEditor({
             disabled={dinPiese.length === 0}
             leftSection={<IconWand size={16} />}
             onClick={() => {
-              for (const { piesa, produs } of dinPiese) {
-              form.insertListItem("lucrari", lucrareDinPiesa(piesa, produs));
-            }
+              for (const piesa of dinPiese) {
+                form.insertListItem("lucrari", lucrareDinPiesa(piesa));
+              }
             }}
           >
             Adaugă din piesele de schimb

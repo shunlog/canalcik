@@ -2,20 +2,31 @@ import {
   ActionIcon,
   Button,
   Fieldset,
+  Group,
   NumberInput,
+  Popover,
   Select,
   Stack,
   Table,
   Text,
+  TextInput,
   type ComboboxItem,
   type ComboboxParsedItem,
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { useDisclosure } from "@mantine/hooks";
+import { IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useCallback, useMemo } from "react";
+import { usePulse } from "../../components/usePulse.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { fuzzySearch } from "../../lib/search.ts";
 import { newPiesaRow, type ActFormValues } from "./actForm.ts";
+
+type Filtreaza = (args: {
+  options: ComboboxParsedItem[];
+  search: string;
+  limit: number;
+}) => ComboboxParsedItem[];
 
 export function PieseSchimbEditor({
   form,
@@ -33,8 +44,8 @@ export function PieseSchimbEditor({
   );
 
   // The dropdown searches the category path and the code too, not just the name.
-  const filtreaza = useCallback(
-    (args: { options: ComboboxParsedItem[]; search: string; limit: number }) => {
+  const filtreaza: Filtreaza = useCallback(
+    (args) => {
       const { options, search, limit } = args;
       const gasite = fuzzySearch(options as ComboboxItem[], search, [
         (o) => o.label,
@@ -64,88 +75,17 @@ export function PieseSchimbEditor({
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {rows.map((row, i) => {
-                const produs = dupaCod.get(row.nrNomenclator);
-                // A saved act can name a part the catalogue has since dropped.
-                // Its code is all that is left of it, so that is what shows.
-                const optiuniRand =
-                  row.nrNomenclator !== "" && !produs
-                    ? [...optiuni, { value: row.nrNomenclator, label: row.nrNomenclator }]
-                    : optiuni;
-
-                return (
-                  <Table.Tr key={row.key}>
-                    <Table.Td>{i + 1}</Table.Td>
-                    <Table.Td>
-                      <Select
-                        placeholder="Caută un produs după denumire, categorie sau cod"
-                        searchable
-                        clearable
-                        limit={50}
-                        data={optiuniRand}
-                        filter={filtreaza}
-                        nothingFoundMessage="Niciun produs găsit"
-                        comboboxProps={{ width: 420, position: "bottom-start" }}
-                        renderOption={({ option }) => (
-                          <OptiuneProdus option={option} produs={dupaCod.get(option.value)} />
-                        )}
-                        value={row.nrNomenclator || null}
-                        error={form.errors[`pieseSchimb.${i}.nrNomenclator`]}
-                        onChange={(cod) =>
-                          form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, cod ?? "")
-                        }
-                      />
-                    </Table.Td>
-                    <Table.Td style={{ verticalAlign: "middle" }}>
-                      <CelulaDinCatalog value={row.nrNomenclator} />
-                    </Table.Td>
-                    <Table.Td style={{ verticalAlign: "middle" }}>
-                      <CelulaDinCatalog value={produs?.unitate ?? ""} />
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        min={0}
-                        step={1}
-                        decimalScale={3}
-                        placeholder="2"
-                        {...form.getInputProps(`pieseSchimb.${i}.cantitate`)}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        min={1}
-                        step={1}
-                        allowDecimal={false}
-                        placeholder="1"
-                        {...form.getInputProps(`pieseSchimb.${i}.cauza`)}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <Select
-                        data={["da", "nu"]}
-                        allowDeselect={false}
-                        value={row.necesitaInlocuire}
-                        onChange={(v) =>
-                          form.setFieldValue(
-                            `pieseSchimb.${i}.necesitaInlocuire`,
-                            v === "nu" ? "nu" : "da",
-                          )
-                        }
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <ActionIcon
-                        color="red"
-                        variant="subtle"
-                        aria-label="Șterge linia"
-                        onClick={() => form.removeListItem("pieseSchimb", i)}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
+              {rows.map((row, i) => (
+                <RandPiesa
+                  key={row.key}
+                  nr={i + 1}
+                  index={i}
+                  form={form}
+                  optiuni={optiuni}
+                  dupaCod={dupaCod}
+                  filtreaza={filtreaza}
+                />
+              ))}
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
@@ -160,6 +100,140 @@ export function PieseSchimbEditor({
         </Button>
       </Stack>
     </Fieldset>
+  );
+}
+
+function RandPiesa({
+  nr,
+  index: i,
+  form,
+  optiuni,
+  dupaCod,
+  filtreaza,
+}: {
+  nr: number;
+  index: number;
+  form: UseFormReturnType<ActFormValues>;
+  optiuni: ComboboxItem[];
+  dupaCod: Map<string, ProdusIndexat>;
+  filtreaza: Filtreaza;
+}) {
+  const [cautareDeschisa, cautare] = useDisclosure(false);
+  const { pulse, pulseProps } = usePulse();
+
+  // Picking a catalogue product prefills the three fields; they stay ordinary
+  // editable text afterward, so a picked product can still be hand-corrected
+  // and a part the catalogue doesn't carry can be typed in from scratch.
+  const alege = (cod: string | null) => {
+    const produs = cod ? dupaCod.get(cod) : undefined;
+    cautare.close();
+    if (!produs) return;
+    form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, produs.cod);
+    form.setFieldValue(`pieseSchimb.${i}.piesaSchimb`, produs.nume);
+    form.setFieldValue(`pieseSchimb.${i}.um`, produs.unitate);
+    pulse();
+  };
+
+  return (
+    <Table.Tr>
+      <Table.Td>{nr}</Table.Td>
+      <Table.Td>
+        <Group gap={4} wrap="nowrap">
+          <TextInput
+            style={{ flex: 1 }}
+            placeholder="Denumirea piesei"
+            {...form.getInputProps(`pieseSchimb.${i}.piesaSchimb`)}
+            {...pulseProps}
+          />
+          <Popover
+            opened={cautareDeschisa}
+            onClose={cautare.close}
+            width={420}
+            position="bottom-end"
+            withinPortal
+            trapFocus
+          >
+            <Popover.Target>
+              <ActionIcon
+                variant="light"
+                aria-label="Caută în catalog"
+                onClick={cautare.toggle}
+              >
+                <IconSearch size={16} />
+              </ActionIcon>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Select
+                placeholder="Caută un produs după denumire, categorie sau cod"
+                searchable
+                clearable
+                limit={50}
+                data={optiuni}
+                filter={filtreaza}
+                nothingFoundMessage="Niciun produs găsit"
+                renderOption={({ option }) => (
+                  <OptiuneProdus option={option} produs={dupaCod.get(option.value)} />
+                )}
+                value={null}
+                onChange={alege}
+              />
+            </Popover.Dropdown>
+          </Popover>
+        </Group>
+      </Table.Td>
+      <Table.Td>
+        <TextInput
+          placeholder="120673"
+          {...form.getInputProps(`pieseSchimb.${i}.nrNomenclator`)}
+          {...pulseProps}
+        />
+      </Table.Td>
+      <Table.Td>
+        <TextInput
+          placeholder="buc"
+          {...form.getInputProps(`pieseSchimb.${i}.um`)}
+          {...pulseProps}
+        />
+      </Table.Td>
+      <Table.Td>
+        <NumberInput
+          min={0}
+          step={1}
+          decimalScale={3}
+          placeholder="2"
+          {...form.getInputProps(`pieseSchimb.${i}.cantitate`)}
+        />
+      </Table.Td>
+      <Table.Td>
+        <NumberInput
+          min={1}
+          step={1}
+          allowDecimal={false}
+          placeholder="1"
+          {...form.getInputProps(`pieseSchimb.${i}.cauza`)}
+        />
+      </Table.Td>
+      <Table.Td>
+        <Select
+          data={["da", "nu"]}
+          allowDeselect={false}
+          value={form.getValues().pieseSchimb[i].necesitaInlocuire}
+          onChange={(v) =>
+            form.setFieldValue(`pieseSchimb.${i}.necesitaInlocuire`, v === "nu" ? "nu" : "da")
+          }
+        />
+      </Table.Td>
+      <Table.Td>
+        <ActionIcon
+          color="red"
+          variant="subtle"
+          aria-label="Șterge linia"
+          onClick={() => form.removeListItem("pieseSchimb", i)}
+        >
+          <IconTrash size={16} />
+        </ActionIcon>
+      </Table.Td>
+    </Table.Tr>
   );
 }
 
@@ -187,18 +261,5 @@ function OptiuneProdus({
         </Text>
       )}
     </div>
-  );
-}
-
-/** A cell the catalogue answers for: shown, not typed, not stored. */
-function CelulaDinCatalog({ value }: { value: string }) {
-  return (
-    <Text size="sm">
-      {value.trim() || (
-        <Text span c="dimmed" inherit>
-          —
-        </Text>
-      )}
-    </Text>
   );
 }

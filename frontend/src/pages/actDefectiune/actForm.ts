@@ -1,11 +1,9 @@
 import type { ActDefectiuneCreateBody, ActDefectiuneDetail } from "@canalcik/server/api-types";
 import { randomId } from "@mantine/hooks";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
-import type { ProdusIndexat } from "../../lib/produse.tsx";
 
-// The form holds only what the act stores. The vehicul's four fields and a
-// piesa's name and UM are read off the record they belong to wherever they are
-// shown — see derived.ts, which the server renders the document from.
+// The form holds only what the act stores. The vehicul's four fields are read
+// off the vehicul record wherever they are shown — see derived.ts
 
 // ------------------------------------------------------------------ form values
 
@@ -18,8 +16,10 @@ export interface DefectiuneRow {
 
 export interface PiesaRow {
   key: string;
-  /** The catalogue code — the piesa's identity, and all of it that is stored. */
+  /** The catalogue code, if the piesa was picked from the catalogue — informational only. */
   nrNomenclator: string;
+  piesaSchimb: string;
+  um: string;
   cantitate: number | string;
   /** "Cauza (rând din tab. 1)": a row number in the defectiuni table. */
   cauza: number | string;
@@ -51,6 +51,8 @@ export const newDefectiuneRow = (): DefectiuneRow => ({
 export const newPiesaRow = (): PiesaRow => ({
   key: randomId(),
   nrNomenclator: "",
+  piesaSchimb: "",
+  um: "",
   cantitate: "",
   cauza: "",
   necesitaInlocuire: "da",
@@ -69,10 +71,10 @@ export const newLucrareRow = (): LucrareRow => ({
  * and cause. A lucrare's own denumire and UM are free text once seeded — they
  * describe work, not a catalogue product — so this copies rather than derives.
  */
-export const lucrareDinPiesa = (p: PiesaRow, produs: ProdusIndexat): LucrareRow => ({
+export const lucrareDinPiesa = (p: PiesaRow): LucrareRow => ({
   key: randomId(),
-  denumire: `de inlocuit ${produs.nume.trim()}`,
-  um: produs.unitate,
+  denumire: `de inlocuit ${p.piesaSchimb.trim()}`,
+  um: p.um,
   cantitate: p.cantitate,
   cauza: p.cauza,
 });
@@ -100,6 +102,8 @@ export const fromActForm = (v: ActFormValues): ActDefectiuneCreateBody => ({
   pieseSchimb: v.pieseSchimb.map((p, i) => ({
     nr: i + 1,
     nrNomenclator: p.nrNomenclator.trim(),
+    piesaSchimb: p.piesaSchimb.trim(),
+    um: p.um.trim(),
     cantitate: numOrZero(p.cantitate),
     cauza: numOrZero(p.cauza),
     necesitaInlocuire: p.necesitaInlocuire,
@@ -130,7 +134,8 @@ export const actValidation = {
     defectiunea: required,
   },
   pieseSchimb: {
-    nrNomenclator: required,
+    piesaSchimb: required,
+    um: required,
     cantitate: cantitateValida,
     cauza: cauzaValida,
   },
@@ -151,11 +156,11 @@ export const toActForm = (a: ActDefectiuneDetail): ActFormValues => ({
     defectiunea: d.defectiunea,
     cauze: d.cauze,
   })),
-  // The detail's piesaSchimb and um came from the catalogue on the way out; only
-  // the code goes back into the form.
   pieseSchimb: a.pieseSchimb.map((p) => ({
     key: randomId(),
     nrNomenclator: p.nrNomenclator,
+    piesaSchimb: p.piesaSchimb,
+    um: p.um,
     cantitate: p.cantitate,
     cauza: p.cauza,
     necesitaInlocuire: p.necesitaInlocuire,

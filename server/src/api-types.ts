@@ -411,13 +411,6 @@ export type InfoVehicul = Pick<
   "nrInventar" | "nrInregistrare" | "denumireVehicul" | "anProducerii"
 >;
 
-/**
- * A piesa as stored and as sent by the client: the nomenclator code identifies
- * a catalogue product, which is what the name and the UM are then read from.
- * Codes are unique in the catalogue; names are not, so the code is the key.
- */
-export type PiesaSchimbInput = Omit<PiesaSchimbLine, "piesaSchimb" | "um">;
-
 export interface ActDefectiuneScalars {
   data: IsoDate;
   vehiculId: number;
@@ -445,7 +438,7 @@ export interface ActDefectiuneDetail extends ActDefectiuneScalars, InfoVehicul {
 
 export interface ActDefectiuneCreateBody extends ActDefectiuneScalars {
   defectiuni: DefectiuneLine[];
-  pieseSchimb: PiesaSchimbInput[];
+  pieseSchimb: PiesaSchimbLine[];
   lucrari: LucrareLine[];
 }
 

@@ -14,12 +14,10 @@ import type {
   MaterialListItem,
   SoferDetail,
   SoferListItem,
-  PiesaSchimbInput,
   VehiculDetail,
   VehiculListItem,
 } from "./api-types.ts";
-import { infoVehicul, piesaCompleta } from "./derived.ts";
-import { produsDupaCod } from "./produseData.ts";
+import { infoVehicul } from "./derived.ts";
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -391,9 +389,7 @@ export const toActDefectiuneDetail = ({
     vehicul: ref,
     updatedAt: updatedAt.toISOString(),
     defectiuni: parseLines<DefectiuneLine>(defectiuni),
-    pieseSchimb: parseLines<PiesaSchimbInput>(pieseSchimb).map((l) =>
-      piesaCompleta(l, produsDupaCod(l.nrNomenclator)),
-    ),
+    pieseSchimb: parseLines<PiesaSchimbLine>(pieseSchimb),
     lucrari: parseLines<LucrareLine>(lucrari),
     document: doc ? toGeneratedDocRef(doc.document) : null,
   };

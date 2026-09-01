@@ -14,11 +14,13 @@ const defectiune = z.object({
   cauze: z.string().trim(),
 });
 
-// Only the code: routes/actDefectiune.ts checks it against the catalogue, which
-// is then what the name and the UM are read from.
+// nrNomenclator may name a catalogue product or nothing at all: a piesa the
+// catalogue doesn't carry is still a valid line, entered by hand.
 const piesaSchimb = z.object({
   nr,
-  nrNomenclator: requiredText("Piesa de schimb"),
+  nrNomenclator: z.string().trim(),
+  piesaSchimb: requiredText("Piesa de schimb"),
+  um: requiredText("Unitatea de măsură"),
   cantitate: z.number().positive("Cantitatea trebuie să fie mai mare decât 0"),
   cauza: nr,
   necesitaInlocuire: z.enum(["da", "nu"]),

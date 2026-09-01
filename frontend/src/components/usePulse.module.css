@@ -1,0 +1,22 @@
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.10);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.pulse {
+  animation: pulse 260ms ease-out;
+}
+
+/* A 1ms duration instead of `none` so the animationend handler still clears the class. */
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation-duration: 1ms;
+  }
+}
