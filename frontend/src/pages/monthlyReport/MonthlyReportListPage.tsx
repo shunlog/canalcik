@@ -20,7 +20,7 @@ export function MonthlyReportListPage() {
 
   return (
     <>
-      <PageHeader title="Fișa limită" />
+      <PageHeader title="Fișe limită" />
 
       <QueryBoundary query={query}>
         {(monthlyReports) =>
