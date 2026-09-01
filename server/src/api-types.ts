@@ -423,6 +423,7 @@ export interface ActDefectiuneListItem {
   vehicul: VehiculRef;
   nrDefectiuni: number;
   nrPieseSchimb: number;
+  document: GeneratedDocRef | null;
 }
 
 /** Everything derived is resolved here, so a reader never has to look it up. */
@@ -484,6 +485,7 @@ export interface ComandaMaterialeListItem {
   nrMateriale: number;
   /** The vehicles its lines name, each once, in line order. */
   vehicule: VehiculRef[];
+  document: GeneratedDocRef | null;
 }
 
 /** Everything derived is resolved here, so a reader never has to look it up. */

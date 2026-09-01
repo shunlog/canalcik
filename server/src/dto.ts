@@ -340,6 +340,7 @@ export const actDefectiuneListSelect = {
   vehicul: { select: vehiculRefSelect },
   defectiuni: true,
   pieseSchimb: true,
+  doc: { select: { document: { select: generatedDocSelect } } },
 } satisfies Prisma.ActDefectiuneDataSelect;
 
 type ActDefectiuneListRow = Prisma.ActDefectiuneDataGetPayload<{
@@ -355,6 +356,7 @@ export const toActDefectiuneListItem = (r: ActDefectiuneListRow): ActDefectiuneL
   vehicul: r.vehicul,
   nrDefectiuni: parseLines<DefectiuneLine>(r.defectiuni).length,
   nrPieseSchimb: parseLines<PiesaSchimbLine>(r.pieseSchimb).length,
+  document: r.doc ? toGeneratedDocRef(r.doc.document) : null,
 });
 
 // anProducere rides along only to feed infoVehicul; it is stripped below rather
@@ -404,6 +406,7 @@ export const comandaMaterialeListSelect = {
   data: true,
   _count: { select: { materiale: true } },
   materiale: { select: { vehicul: { select: vehiculRefSelect } }, orderBy: { nr: "asc" } },
+  doc: { select: { document: { select: generatedDocSelect } } },
 } satisfies Prisma.ComandaMaterialeDataSelect;
 
 type ComandaMaterialeListRow = Prisma.ComandaMaterialeDataGetPayload<{
@@ -420,6 +423,7 @@ export const toComandaMaterialeListItem = (r: ComandaMaterialeListRow): ComandaM
     data: r.data,
     nrMateriale: r._count.materiale,
     vehicule: [...vehicule.values()],
+    document: r.doc ? toGeneratedDocRef(r.doc.document) : null,
   };
 };
 

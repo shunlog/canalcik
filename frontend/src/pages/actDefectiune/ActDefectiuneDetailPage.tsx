@@ -100,11 +100,11 @@ export function ActDefectiuneDetailPage() {
                       <Text size="sm" c="dimmed">
                         Data
                       </Text>
-                      <Text size="sm">{new Date(a.document.createdAt).toLocaleString("ro-RO")}</Text>
+                      <Text size="sm">{formatTimestamp(a.document.createdAt)}</Text>
                     </Group>
                   </>
                 ) : (
-                  <Text size="sm">{formatIsoDate(null)}</Text>
+                  <Text size="sm">{formatTimestamp(null)}</Text>
                 )}
               </Group>
 

@@ -4,7 +4,7 @@ import { useMonthlyReports, useGenerateMonthlyReport } from "../../api/monthlyRe
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatMonth } from "../../lib/forms.ts";
+import { formatIsoDate, formatMonth, formatTimestamp } from "../../lib/forms.ts";
 import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
 export function MonthlyReportListPage() {
@@ -66,10 +66,10 @@ export function MonthlyReportListPage() {
                         <Table.Td>
                           {m.document ? (
                             <Anchor href={m.document.driveUrl} target="_blank" rel="noreferrer">
-                              {new Date(m.document.createdAt).toLocaleString("ro-RO")}
+                              {formatTimestamp(m.document.createdAt)}
                             </Anchor>
                           ) : (
-                            formatIsoDate(null)
+                            formatTimestamp(null)
                           )}
                         </Table.Td>
                         <Table.Td>

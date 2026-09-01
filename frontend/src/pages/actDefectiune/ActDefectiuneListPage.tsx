@@ -7,7 +7,7 @@ import { useActeDefectiune } from "../../api/acteDefectiune.ts";
 import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
-import { formatIsoDate } from "../../lib/forms.ts";
+import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
 import { vehiculLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 
@@ -79,7 +79,7 @@ export function ActDefectiuneListPage() {
           acte.length === 0 ? (
             <Text c="dimmed">Niciun act găsit.</Text>
           ) : (
-            <Table.ScrollContainer minWidth={620}>
+            <Table.ScrollContainer minWidth={800}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
@@ -87,6 +87,7 @@ export function ActDefectiuneListPage() {
                     <Table.Th>Vehicul</Table.Th>
                     <Table.Th w={130}>Defecțiuni</Table.Th>
                     <Table.Th w={150}>Piese de schimb</Table.Th>
+                    <Table.Th w={180}>Document</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -107,6 +108,19 @@ export function ActDefectiuneListPage() {
                       </Table.Td>
                       <Table.Td>
                         <Badge variant="light">{a.nrPieseSchimb}</Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        {a.document ? (
+                          <Anchor
+                            href={a.document.driveUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {formatTimestamp(a.document.createdAt)}
+                          </Anchor>
+                        ) : (
+                          formatTimestamp(null)
+                        )}
                       </Table.Td>
                     </Table.Tr>
                   ))}

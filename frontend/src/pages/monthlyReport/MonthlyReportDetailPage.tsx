@@ -7,7 +7,7 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatMonth, formatQty } from "../../lib/forms.ts";
+import { formatIsoDate, formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
 import {
   GenerateMonthlyReportButton,
   INCONSISTENT_MESSAGE,
@@ -65,13 +65,11 @@ export function MonthlyReportDetailPage() {
                       <Text size="sm" c="dimmed">
                         Data
                       </Text>
-                      <Text size="sm">
-                        {new Date(m.document.createdAt).toLocaleString("ro-RO")}
-                      </Text>
+                      <Text size="sm">{formatTimestamp(m.document.createdAt)}</Text>
                     </Group>
                   </>
                 ) : (
-                  <Text size="sm">{formatIsoDate(null)}</Text>
+                  <Text size="sm">{formatTimestamp(null)}</Text>
                 )}
               </Group>
 

@@ -7,7 +7,7 @@ import { useComenziMateriale } from "../../api/comenziMateriale.ts";
 import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
-import { formatIsoDate } from "../../lib/forms.ts";
+import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
 import { plate, vehiculLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 
@@ -79,13 +79,14 @@ export function ComandaMaterialeListPage() {
           comenzi.length === 0 ? (
             <Text c="dimmed">Nicio comandă găsită.</Text>
           ) : (
-            <Table.ScrollContainer minWidth={620}>
+            <Table.ScrollContainer minWidth={800}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th w={140}>Data</Table.Th>
                     <Table.Th>Vehicule</Table.Th>
                     <Table.Th w={130}>Materiale</Table.Th>
+                    <Table.Th w={180}>Document</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -107,6 +108,19 @@ export function ComandaMaterialeListPage() {
                       </Table.Td>
                       <Table.Td>
                         <Badge variant="light">{c.nrMateriale}</Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        {c.document ? (
+                          <Anchor
+                            href={c.document.driveUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {formatTimestamp(c.document.createdAt)}
+                          </Anchor>
+                        ) : (
+                          formatTimestamp(null)
+                        )}
                       </Table.Td>
                     </Table.Tr>
                   ))}
