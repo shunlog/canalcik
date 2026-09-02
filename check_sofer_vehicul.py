@@ -153,6 +153,7 @@ def print_table(headers, rows, indent="  "):
     for row in cells:
         for i in range(max(len(c) for c in row)):
             print(line([c[i] if i < len(c) else "" for c in row]))
+        print(line(["-" * w for w in widths]))
 
 
 def main():
