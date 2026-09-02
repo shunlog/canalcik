@@ -109,6 +109,23 @@ describe("buildMonthlyReport", () => {
     expect(sheets[1].nume_sofer).toBe("Rusu Maria");
   });
 
+  it("keeps two sheets separate when only the sofer diverges", () => {
+    const sameLinii = [{ id: 1, materialId: 1, materialNume: "Motorina", um: "l", cantitate: 10 }];
+    const input: BuildMonthlyReportInput = {
+      month: MONTH,
+      bonuri: [
+        bon({ id: 1, soferId: 1, sofer: { nume: "Celpan Ion", cod: 4984 }, linii: sameLinii }),
+        bon({ id: 2, soferId: 2, sofer: { nume: "Rusu Maria", cod: 1111 }, linii: sameLinii }),
+      ],
+      facturaLinii: [{ materialId: 1, nrCart: "2111", pretUnitar: 20 }],
+    };
+
+    const sheets = buildMonthlyReport(input);
+    expect(sheets).toHaveLength(2);
+    expect(sheets.map((s) => s.nr_inregistrare)).toEqual(["CBE 276", "CBE 276"]);
+    expect(sheets.map((s) => s.nume_sofer)).toEqual(["Celpan Ion", "Rusu Maria"]);
+  });
+
   it("stamps each sheet with the vehicle's inventory number and the month in romanian", () => {
     const [sheet] = buildMonthlyReport({
       month: "2026-05",
@@ -137,10 +154,13 @@ describe("buildMonthlyReport", () => {
         bon({
           id: 1,
           data: "2026-05-01",
-          linii: [{ id: 2, materialId: 1, materialNume: "A", um: "l", cantitate: 1 }],
+          linii: [{ id: 2, materialId: 2, materialNume: "B", um: "l", cantitate: 1 }],
         }),
       ],
-      facturaLinii: [{ materialId: 1, nrCart: "1", pretUnitar: 10 }],
+      facturaLinii: [
+        { materialId: 1, nrCart: "1", pretUnitar: 10 },
+        { materialId: 2, nrCart: "2", pretUnitar: 10 },
+      ],
     };
 
     const [sheet] = buildMonthlyReport(input);
@@ -272,6 +292,21 @@ describe("buildMonthlyReport row merging", () => {
     expect(sheet.tbl[0].cant).toBe(7.5);
   });
 
+  it("sums two lines across different dates, keeping the oldest date", () => {
+    const [sheet] = buildMonthlyReport({
+      month: MONTH,
+      bonuri: [
+        bon({ id: 2, data: "2026-05-18", linii: [line({ id: 2, cantitate: 3 })] }),
+        bon({ id: 1, data: "2026-05-04", linii: [line({ id: 1, cantitate: 5 })] }),
+      ],
+      facturaLinii: [{ materialId: 1, nrCart: "2111017178", pretUnitar: 20 }],
+    });
+
+    expect(sheet.tbl.length).toBe(1);
+    expect(sheet.tbl[0].data).toBe("04.05.2026");
+    expect(sheet.tbl[0].cant).toBe(8);
+  });
+
   it("sums floats without leaving binary noise in the cell", () => {
     const [sheet] = buildMonthlyReport({
       month: MONTH,
@@ -284,22 +319,6 @@ describe("buildMonthlyReport row merging", () => {
     });
 
     expect(sheet.tbl[0].cant).toBe(0.3);
-  });
-
-  it("keeps the same material on two dates as two rows", () => {
-    const [sheet] = buildMonthlyReport({
-      month: MONTH,
-      bonuri: [
-        bon({ id: 1, data: "2026-05-04", linii: [line({ id: 1, cantitate: 5 })] }),
-        bon({ id: 2, data: "2026-05-18", linii: [line({ id: 2, cantitate: 3 })] }),
-      ],
-      facturaLinii: [{ materialId: 1, nrCart: "2111017178", pretUnitar: 20 }],
-    });
-
-    expect(sheet.tbl.map((r) => [r.data, r.cant])).toEqual([
-      ["04.05.2026", 5],
-      ["18.05.2026", 3],
-    ]);
   });
 
   it("does not add together two different units", () => {

@@ -154,12 +154,10 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     numeSofer: string;
     codSofer: number;
     /**
-     * Keyed `data|materialId|unit`, so a material issued twice on the same
-     * day is one row of the summed quantity, not two identical-looking ones.
-     * The unit is in the key so two genuinely different units are never
-     * added together. Merging spans bonuri, not just the lines of one bon: a
-     * sheet row carries no bon reference, so two bonuri on one date for the
-     * same vehicul+sofer would otherwise look duplicated too.
+     * Keyed `materialId|unit`, so every issuance of a material (on any date,
+     * from any bon) is one row of the summed quantity, dated by the oldest
+     * bon — not one row per date. The unit is in the key so two genuinely
+     * different units are never added together.
      */
     rows: Map<string, Row>;
   };
@@ -187,10 +185,15 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
         };
         groups.set(key, group);
       }
-      const rowKey = `${bon.data}|${line.materialId}|${line.um}`;
+      const rowKey = `${line.materialId}|${line.um}`;
       const existing = group.rows.get(rowKey);
       if (existing) {
         existing.cant = roundQty(existing.cant + line.cantitate);
+        if (bon.data < existing.data) {
+          existing.data = bon.data;
+          existing.bonId = bon.id;
+          existing.lineId = line.id;
+        }
         continue;
       }
       group.rows.set(rowKey, {
