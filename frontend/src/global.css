@@ -1,0 +1,6 @@
+/* Anchor defaults to its own (md) font-size regardless of context; table cells
+   render at a smaller size, so links inside them would otherwise look larger
+   than the surrounding text. */
+.mantine-Table-td .mantine-Anchor-root {
+  font-size: inherit;
+}
