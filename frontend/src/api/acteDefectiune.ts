@@ -10,6 +10,7 @@ import { actDefectiuneKeys } from "./keys.ts";
 
 export interface ActDefectiuneFilters {
   vehiculId?: number;
+  soferId?: number;
   from?: string;
   to?: string;
 }

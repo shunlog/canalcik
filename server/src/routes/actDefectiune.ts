@@ -25,25 +25,6 @@ import { actDefectiuneCreate, actDefectiuneUpdate } from "../schemas/actDefectiu
 
 export const acteDefectiune = new Hono();
 
-const FUNCTIA_SOFER = "Sofer";
-const FUNCTIA_MASINIST = "Masinist";
-const vehicleType_to_functiaSofer = {
-  "Autocamion": FUNCTIA_SOFER,
-  "Automacara": FUNCTIA_SOFER,
-  "Autoturn": FUNCTIA_SOFER,
-  "Bara": FUNCTIA_MASINIST,
-  "Basculantă": FUNCTIA_SOFER,
-  "Duldozer": FUNCTIA_MASINIST,
-  "Excavatoare": FUNCTIA_MASINIST,
-  "Furgon": FUNCTIA_SOFER,
-  "Manipulator": FUNCTIA_SOFER,
-  "Pompă": FUNCTIA_MASINIST,
-  "Remorcă": FUNCTIA_MASINIST,
-  "Tractor": FUNCTIA_MASINIST,
-  "Încărcător": FUNCTIA_MASINIST,
-};
-
-
 /** The three tables go in as JSON — see the note on parseLines in dto.ts. */
 const toRow = ({ defectiuni, pieseSchimb, lucrari, ...scalars }: ActDefectiuneCreateBody) => ({
   ...scalars,
@@ -52,20 +33,26 @@ const toRow = ({ defectiuni, pieseSchimb, lucrari, ...scalars }: ActDefectiuneCr
   lucrari: JSON.stringify(lucrari),
 });
 
-async function assertVehicul(vehiculId: number) {
+/** Both FKs are required, so a bad id must be caught before the write. */
+async function assertRefs(vehiculId: number, soferId: number) {
   if ((await db.vehicul.count({ where: { id: vehiculId } })) === 0) {
     throw badRef("Vehiculul selectat nu există");
+  }
+  if ((await db.sofer.count({ where: { id: soferId } })) === 0) {
+    throw badRef("Șoferul selectat nu există");
   }
 }
 
 acteDefectiune.get("/", async (c) => {
   const vehiculId = optionalIdQuery(c, "vehiculId");
+  const soferId = optionalIdQuery(c, "soferId");
   const from = c.req.query("from")?.trim() || undefined;
   const to = c.req.query("to")?.trim() || undefined;
 
   const rows = await db.actDefectiuneData.findMany({
     where: {
       vehiculId,
+      soferId,
       // `data` is a "YYYY-MM-DD" string, which sorts and compares
       // chronologically as text — that is why the column is a string.
       data: from || to ? { gte: from, lte: to } : undefined,
@@ -78,7 +65,7 @@ acteDefectiune.get("/", async (c) => {
 
 acteDefectiune.post("/", async (c) => {
   const body = await readJson(c, actDefectiuneCreate);
-  await assertVehicul(body.vehiculId);
+  await assertRefs(body.vehiculId, body.soferId);
 
   const row = await db.actDefectiuneData.create({
     data: toRow(body),
@@ -100,7 +87,7 @@ acteDefectiune.get("/:id", async (c) => {
 // no meaning here — unlike a bon, where the lines can be left alone.
 acteDefectiune.put("/:id", async (c) => {
   const body = await readJson(c, actDefectiuneUpdate);
-  await assertVehicul(body.vehiculId);
+  await assertRefs(body.vehiculId, body.soferId);
 
   const row = await db.actDefectiuneData.update({
     where: { id: parseIdParam(c) },
@@ -133,13 +120,15 @@ acteDefectiune.post("/:id/generate", async (c) => {
     throw templateMissing();
   }
   // Field by field, not a spread: the renderer rejects any value no tag reads,
-  // and the detail also carries id, vehicul and the document ref.
+  // and the detail also carries id, vehicul, sofer and the document ref.
   const buffer = renderActDefectiune(template, {
     data: isoToDDMMYYYY(act.data),
     nrInventar: act.nrInventar,
     nrInregistrare: act.nrInregistrare,
     denumireVehicul: act.denumireVehicul,
     anProducerii: act.anProducerii,
+    numeSofer: act.numeSofer,
+    functiaSofer: act.functiaSofer,
     defectiuni: act.defectiuni,
     pieseSchimb: act.pieseSchimb,
     lucrari: act.lucrari,

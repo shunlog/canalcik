@@ -411,9 +411,17 @@ export type InfoVehicul = Pick<
   "nrInventar" | "nrInregistrare" | "denumireVehicul" | "anProducerii"
 >;
 
+/**
+ * The "Avizat" line. `numeSofer` is the sofer's own name and `functiaSofer` is
+ * read off the vehicul's `tip`, so neither is stored — see infoSofer in
+ * derived.ts.
+ */
+export type InfoSofer = Pick<DataActDefectiune, "numeSofer" | "functiaSofer">;
+
 export interface ActDefectiuneScalars {
   data: IsoDate;
   vehiculId: number;
+  soferId: number;
 }
 
 /** An act as it appears in the list. */
@@ -421,16 +429,18 @@ export interface ActDefectiuneListItem {
   id: number;
   data: IsoDate;
   vehicul: VehiculRef;
+  sofer: SoferRef;
   nrDefectiuni: number;
   nrPieseSchimb: number;
   document: GeneratedDocRef | null;
 }
 
 /** Everything derived is resolved here, so a reader never has to look it up. */
-export interface ActDefectiuneDetail extends ActDefectiuneScalars, InfoVehicul {
+export interface ActDefectiuneDetail extends ActDefectiuneScalars, InfoVehicul, InfoSofer {
   id: number;
   updatedAt: string;
   vehicul: VehiculRef;
+  sofer: SoferRef;
   defectiuni: DefectiuneLine[];
   pieseSchimb: PiesaSchimbLine[];
   lucrari: LucrareLine[];

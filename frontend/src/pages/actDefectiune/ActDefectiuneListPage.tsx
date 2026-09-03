@@ -4,27 +4,32 @@ import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useActeDefectiune } from "../../api/acteDefectiune.ts";
+import { useSoferi } from "../../api/soferi.ts";
 import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
-import { vehiculLabel } from "../../lib/labels.ts";
+import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 
 export function ActDefectiuneListPage() {
   const [vehiculId, setVehiculId] = useState<string | null>(null);
+  const [soferId, setSoferId] = useState<string | null>(null);
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
 
   const vehicule = useVehicule();
+  const soferi = useSoferi();
   const query = useActeDefectiune({
     vehiculId: vehiculId ? Number(vehiculId) : undefined,
+    soferId: soferId ? Number(soferId) : undefined,
     from: from ?? undefined,
     to: to ?? undefined,
   });
 
   const clearFilters = () => {
     setVehiculId(null);
+    setSoferId(null);
     setFrom(null);
     setTo(null);
   };
@@ -53,6 +58,17 @@ export function ActDefectiuneListPage() {
           value={vehiculId}
           onChange={setVehiculId}
         />
+        <Select
+          label="Șofer"
+          placeholder="Toți"
+          searchable
+          clearable
+          filter={fuzzyOptionsFilter}
+          w={260}
+          data={(soferi.data ?? []).map((s) => ({ value: String(s.id), label: soferLabel(s) }))}
+          value={soferId}
+          onChange={setSoferId}
+        />
         <DateInput
           label="De la"
           valueFormat="DD.MM.YYYY"
@@ -79,12 +95,13 @@ export function ActDefectiuneListPage() {
           acte.length === 0 ? (
             <Text c="dimmed">Niciun act găsit.</Text>
           ) : (
-            <Table.ScrollContainer minWidth={800}>
+            <Table.ScrollContainer minWidth={950}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th w={140}>Data</Table.Th>
                     <Table.Th>Vehicul</Table.Th>
+                    <Table.Th>Șofer</Table.Th>
                     <Table.Th w={130}>Defecțiuni</Table.Th>
                     <Table.Th w={150}>Piese de schimb</Table.Th>
                     <Table.Th w={180}>Document</Table.Th>
@@ -101,6 +118,11 @@ export function ActDefectiuneListPage() {
                       <Table.Td>
                         <Anchor component={Link} to={`/vehicule/${a.vehicul.id}`}>
                           {vehiculLabel(a.vehicul)}
+                        </Anchor>
+                      </Table.Td>
+                      <Table.Td>
+                        <Anchor component={Link} to={`/soferi/${a.sofer.id}`}>
+                          {soferLabel(a.sofer)}
                         </Anchor>
                       </Table.Td>
                       <Table.Td>

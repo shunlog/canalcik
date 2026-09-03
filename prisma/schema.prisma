@@ -66,8 +66,9 @@ model Sofer {
   eipPantaloni       String? // "Pantaloni"
   eipVestaAvertizare String? // "Vestă avertizare"
 
-  vehicule Vehicul[]      @relation("VehiculSofer")
-  bonuri   BonEliberare[]
+  vehicule       Vehicul[]           @relation("VehiculSofer")
+  bonuri         BonEliberare[]
+  acteDefectiune ActDefectiuneData[]
 }
 
 // A "bon de eliberare" — one issue slip: materials handed to one sofer for one
@@ -208,6 +209,11 @@ model ActDefectiuneData {
 
   vehiculId Int
   vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
+
+  // The sofer the act names ("Avizat"), and — through the vehicul's `tip` —
+  // the "funcția" printed next to the name; see infoSofer in server/src/derived.ts.
+  soferId Int
+  sofer   Sofer @relation(fields: [soferId], references: [id])
 
   // JSON arrays — "Lista defecțiunilor", "Lista pieselor de schimb" and
   // "Lista lucrărilor de reparații necesare".

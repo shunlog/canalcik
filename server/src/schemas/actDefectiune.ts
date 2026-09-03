@@ -39,6 +39,7 @@ const lucrare = z.object({
 export const actDefectiuneCreate = z.object({
   data: isoDate,
   vehiculId: z.number().int().positive(),
+  soferId: z.number().int().positive(),
   defectiuni: z.array(defectiune),
   pieseSchimb: z.array(piesaSchimb),
   lucrari: z.array(lucrare),

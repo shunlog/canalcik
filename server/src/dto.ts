@@ -19,7 +19,7 @@ import type {
   VehiculDetail,
   VehiculListItem,
 } from "./api-types.ts";
-import { infoVehicul, plate } from "./derived.ts";
+import { infoSofer, infoVehicul, plate } from "./derived.ts";
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -338,6 +338,7 @@ export const actDefectiuneListSelect = {
   id: true,
   data: true,
   vehicul: { select: vehiculRefSelect },
+  sofer: { select: soferRefSelect },
   defectiuni: true,
   pieseSchimb: true,
   doc: { select: { document: { select: generatedDocSelect } } },
@@ -354,6 +355,7 @@ export const toActDefectiuneListItem = (r: ActDefectiuneListRow): ActDefectiuneL
   id: r.id,
   data: r.data,
   vehicul: r.vehicul,
+  sofer: r.sofer,
   nrDefectiuni: parseLines<DefectiuneLine>(r.defectiuni).length,
   nrPieseSchimb: parseLines<PiesaSchimbLine>(r.pieseSchimb).length,
   document: r.doc ? toGeneratedDocRef(r.doc.document) : null,
@@ -367,6 +369,8 @@ export const actDefectiuneDetailSelect = {
   data: true,
   vehiculId: true,
   vehicul: { select: { ...vehiculRefSelect, anProducere: true } },
+  soferId: true,
+  sofer: { select: soferRefSelect },
   defectiuni: true,
   pieseSchimb: true,
   lucrari: true,
@@ -380,6 +384,7 @@ type ActDefectiuneDetailRow = Prisma.ActDefectiuneDataGetPayload<{
 export const toActDefectiuneDetail = ({
   updatedAt,
   vehicul,
+  sofer,
   defectiuni,
   pieseSchimb,
   lucrari,
@@ -390,7 +395,9 @@ export const toActDefectiuneDetail = ({
   return {
     ...a,
     ...infoVehicul(vehicul),
+    ...infoSofer(sofer, vehicul),
     vehicul: ref,
+    sofer,
     updatedAt: updatedAt.toISOString(),
     defectiuni: parseLines<DefectiuneLine>(defectiuni),
     pieseSchimb: parseLines<PiesaSchimbLine>(pieseSchimb),

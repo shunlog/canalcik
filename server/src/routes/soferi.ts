@@ -42,13 +42,22 @@ soferi.patch("/:id", async (c) => {
 
 soferi.delete("/:id", async (c) => {
   const id = parseIdParam(c);
-  // BonEliberare.soferId is Restrict, so Prisma would throw anyway — but its
-  // error can't say how many bonuri are in the way, and that count is the whole
-  // point of the message.
-  const n = await db.bonEliberare.count({ where: { soferId: id } });
-  if (n > 0) {
+  // BonEliberare.soferId and ActDefectiuneData.soferId are both Restrict, so
+  // Prisma would throw anyway — but its error can't say how many documents are
+  // in the way, and that count is the whole point of the message.
+  const [bonuri, acte] = await Promise.all([
+    db.bonEliberare.count({ where: { soferId: id } }),
+    db.actDefectiuneData.count({ where: { soferId: id } }),
+  ]);
+  const legaturi = [
+    bonuri > 0 ? `${bonuri} ${bonuri === 1 ? "bon legat" : "bonuri legate"}` : null,
+    acte > 0
+      ? `${acte} ${acte === 1 ? "act de defecțiune legat" : "acte de defecțiune legate"}`
+      : null,
+  ].filter((x) => x !== null);
+  if (legaturi.length > 0) {
     throw hasDependents(
-      `Șoferul nu poate fi șters: are ${n} ${n === 1 ? "bon legat" : "bonuri legate"}. Ștergeți sau reatribuiți întâi bonurile.`,
+      `Șoferul nu poate fi șters: are ${legaturi.join(" și ")}. Ștergeți sau reatribuiți întâi documentele.`,
     );
   }
   await db.sofer.delete({ where: { id } }); // P2025 -> 404 if it's already gone

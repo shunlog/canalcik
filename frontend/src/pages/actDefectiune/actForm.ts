@@ -2,8 +2,9 @@ import type { ActDefectiuneCreateBody, ActDefectiuneDetail } from "@canalcik/ser
 import { randomId } from "@mantine/hooks";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
 
-// The form holds only what the act stores. The vehicul's four fields are read
-// off the vehicul record wherever they are shown — see derived.ts
+// The form holds only what the act stores. The vehicul's four fields and the
+// sofer's "funcția" are read off those records wherever they are shown — see
+// derived.ts
 
 // ------------------------------------------------------------------ form values
 
@@ -37,6 +38,7 @@ export interface LucrareRow {
 export interface ActFormValues {
   data: string | null;
   vehiculId: string | null;
+  soferId: string | null;
   defectiuni: DefectiuneRow[];
   pieseSchimb: PiesaRow[];
   lucrari: LucrareRow[];
@@ -82,6 +84,7 @@ export const lucrareDinPiesa = (p: PiesaRow): LucrareRow => ({
 export const emptyActForm = (): ActFormValues => ({
   data: todayLocalIso(),
   vehiculId: null,
+  soferId: null,
   defectiuni: [newDefectiuneRow()],
   pieseSchimb: [newPiesaRow()],
   lucrari: [newLucrareRow()],
@@ -94,6 +97,7 @@ export const emptyActForm = (): ActFormValues => ({
 export const fromActForm = (v: ActFormValues): ActDefectiuneCreateBody => ({
   data: v.data ?? todayLocalIso(),
   vehiculId: Number(v.vehiculId),
+  soferId: Number(v.soferId),
   defectiuni: v.defectiuni.map((d, i) => ({
     nr: i + 1,
     defectiunea: d.defectiunea.trim(),
@@ -130,6 +134,7 @@ const cauzaValida = (v: number | string) =>
 export const actValidation = {
   data: (v: string | null) => (v ? null : "Data este obligatorie"),
   vehiculId: (v: string | null) => (v ? null : "Vehiculul este obligatoriu"),
+  soferId: (v: string | null) => (v ? null : "Șoferul este obligatoriu"),
   defectiuni: {
     defectiunea: required,
   },
@@ -150,6 +155,7 @@ export const actValidation = {
 export const toActForm = (a: ActDefectiuneDetail): ActFormValues => ({
   data: a.data,
   vehiculId: String(a.vehiculId),
+  soferId: String(a.soferId),
   // `nr` is dropped: it is the row's position, which fromActForm derives again.
   defectiuni: a.defectiuni.map((d) => ({
     key: randomId(),

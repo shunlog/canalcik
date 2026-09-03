@@ -69,6 +69,8 @@ const ACT_DEFECTIUNE_DATA: DataActDefectiune = {
   nrInregistrare: "CA 786",
   denumireVehicul: "Tractor MTZ-82",
   anProducerii: "2015",
+  numeSofer: "Celpan Ion",
+  functiaSofer: "Masinist",
   defectiuni: [
     {
       nr: 1,

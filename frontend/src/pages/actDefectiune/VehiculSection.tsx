@@ -1,10 +1,11 @@
-import { Fieldset, Paper, Select, Table, Text } from "@mantine/core";
-import type { InfoVehicul, VehiculListItem } from "@canalcik/server/api-types";
+import { Fieldset, Select } from "@mantine/core";
+import type { InfoVehicul } from "@canalcik/server/api-types";
 import { infoVehicul } from "@canalcik/server/derived";
 import type { UseFormReturnType } from "@mantine/form";
 import { useVehicule } from "../../api/vehicule.ts";
 import { vehiculLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
+import { RezumatCampuri } from "./RezumatCampuri.tsx";
 import type { ActFormValues } from "./actForm.ts";
 
 /** The vehicle rows of the act, in the order and wording the template prints them. */
@@ -19,6 +20,7 @@ export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues
   const vehicule = useVehicule();
   const { vehiculId } = form.getValues();
   const ales = (vehicule.data ?? []).find((v) => String(v.id) === vehiculId);
+  const info = ales && infoVehicul(ales);
 
   return (
     <Fieldset legend="Vehicul">
@@ -35,38 +37,11 @@ export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues
         onChange={(id) => form.setFieldValue("vehiculId", id)}
       />
 
-      {ales && <RezumatVehicul vehicul={ales} />}
+      {info && (
+        <RezumatCampuri
+          campuri={CAMPURI_VEHICUL.map((c) => ({ label: c.label, value: info[c.key] }))}
+        />
+      )}
     </Fieldset>
-  );
-}
-
-/**
- * What the act will print for this vehicul. Read-only and never stored: it is
- * the fleet record, so a wrong value is fixed in Vehicule, not here.
- */
-function RezumatVehicul({ vehicul }: { vehicul: VehiculListItem }) {
-  const info = infoVehicul(vehicul);
-
-  return (
-    <Paper withBorder radius="sm" mt="xs" maw={480} style={{ overflow: "hidden" }}>
-      <Table variant="vertical" layout="fixed" withRowBorders={false}>
-        <Table.Tbody>
-          {CAMPURI_VEHICUL.map((c) => (
-            <Table.Tr key={c.key}>
-              <Table.Th w={210} fz="sm" fw={400} c="dimmed">
-                {c.label}
-              </Table.Th>
-              <Table.Td fz="sm">
-                {info[c.key].trim() || (
-                  <Text span c="dimmed" inherit>
-                    —
-                  </Text>
-                )}
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Paper>
   );
 }

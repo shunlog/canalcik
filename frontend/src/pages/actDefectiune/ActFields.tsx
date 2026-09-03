@@ -4,6 +4,7 @@ import type { UseFormReturnType } from "@mantine/form";
 import { DefectiuniEditor } from "./DefectiuniEditor.tsx";
 import { LucrariEditor } from "./LucrariEditor.tsx";
 import { PieseSchimbEditor } from "./PieseSchimbEditor.tsx";
+import { SoferSection } from "./SoferSection.tsx";
 import { VehiculSection } from "./VehiculSection.tsx";
 import type { ActFormValues } from "./actForm.ts";
 
@@ -19,6 +20,7 @@ export function ActFields({ form }: { form: UseFormReturnType<ActFormValues> }) 
         {...form.getInputProps("data")}
       />
       <VehiculSection form={form} />
+      <SoferSection form={form} />
       <DefectiuniEditor form={form} />
       <PieseSchimbEditor form={form} />
       <LucrariEditor form={form} />
