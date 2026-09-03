@@ -11,14 +11,10 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useVehicule } from "../../api/vehicule.ts";
-import {
-  CautaProdus,
-  useCatalogProduse,
-  type CatalogProduse,
-} from "../../components/CautaProdus.tsx";
-import { usePulse } from "../../components/usePulse.ts";
+import { ButonCautaProdus, CautaProdus } from "../../components/CautaProdus.tsx";
+import { usePulse, type PulseProps } from "../../components/usePulse.ts";
 import { vehiculLabel } from "../../lib/labels.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
@@ -30,13 +26,24 @@ export function MaterialeComandaEditor({
   form: UseFormReturnType<ComandaFormValues>;
 }) {
   const rows = form.getValues().materiale;
-  const catalog = useCatalogProduse();
   const vehicule = useVehicule();
+  const [randCautat, setRandCautat] = useState<number | null>(null);
+  const { pulse, pulseProps } = usePulse<number>();
 
   const optiuniVehicul = useMemo(
     () => (vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) })),
     [vehicule.data],
   );
+
+  // Picking a catalogue product prefills the three fields; they stay ordinary
+  // editable text afterward, so a picked product can still be hand-corrected
+  // and a material the catalogue doesn't carry can be typed in from scratch.
+  const alege = (produs: ProdusIndexat, i: number) => {
+    form.setFieldValue(`materiale.${i}.cod`, produs.cod);
+    form.setFieldValue(`materiale.${i}.nume`, produs.nume);
+    form.setFieldValue(`materiale.${i}.um`, produs.unitate);
+    pulse(i);
+  };
 
   return (
     <Fieldset legend="Lista materialelor">
@@ -61,8 +68,9 @@ export function MaterialeComandaEditor({
                   nr={i + 1}
                   index={i}
                   form={form}
-                  catalog={catalog}
                   optiuniVehicul={optiuniVehicul}
+                  onCauta={() => setRandCautat(i)}
+                  pulseProps={pulseProps(i)}
                 />
               ))}
             </Table.Tbody>
@@ -80,6 +88,8 @@ export function MaterialeComandaEditor({
           Adaugă linie
         </Button>
       </Stack>
+
+      <CautaProdus rand={randCautat} onInchide={() => setRandCautat(null)} onAlege={alege} />
     </Fieldset>
   );
 }
@@ -88,27 +98,17 @@ function RandMaterial({
   nr,
   index: i,
   form,
-  catalog,
   optiuniVehicul,
+  onCauta,
+  pulseProps,
 }: {
   nr: number;
   index: number;
   form: UseFormReturnType<ComandaFormValues>;
-  catalog: CatalogProduse;
   optiuniVehicul: { value: string; label: string }[];
+  onCauta: () => void;
+  pulseProps: PulseProps;
 }) {
-  const { pulse, pulseProps } = usePulse();
-
-  // Picking a catalogue product prefills the three fields; they stay ordinary
-  // editable text afterward, so a picked product can still be hand-corrected
-  // and a material the catalogue doesn't carry can be typed in from scratch.
-  const alege = (produs: ProdusIndexat) => {
-    form.setFieldValue(`materiale.${i}.cod`, produs.cod);
-    form.setFieldValue(`materiale.${i}.nume`, produs.nume);
-    form.setFieldValue(`materiale.${i}.um`, produs.unitate);
-    pulse();
-  };
-
   return (
     <Table.Tr>
       <Table.Td>{nr}</Table.Td>
@@ -120,7 +120,7 @@ function RandMaterial({
             {...form.getInputProps(`materiale.${i}.nume`)}
             {...pulseProps}
           />
-          <CautaProdus catalog={catalog} onAlege={alege} />
+          <ButonCautaProdus onClick={onCauta} />
         </Group>
       </Table.Td>
       <Table.Td>

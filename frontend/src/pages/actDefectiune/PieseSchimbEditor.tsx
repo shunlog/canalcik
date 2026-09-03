@@ -11,18 +11,26 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
-import {
-  CautaProdus,
-  useCatalogProduse,
-  type CatalogProduse,
-} from "../../components/CautaProdus.tsx";
-import { usePulse } from "../../components/usePulse.ts";
+import { useState } from "react";
+import { ButonCautaProdus, CautaProdus } from "../../components/CautaProdus.tsx";
+import { usePulse, type PulseProps } from "../../components/usePulse.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { newPiesaRow, type ActFormValues } from "./actForm.ts";
 
 export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormValues> }) {
   const rows = form.getValues().pieseSchimb;
-  const catalog = useCatalogProduse();
+  const [randCautat, setRandCautat] = useState<number | null>(null);
+  const { pulse, pulseProps } = usePulse<number>();
+
+  // Picking a catalogue product prefills the three fields; they stay ordinary
+  // editable text afterward, so a picked product can still be hand-corrected
+  // and a part the catalogue doesn't carry can be typed in from scratch.
+  const alege = (produs: ProdusIndexat, i: number) => {
+    form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, produs.cod);
+    form.setFieldValue(`pieseSchimb.${i}.piesaSchimb`, produs.nume);
+    form.setFieldValue(`pieseSchimb.${i}.um`, produs.unitate);
+    pulse(i);
+  };
 
   return (
     <Fieldset legend="Lista pieselor de schimb">
@@ -43,7 +51,14 @@ export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormVal
             </Table.Thead>
             <Table.Tbody>
               {rows.map((row, i) => (
-                <RandPiesa key={row.key} nr={i + 1} index={i} form={form} catalog={catalog} />
+                <RandPiesa
+                  key={row.key}
+                  nr={i + 1}
+                  index={i}
+                  form={form}
+                  onCauta={() => setRandCautat(i)}
+                  pulseProps={pulseProps(i)}
+                />
               ))}
             </Table.Tbody>
           </Table>
@@ -58,6 +73,8 @@ export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormVal
           Adaugă linie
         </Button>
       </Stack>
+
+      <CautaProdus rand={randCautat} onInchide={() => setRandCautat(null)} onAlege={alege} />
     </Fieldset>
   );
 }
@@ -66,25 +83,15 @@ function RandPiesa({
   nr,
   index: i,
   form,
-  catalog,
+  onCauta,
+  pulseProps,
 }: {
   nr: number;
   index: number;
   form: UseFormReturnType<ActFormValues>;
-  catalog: CatalogProduse;
+  onCauta: () => void;
+  pulseProps: PulseProps;
 }) {
-  const { pulse, pulseProps } = usePulse();
-
-  // Picking a catalogue product prefills the three fields; they stay ordinary
-  // editable text afterward, so a picked product can still be hand-corrected
-  // and a part the catalogue doesn't carry can be typed in from scratch.
-  const alege = (produs: ProdusIndexat) => {
-    form.setFieldValue(`pieseSchimb.${i}.nrNomenclator`, produs.cod);
-    form.setFieldValue(`pieseSchimb.${i}.piesaSchimb`, produs.nume);
-    form.setFieldValue(`pieseSchimb.${i}.um`, produs.unitate);
-    pulse();
-  };
-
   return (
     <Table.Tr>
       <Table.Td>{nr}</Table.Td>
@@ -96,7 +103,7 @@ function RandPiesa({
             {...form.getInputProps(`pieseSchimb.${i}.piesaSchimb`)}
             {...pulseProps}
           />
-          <CautaProdus catalog={catalog} onAlege={alege} />
+          <ButonCautaProdus onClick={onCauta} />
         </Group>
       </Table.Td>
       <Table.Td>

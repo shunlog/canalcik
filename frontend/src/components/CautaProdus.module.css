@@ -1,0 +1,15 @@
+.optiune {
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+  text-align: left;
+}
+
+.optiune:hover {
+  background-color: var(--mantine-color-gray-1);
+}
+
+[data-mantine-color-scheme="dark"] .optiune:hover {
+  background-color: var(--mantine-color-dark-6);
+}

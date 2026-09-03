@@ -1,135 +1,117 @@
-import {
-  ActionIcon,
-  Popover,
-  Select,
-  Text,
-  type ComboboxItem,
-  type ComboboxParsedItem,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { ActionIcon, Modal, ScrollArea, Stack, Text, TextInput, UnstyledButton } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { IconSearch } from "@tabler/icons-react";
-import { useCallback, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useProduse } from "../api/produse.ts";
 import { aplatizeaza, type ProdusIndexat } from "../lib/produse.tsx";
 import { fuzzySearch } from "../lib/search.ts";
+import classes from "./CautaProdus.module.css";
 
-type Filtreaza = (args: {
-  options: ComboboxParsedItem[];
-  search: string;
-  limit: number;
-}) => ComboboxParsedItem[];
+const LIMITA = 100;
 
-export interface CatalogProduse {
-  optiuni: ComboboxItem[];
-  dupaCod: Map<string, ProdusIndexat>;
-  filtreaza: Filtreaza;
-}
-
-/**
- * Fetches the produse catalogue and indexes it for the picker below. Call it
- * once per table rather than once per row: the index covers the whole
- * catalogue, so every row of a table shares one.
- */
-export function useCatalogProduse(): CatalogProduse {
-  const { data } = useProduse();
-
-  const produse = useMemo(() => (data ?? []).flatMap((c) => aplatizeaza(c, [])), [data]);
-  const dupaCod = useMemo(() => new Map(produse.map((p) => [p.cod, p])), [produse]);
-  const optiuni = useMemo(() => produse.map((p) => ({ value: p.cod, label: p.nume })), [produse]);
-
-  // The dropdown searches the category path and the code too, not just the name.
-  const filtreaza: Filtreaza = useCallback(
-    ({ options, search, limit }) => {
-      const gasite = fuzzySearch(options as ComboboxItem[], search, [
-        (o) => o.label,
-        (o) => o.value,
-        (o) => dupaCod.get(o.value)?.cale.join(" › "),
-      ]);
-      return Number.isFinite(limit) ? gasite.slice(0, limit) : gasite;
-    },
-    [dupaCod],
+/** The magnifier on a table row, opening that table's {@link CautaProdus}. */
+export function ButonCautaProdus({ onClick }: { onClick: () => void }) {
+  return (
+    <ActionIcon variant="light" aria-label="Caută în catalog" onClick={onClick}>
+      <IconSearch size={16} />
+    </ActionIcon>
   );
-
-  return { optiuni, dupaCod, filtreaza };
 }
 
 /**
- * The magnifier next to a line's name input: opens the catalogue and hands back
- * the product picked. What a caller does with it is its own business — every
- * table prefills its own set of columns, and they stay editable afterward.
+ * The catalogue picker. Render one per table, not one per row: hold the row
+ * being filled in the table's state, open it from that row's
+ * {@link ButonCautaProdus}, and prefill the row's columns in `onAlege`.
+ *
+ *     const [randCautat, setRandCautat] = useState<number | null>(null);
+ *     <CautaProdus
+ *       rand={randCautat}
+ *       onInchide={() => setRandCautat(null)}
+ *       onAlege={(produs, i) => form.setFieldValue(`randuri.${i}.cod`, produs.cod)}
+ *     />
  */
 export function CautaProdus({
-  catalog,
+  rand,
+  onInchide,
   onAlege,
 }: {
-  catalog: CatalogProduse;
-  onAlege: (produs: ProdusIndexat) => void;
+  rand: number | null;
+  onInchide: () => void;
+  onAlege: (produs: ProdusIndexat, rand: number) => void;
 }) {
-  const [deschisa, cautare] = useDisclosure(false);
+  const { data } = useProduse();
+  const [cautare, setCautare] = useState("");
+  const peTelefon = useMediaQuery("(max-width: 48em)");
 
-  const alege = (cod: string | null) => {
-    const produs = cod ? catalog.dupaCod.get(cod) : undefined;
-    cautare.close();
-    if (produs) onAlege(produs);
+  const produse = useMemo(() => (data ?? []).flatMap((c) => aplatizeaza(c, [])), [data]);
+  const gasite = useMemo(
+    () =>
+      fuzzySearch(produse, cautare, [
+        (p) => p.nume,
+        (p) => p.cod,
+        (p) => p.cale.join(" › "),
+      ]).slice(0, LIMITA),
+    [produse, cautare],
+  );
+
+  const inchide = () => {
+    setCautare("");
+    onInchide();
+  };
+
+  const alege = (produs: ProdusIndexat) => {
+    if (rand !== null) onAlege(produs, rand);
+    inchide();
   };
 
   return (
-    <Popover
-      opened={deschisa}
-      onClose={cautare.close}
-      width={420}
-      position="bottom-end"
-      withinPortal
-      trapFocus
+    <Modal
+      opened={rand !== null}
+      onClose={inchide}
+      title="Caută în catalog"
+      fullScreen={peTelefon}
+      size="lg"
     >
-      <Popover.Target>
-        <ActionIcon variant="light" aria-label="Caută în catalog" onClick={cautare.toggle}>
-          <IconSearch size={16} />
-        </ActionIcon>
-      </Popover.Target>
-      <Popover.Dropdown>
-        <Select
-          placeholder="Caută un produs după denumire, categorie sau cod"
-          searchable
-          clearable
-          limit={50}
-          data={catalog.optiuni}
-          filter={catalog.filtreaza}
-          nothingFoundMessage="Niciun produs găsit"
-          renderOption={({ option }) => (
-            <OptiuneProdus option={option} produs={catalog.dupaCod.get(option.value)} />
-          )}
-          value={null}
-          onChange={alege}
+      <Stack gap="xs">
+        {/* size="md" is 16px: anything smaller makes iOS Safari zoom on focus. */}
+        <TextInput
+          data-autofocus
+          size="md"
+          placeholder="Denumire, categorie sau cod"
+          leftSection={<IconSearch size={16} />}
+          value={cautare}
+          onChange={(e) => setCautare(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && gasite[0]) alege(gasite[0]);
+          }}
         />
-      </Popover.Dropdown>
-    </Popover>
-  );
-}
-
-function OptiuneProdus({
-  option,
-  produs,
-}: {
-  option: ComboboxItem;
-  produs: ProdusIndexat | undefined;
-}) {
-  return (
-    <div>
-      <Text size="sm" fw={500}>
-        {option.label}
-        {produs && (
-          <Text span c="dimmed" size="sm">
-            {" "}
-            · {produs.unitate} · {produs.cod}
-          </Text>
-        )}
-      </Text>
-      {produs && (
-        <Text size="xs" c="dimmed">
-          {produs.cale.join(" › ")}
-        </Text>
-      )}
-    </div>
+        <ScrollArea.Autosize mah="60vh" type="auto">
+          {gasite.length === 0 ? (
+            <Text c="dimmed" size="sm" p="xs">
+              Niciun produs găsit
+            </Text>
+          ) : (
+            gasite.map((produs) => (
+              <UnstyledButton
+                key={produs.cod}
+                className={classes.optiune}
+                onClick={() => alege(produs)}
+              >
+                <Text size="sm" fw={500}>
+                  {produs.nume}
+                  <Text span c="dimmed" size="sm">
+                    {" "}
+                    · {produs.unitate} · {produs.cod}
+                  </Text>
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {produs.cale.join(" › ")}
+                </Text>
+              </UnstyledButton>
+            ))
+          )}
+        </ScrollArea.Autosize>
+      </Stack>
+    </Modal>
   );
 }
