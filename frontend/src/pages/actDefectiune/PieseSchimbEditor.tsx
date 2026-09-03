@@ -13,6 +13,7 @@ import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { ButonCautaProdus, CautaProdus } from "../../components/CautaProdus.tsx";
+import { HelpTooltip } from "../../components/HelpTooltip.tsx";
 import { usePulse, type PulseProps } from "../../components/usePulse.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { newPiesaRow, type ActFormValues } from "./actForm.ts";
@@ -43,8 +44,10 @@ export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormVal
                 <Table.Th miw={280}>Piesa de schimb</Table.Th>
                 <Table.Th w={140}>Nr. nomenclator</Table.Th>
                 <Table.Th w={100}>UM</Table.Th>
-                <Table.Th w={120}>Cantitate</Table.Th>
-                <Table.Th w={180}>Cauza (rând tab. 1)</Table.Th>
+                <Table.Th w={110}>Cantitate</Table.Th>
+                <Table.Th w={110}>
+                  <HelpTooltip label="Nr. rând din lista defecțiunilor">Cauza</HelpTooltip>
+                </Table.Th>
                 <Table.Th w={130}>Necesită înlocuire</Table.Th>
                 <Table.Th w={50} />
               </Table.Tr>

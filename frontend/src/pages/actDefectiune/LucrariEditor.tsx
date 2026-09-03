@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash, IconWand } from "@tabler/icons-react";
+import { HelpTooltip } from "../../components/HelpTooltip.tsx";
 import { lucrareDinPiesa, newLucrareRow, type ActFormValues } from "./actForm.ts";
 
 export function LucrariEditor({ form }: { form: UseFormReturnType<ActFormValues> }) {
@@ -29,8 +30,10 @@ export function LucrariEditor({ form }: { form: UseFormReturnType<ActFormValues>
                 <Table.Th w={50}>Nr.</Table.Th>
                 <Table.Th miw={280}>Denumirea lucrărilor</Table.Th>
                 <Table.Th w={100}>UM</Table.Th>
-                <Table.Th w={120}>Cantitate</Table.Th>
-                <Table.Th w={180}>Cauza (rând tab. 1)</Table.Th>
+                <Table.Th w={110}>Cantitate</Table.Th>
+                <Table.Th w={110}>
+                  <HelpTooltip label="Nr. rând din lista defecțiunilor">Cauza</HelpTooltip>
+                </Table.Th>
                 <Table.Th w={50} />
               </Table.Tr>
             </Table.Thead>
