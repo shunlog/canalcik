@@ -25,6 +25,25 @@ import { actDefectiuneCreate, actDefectiuneUpdate } from "../schemas/actDefectiu
 
 export const acteDefectiune = new Hono();
 
+const FUNCTIA_SOFER = "Sofer";
+const FUNCTIA_MASINIST = "Masinist";
+const vehicleType_to_functiaSofer = {
+  "Autocamion": FUNCTIA_SOFER,
+  "Automacara": FUNCTIA_SOFER,
+  "Autoturn": FUNCTIA_SOFER,
+  "Bara": FUNCTIA_MASINIST,
+  "Basculantă": FUNCTIA_SOFER,
+  "Duldozer": FUNCTIA_MASINIST,
+  "Excavatoare": FUNCTIA_MASINIST,
+  "Furgon": FUNCTIA_SOFER,
+  "Manipulator": FUNCTIA_SOFER,
+  "Pompă": FUNCTIA_MASINIST,
+  "Remorcă": FUNCTIA_MASINIST,
+  "Tractor": FUNCTIA_MASINIST,
+  "Încărcător": FUNCTIA_MASINIST,
+};
+
+
 /** The three tables go in as JSON — see the note on parseLines in dto.ts. */
 const toRow = ({ defectiuni, pieseSchimb, lucrari, ...scalars }: ActDefectiuneCreateBody) => ({
   ...scalars,

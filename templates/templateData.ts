@@ -26,6 +26,8 @@ export type DataActDefectiune = {
   nrInregistrare: string; // "nr. de înregistrare": registration nr, e.g. "CA 786"
   denumireVehicul: string; // "Denumire conform datelor contabile": vehicle type + model, e.g. "Tractor MTZ-82"
   anProducerii: string; // "Anul producerii": year
+  numeSofer: string;
+  functiaSofer: string; // either "Sofer" or "Masinist", depending on the vehicle type
   // "Lista defecțiunilor" (tab 1) table:
   defectiuni: Array<{
     nr: number; // row number
