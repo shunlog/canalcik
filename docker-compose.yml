@@ -6,8 +6,7 @@ services:
     restart: unless-stopped
     env_file: .env
     # Match the host user that owns ./deploy, so the sqlite db and token.json
-    # stay readable and editable from the host without sudo. `id -u` / `id -g`
-    # on the server; the image's own default is 1000.
+    # stay readable and editable from the host without sudo
     user: "${APP_UID:-1000}:${APP_GID:-1000}"
     environment:
       # A uid with no /etc/passwd entry gets HOME=/, and corepack then dies
