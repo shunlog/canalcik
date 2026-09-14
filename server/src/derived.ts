@@ -7,6 +7,42 @@ import type { InfoSofer, InfoVehicul, SoferRef, VehiculRef, VehiculScalars } fro
 /** "MRZ 40" — the plate as the documents print it, from its two stored halves. */
 export const plate = (v: Pick<VehiculRef, "litere" | "cifre">) => `${v.litere} ${v.cifre}`;
 
+// EIP validity is a business rule, rather than data belonging to a particular
+// driver. Keep it here so both the API and the driver form use the same source
+// of truth without persisting calculated expiry dates.
+export const EIP_EXPIRY_MONTHS = {
+  eipScurta: 36,
+  eipIncaltaminte: 18,
+  eipCostum: 12,
+  eipPantaloni: 36,
+  eipVestaAvertizare: null,
+} as const;
+
+export type EipEquipmentField = keyof typeof EIP_EXPIRY_MONTHS;
+
+/**
+ * Adds the equipment's calendar-month validity to an ISO calendar date.
+ * The day is capped at the end of the target month (e.g. 29 February + 12
+ * months is 28 February the following year), rather than overflowing into it.
+ */
+export const eipExpiryDate = (
+  issueDate: string | null | undefined,
+  equipment: EipEquipmentField,
+): string | null => {
+  const months = EIP_EXPIRY_MONTHS[equipment];
+  if (!issueDate || months === null) return null;
+
+  const [year, month, day] = issueDate.split("-").map(Number);
+  const target = new Date(Date.UTC(year, month - 1 + months, 1));
+  const targetYear = target.getUTCFullYear();
+  const targetMonth = target.getUTCMonth();
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+
+  return `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(
+    Math.min(day, lastDay),
+  ).padStart(2, "0")}`;
+};
+
 type VehiculInfoSursa = Pick<
   VehiculScalars,
   "litere" | "cifre" | "nrInventar" | "tip" | "model" | "anProducere"
