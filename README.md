@@ -1,94 +1,56 @@
 # Canalcik
 
-A web app made to facilitate the creation and management of documents 
-for the Apa Canal Moldova company.
+A web app made to facilitate the management management of information
+and the filling out of documents for the Moldovan State-Owned Enterprise "Apa Canal".
+The app is used by the sole person employed to do this in the company.
 
-For a start, the website will provide forms for the creation of docx documents for 2 templates.
-It will have lots of suggestions and defaults, to minimize input from the user.
+This person deals with keeping track information about:
+- vehicles
+- drivers (equipment expiration date)
+- repair jobs (a few times a day)
+- orders of materials (a few times a day)
+- monthly bills reconciliation
 
-We reverse-engineer the data model that the organization implicitly uses.
-There are document templates (which mostly store facts/events), entities (vehicles, drivers), data sources (as spreadsheets).
+At its core, the website facilitates filling out docx and xlsx documents
+by letting the user input the data in responsive web forms with a fuzzy search feature,
+saving the data in an SQLite DB,
+and generating the documents automatically from the data.
 
-The website will be used to:
-1. Fill forms (with suggestions, reference validation) and generate documents from them
-2. List and edit completed forms
-3. Manage the company data
+We reverse-engineered the data model that the organization implicitly uses
+from the documents that need to be filled out.
 
 ## Requirements
 
-The website that will be used by a single user.
-Needs to be accessible both from mobile phone and desktop.
+The website will be used by a single user.
+It needs to be accessible both from both mobile and desktop.
+It will use HTTP Basic Authentication.
 
-The website will use HTTP basicauth, so only the user can access it.
+The form fields will provide fuzzy search capabilities 
+and will narrow down the possibilities based on related form inputs whenever possible.
 
-Form completion:
-- fields with suggestions
-    - e.g. look-up value from data source based on key from another field
-    - e.g. suggestions based on cross-reference between fields
-- sane defaults (e.g. today's date)
-- field type validation
+The documents are generated using the `docxtemplater` and `xlsx-template` libraries
+which take template documents with placeholders and fill them with the given data.
 
-Templates:
-- Stored on Google Drive as `.odt` or sheets
-- use `{{this_syntax}}` from docx-template for parameters
-- the functions that fill the templates will assert that the placeholders and the given data form a bijection
+I wrote wrappers around the two libraries which assert that:
+1. All of the placeholders are present in the given data
+2. All of the given data maps to the existing placeholders, nothing will be skipped
 
-### Data storage
+I also wrote a data structure and a function for each template to make use of static checking.
 
-The generated documents will be stored on the my Google Drive.
-The app will have its own folder `canalcik`. 
-It will need to generate the folder itself, so that it has access to it (that's how `drive.file` works).
+## Data storage
 
-Drive access is a user OAuth token in `token.json` at the repo root (override
-the location with `TOKEN_PATH`).
-Authorization happens once, from the
-terminal: `pnpm run auth`
+The templates are stored in an arbitrary folder on my Google Drive (`/canalcik-templates`),
+shared to "anyone with the link".
+The app needs to be configured with a link to each template file.
 
-`drive.file` is the only scope requested. The folder is created on the first
-`/api/drive/status` call, i.e. the first time the app is opened after
-authorizing, which is also what makes it findable later. Two consequences:
+The generated documents are saved in a specific folder on my Google Drive
+whose name is configure (`/canalcik`).
+The folder must be created by the app, not the user,
+so that the app can access it (that's how the `drive.file` scope works).
 
-Handling the templates is simpler.
-They are also on my Drive, in any dir, shared with "anyone with the link".
-Their URLs go in `.env`
-(`TEMPLATE_URL_*`) and `pnpm run fetch`
-saves them to `data/templates/`.
-Set `GOOGLE_API_KEY` to export through the
-Drive API (the key must not be restricted to HTTP referrers, or requests from
-Node get a 403); left unset, the keyless `docs.google.com` export endpoint is
-used.
-`fetchTemplates()` in `templates/fetchTemplates.ts` is the reusable entry
-point — the server can call it to refresh the templates on demand.
+Drive access is a user OAuth token in `token.json` at a configured location.
+Authorization happens once by running `pnpm run auth` and confirming it in the browser.
 
-
-## Generated documents
-
-The user creates the *comanda materiale* about 1/day,
-and each such document is tied to 2-3 *act defectiune* documents.
-
-- "Comanda de materiale"
-- "Act de constatare a defectiunilor"
-- "Fisa limita"
-    - A sheet for each vehicle+driver combination, for each month
-
-### Data sources
-
-- "Categorii produse" (*categorii_produse*) - spreadsheet table:
-    - column 1: Category (using MSWord hierarchy, 5 levels)
-    - column 2: 
-        - "Denumire produs": *material name*
-        - "Cod produs": *material code*
-
-- "Gestiune flota", tab "Vehicule" (*tabel_vehicule*) - spreadsheet table:
-    - "Destinatia": *vehicle type*
-    - "Marca/model": *vehicle model*
-    - "Nr. inmatriculare": *registration nr*
-    - "Nr. inventar": *inventory nr*
-    - "Sofer": list of names, separated by "/"
-
-- Gestiune flota, tab "Soferi":
-    - Nume, prenume
-    - Nr. de pontaj (e.g. 6832) *driver code*
 
 # Development
 
@@ -184,15 +146,3 @@ changed on Drive need no rebuild:
 ```sh
 docker compose run --rm canalcik pnpm run fetch
 ```
-
-# Existing solutions explored
-
-- [Docassemble](https://docassemble.org/)
-    - only asks one question at a time, but I want a form
-    - doesn't have document management
-- [Docupilot](https://www.docupilot.com/)
-    - has a template editor that uses syntax `{{like_this}}`
-    - don't see its document management capabilities
-- Interactive PDF Form (AcroForm)
-    - works in Firefox
-    - doesn't seem to have features for external data sources or validation
