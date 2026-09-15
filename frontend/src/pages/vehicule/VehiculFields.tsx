@@ -4,7 +4,7 @@ import type { VehiculFormValues } from "./vehiculForm.ts";
 
 export function VehiculFields({ form }: { form: UseFormReturnType<VehiculFormValues> }) {
   return (
-    <Stack>
+    <Stack maw={820}>
       <Fieldset legend="Identificare">
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
           <TextInput label="Nr. înmatriculare (litere)" placeholder="MRZ" withAsterisk {...form.getInputProps("litere")} />

@@ -14,13 +14,14 @@ export function BonFields({ form }: { form: UseFormReturnType<BonFormValues> }) 
 
   return (
     <>
-      <Fieldset legend="Bon">
+      <Fieldset legend="Bon" maw={800}>
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
           <DateInput
             label="Data"
             valueFormat="DD.MM.YYYY"
             placeholder="ZZ.LL.AAAA"
             withAsterisk
+            w={155}
             {...form.getInputProps("data")}
           />
           <Select
@@ -46,7 +47,7 @@ export function BonFields({ form }: { form: UseFormReturnType<BonFormValues> }) 
         </SimpleGrid>
       </Fieldset>
 
-      <Fieldset legend="Materiale" mt="md">
+      <Fieldset legend="Materiale" mt="md" maw={800}>
         <MaterialeEditor form={form} />
       </Fieldset>
     </>

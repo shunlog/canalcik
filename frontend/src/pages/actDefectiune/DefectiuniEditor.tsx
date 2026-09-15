@@ -7,9 +7,9 @@ export function DefectiuniEditor({ form }: { form: UseFormReturnType<ActFormValu
   const rows = form.getValues().defectiuni;
 
   return (
-    <Fieldset legend="Lista defecțiunilor">
+    <Fieldset legend="Lista defecțiunilor" maw={820}>
       <Stack gap="xs">
-        <Table.ScrollContainer minWidth={640}>
+        <Table.ScrollContainer minWidth={640} maw={820}>
           <Table withTableBorder verticalSpacing="xs">
             <Table.Thead>
               <Table.Tr>

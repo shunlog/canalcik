@@ -41,7 +41,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
 
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={860}>
+      <Table.ScrollContainer minWidth={860} maw={960}>
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>

@@ -46,9 +46,9 @@ export function MaterialeComandaEditor({
   };
 
   return (
-    <Fieldset legend="Lista materialelor">
+    <Fieldset legend="Lista materialelor" maw={1150}>
       <Stack gap="xs">
-        <Table.ScrollContainer minWidth={1100}>
+        <Table.ScrollContainer minWidth={1100} maw={1150}>
           <Table withTableBorder verticalSpacing="xs">
             <Table.Thead>
               <Table.Tr>

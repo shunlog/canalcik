@@ -15,7 +15,7 @@ const EIP_FIELDS = [
 
 export function SoferFields({ form }: { form: UseFormReturnType<SoferFormValues> }) {
   return (
-    <Stack>
+    <Stack maw={720}>
       <Fieldset legend="Date personale">
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
           <NumberInput
@@ -56,7 +56,6 @@ export function SoferFields({ form }: { form: UseFormReturnType<SoferFormValues>
                 return (
                   <Table.Tr
                     key={name}
-                    style={expired ? { backgroundColor: "var(--mantine-color-yellow-1)" } : undefined}
                   >
                     <Table.Td>{label}</Table.Td>
                     <Table.Td>

@@ -21,9 +21,9 @@ export function LucrariEditor({ form }: { form: UseFormReturnType<ActFormValues>
   const dinPiese = values.pieseSchimb.filter((p) => p.piesaSchimb.trim() !== "");
 
   return (
-    <Fieldset legend="Lista lucrărilor de reparații necesare">
+    <Fieldset legend="Lista lucrărilor de reparații necesare" maw={900}>
       <Stack gap="xs">
-        <Table.ScrollContainer minWidth={860}>
+        <Table.ScrollContainer minWidth={860} maw={900}>
           <Table withTableBorder verticalSpacing="xs">
             <Table.Thead>
               <Table.Tr>

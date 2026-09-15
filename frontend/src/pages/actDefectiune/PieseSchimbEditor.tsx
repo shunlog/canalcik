@@ -34,9 +34,9 @@ export function PieseSchimbEditor({ form }: { form: UseFormReturnType<ActFormVal
   };
 
   return (
-    <Fieldset legend="Lista pieselor de schimb">
+    <Fieldset legend="Lista pieselor de schimb" maw={1150}>
       <Stack gap="xs">
-        <Table.ScrollContainer minWidth={1100}>
+        <Table.ScrollContainer minWidth={1100} maw={1150}>
           <Table withTableBorder verticalSpacing="xs">
             <Table.Thead>
               <Table.Tr>

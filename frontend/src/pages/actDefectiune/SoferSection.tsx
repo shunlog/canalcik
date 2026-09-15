@@ -21,7 +21,7 @@ export function SoferSection({ form }: { form: UseFormReturnType<ActFormValues> 
   const info = ales && vehicul && infoSofer(ales, vehicul);
 
   return (
-    <Fieldset legend="Șofer">
+    <Fieldset legend="Șofer" maw={480}>
       <Select
         placeholder="Caută un șofer după nume sau nr. de pontaj"
         searchable

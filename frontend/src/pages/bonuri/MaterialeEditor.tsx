@@ -35,7 +35,7 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
 
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={640}>
+      <Table.ScrollContainer minWidth={640} maw={760}>
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>

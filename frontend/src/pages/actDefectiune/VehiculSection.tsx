@@ -23,7 +23,7 @@ export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues
   const info = ales && infoVehicul(ales);
 
   return (
-    <Fieldset legend="Vehicul">
+    <Fieldset legend="Vehicul" maw={480}>
       <Select
         placeholder="Caută un vehicul după număr, model sau nr. inventar"
         searchable
