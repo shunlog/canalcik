@@ -358,6 +358,7 @@ export const toActDefectiuneListItem = (r: ActDefectiuneListRow): ActDefectiuneL
   sofer: r.sofer,
   nrDefectiuni: parseLines<DefectiuneLine>(r.defectiuni).length,
   nrPieseSchimb: parseLines<PiesaSchimbLine>(r.pieseSchimb).length,
+  pieseSchimb: parseLines<PiesaSchimbLine>(r.pieseSchimb),
   document: r.doc ? toGeneratedDocRef(r.doc.document) : null,
 });
 
@@ -412,6 +413,15 @@ export const comandaMaterialeListSelect = {
   id: true,
   data: true,
   _count: { select: { materiale: true } },
+  acteDefectiune: {
+    select: {
+      id: true,
+      data: true,
+      vehicul: { select: vehiculRefSelect },
+      pieseSchimb: true,
+    },
+    orderBy: [{ data: "asc" }, { id: "asc" }],
+  },
   materiale: { select: { vehicul: { select: vehiculRefSelect } }, orderBy: { nr: "asc" } },
   doc: { select: { document: { select: generatedDocSelect } } },
 } satisfies Prisma.ComandaMaterialeDataSelect;
@@ -419,6 +429,9 @@ export const comandaMaterialeListSelect = {
 type ComandaMaterialeListRow = Prisma.ComandaMaterialeDataGetPayload<{
   select: typeof comandaMaterialeListSelect;
 }>;
+
+const nrPieseDinActe = (acte: Array<{ pieseSchimb: string }>) =>
+  acte.reduce((total, act) => total + parseLines<PiesaSchimbLine>(act.pieseSchimb).length, 0);
 
 // A comanda covers the day's 2-3 acte, so the list names the vehicles rather
 // than counting them — deduplicated here, since a vehicul usually has several
@@ -428,8 +441,9 @@ export const toComandaMaterialeListItem = (r: ComandaMaterialeListRow): ComandaM
   return {
     id: r.id,
     data: r.data,
-    nrMateriale: r._count.materiale,
+    nrMateriale: r._count.materiale + nrPieseDinActe(r.acteDefectiune),
     vehicule: [...vehicule.values()],
+    acteDefectiune: r.acteDefectiune.map(({ id, data, vehicul }) => ({ id, data, vehicul })),
     document: r.doc ? toGeneratedDocRef(r.doc.document) : null,
   };
 };
@@ -438,6 +452,15 @@ export const comandaMaterialeDetailSelect = {
   id: true,
   updatedAt: true,
   data: true,
+  acteDefectiune: {
+    select: {
+      id: true,
+      data: true,
+      vehicul: { select: vehiculRefSelect },
+      pieseSchimb: true,
+    },
+    orderBy: [{ data: "asc" }, { id: "asc" }],
+  },
   materiale: {
     select: {
       id: true,
@@ -462,12 +485,21 @@ type ComandaMaterialeDetailRow = Prisma.ComandaMaterialeDataGetPayload<{
 // stored — so a comanda cannot disagree with the fleet record.
 export const toComandaMaterialeDetail = ({
   updatedAt,
+  acteDefectiune,
   materiale,
   doc,
   ...c
-}: ComandaMaterialeDetailRow): ComandaMaterialeDetail => ({
-  ...c,
-  updatedAt: updatedAt.toISOString(),
-  materiale: materiale.map((m) => ({ ...m, spec: plate(m.vehicul) })),
-  document: doc ? toGeneratedDocRef(doc.document) : null,
-});
+}: ComandaMaterialeDetailRow): ComandaMaterialeDetail => {
+  const acte = acteDefectiune.map((a) => ({
+    ...a,
+    pieseSchimb: parseLines<PiesaSchimbLine>(a.pieseSchimb),
+  }));
+  return {
+    ...c,
+    updatedAt: updatedAt.toISOString(),
+    nrMateriale: materiale.length + acte.reduce((total, act) => total + act.pieseSchimb.length, 0),
+    acteDefectiune: acte,
+    materiale: materiale.map((m) => ({ ...m, spec: plate(m.vehicul) })),
+    document: doc ? toGeneratedDocRef(doc.document) : null,
+  };
+};

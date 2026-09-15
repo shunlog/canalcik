@@ -79,12 +79,13 @@ export function ComandaMaterialeListPage() {
           comenzi.length === 0 ? (
             <Text c="dimmed">Nicio comandă găsită.</Text>
           ) : (
-            <Table.ScrollContainer minWidth={800}>
+            <Table.ScrollContainer minWidth={950}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th w={140}>Data</Table.Th>
                     <Table.Th>Vehicule</Table.Th>
+                    <Table.Th>Acte Defecțiune</Table.Th>
                     <Table.Th w={130}>Materiale</Table.Th>
                     <Table.Th w={180}>Document</Table.Th>
                   </Table.Tr>
@@ -104,6 +105,18 @@ export function ComandaMaterialeListPage() {
                               {i > 0 && ", "}
                               <Anchor component={Link} to={`/vehicule/${v.id}`} size="sm">
                                 {plate(v)}
+                              </Anchor>
+                            </Fragment>
+                          ))}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">
+                          {c.acteDefectiune.map((act, i) => (
+                            <Fragment key={act.id}>
+                              {i > 0 && ", "}
+                              <Anchor component={Link} to={`/act-defectiune/${act.id}`} size="sm">
+                                {formatIsoDate(act.data)} - {plate(act.vehicul)}
                               </Anchor>
                             </Fragment>
                           ))}

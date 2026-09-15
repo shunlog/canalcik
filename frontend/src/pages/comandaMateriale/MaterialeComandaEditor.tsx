@@ -4,18 +4,22 @@ import {
   Fieldset,
   Group,
   NumberInput,
+  MultiSelect,
   Select,
   Stack,
   Table,
   TextInput,
+  Title,
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
+import { useActeDefectiune } from "../../api/acteDefectiune.ts";
 import { useVehicule } from "../../api/vehicule.ts";
 import { ButonCautaProdus, CautaProdus } from "../../components/CautaProdus.tsx";
+import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { usePulse, type PulseProps } from "../../components/usePulse.ts";
-import { vehiculLabel } from "../../lib/labels.ts";
+import { plate, vehiculLabel } from "../../lib/labels.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import { newMaterialRow, type ComandaFormValues } from "./comandaForm.ts";
@@ -27,6 +31,7 @@ export function MaterialeComandaEditor({
 }) {
   const rows = form.getValues().materiale;
   const vehicule = useVehicule();
+  const acte = useActeDefectiune();
   const [randCautat, setRandCautat] = useState<number | null>(null);
   const { pulse, pulseProps } = usePulse<number>();
 
@@ -34,6 +39,41 @@ export function MaterialeComandaEditor({
     () => (vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) })),
     [vehicule.data],
   );
+
+  const optiuniActe = useMemo(
+    () =>
+      (acte.data ?? []).map((a) => ({
+        value: String(a.id),
+        label: `${a.data} - ${plate(a.vehicul)}`,
+      })),
+    [acte.data],
+  );
+
+  // This is deliberately calculated from the selection rather than from the
+  // saved comanda. A newly picked act is visible immediately, before Save.
+  const materialeDinActe = useMemo(() => {
+    const selectate = new Set(form.getValues().acteDefectiuneIds);
+    return (acte.data ?? [])
+      .filter((a) => selectate.has(String(a.id)))
+      .sort((a, b) => a.data.localeCompare(b.data) || a.id - b.id)
+      .flatMap((a) =>
+        a.pieseSchimb.map((piesa) => ({
+          key: `${a.id}-${piesa.nr}`,
+          nume: piesa.piesaSchimb,
+          spec: plate(a.vehicul),
+          um: piesa.um,
+          cantitate: piesa.cantitate,
+          cod: piesa.nrNomenclator,
+        })),
+      );
+  }, [acte.data, form.values.acteDefectiuneIds]);
+
+  const acteSelectate = useMemo(() => {
+    const selectate = new Set(form.getValues().acteDefectiuneIds);
+    return (acte.data ?? [])
+      .filter((a) => selectate.has(String(a.id)))
+      .sort((a, b) => a.data.localeCompare(b.data) || a.id - b.id);
+  }, [acte.data, form.values.acteDefectiuneIds]);
 
   // Picking a catalogue product prefills the three fields; they stay ordinary
   // editable text afterward, so a picked product can still be hand-corrected
@@ -47,20 +87,56 @@ export function MaterialeComandaEditor({
 
   return (
     <Fieldset legend="Lista materialelor" maw={1150}>
-      <Stack gap="xs">
+      
+      <Stack gap="s">
+        <Title order={4} size="h5">
+          Acte de Defecțiune legate
+        </Title>
+        <RefLinkList
+          items={acteSelectate.map((act) => ({
+            id: act.id,
+            label: `${act.data} - ${plate(act.vehicul)}`,
+            to: `/act-defectiune/${act.id}`,
+          }))}
+          empty="Niciun act de defecțiune selectat."
+        />
+        <MultiSelect
+          label="Modifică legăturile"
+          placeholder="Selectează actele de defecțiune"
+          searchable
+          clearable
+          hidePickedOptions
+          filter={fuzzyOptionsFilter}
+          nothingFoundMessage="Niciun rezultat"
+          data={optiuniActe}
+          {...form.getInputProps("acteDefectiuneIds")}
+        />
+
         <Table.ScrollContainer minWidth={1100} maw={1150}>
           <Table withTableBorder verticalSpacing="xs">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th w={50}>Nr.</Table.Th>
-                <Table.Th miw={280}>Denumirea materialului</Table.Th>
-                <Table.Th w={280}>Specificația (vehicul)</Table.Th>
-                <Table.Th w={100}>UM</Table.Th>
-                <Table.Th w={120}>Cantitate</Table.Th>
-                <Table.Th w={150}>Nomenclator D365</Table.Th>
-                <Table.Th w={50} />
-              </Table.Tr>
-            </Table.Thead>
+            <MaterialeTableHeader />
+            <Table.Tbody>
+              {materialeDinActe.map((row, i) => (
+                <Table.Tr key={row.key}>
+                  <Table.Td>{i + 1}</Table.Td>
+                  <Table.Td>{row.nume}</Table.Td>
+                  <Table.Td>{row.cod}</Table.Td>
+                  <Table.Td>{row.spec}</Table.Td>
+                  <Table.Td>{row.um}</Table.Td>
+                  <Table.Td>{row.cantitate}</Table.Td>
+                  <Table.Td />
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+
+        <Title order={4} size="h5">
+          Materiale adăugate manual
+        </Title>
+        <Table.ScrollContainer minWidth={1100} maw={1150}>
+          <Table withTableBorder verticalSpacing="xs">
+            <MaterialeTableHeader />
             <Table.Tbody>
               {rows.map((row, i) => (
                 <RandMaterial
@@ -94,6 +170,22 @@ export function MaterialeComandaEditor({
   );
 }
 
+function MaterialeTableHeader() {
+  return (
+    <Table.Thead>
+      <Table.Tr>
+        <Table.Th w={50}>Nr.</Table.Th>
+        <Table.Th miw={280}>Denumirea materialului</Table.Th>
+        <Table.Th w={150}>Nr. nomenclator</Table.Th>
+        <Table.Th w={280}>Specificația (vehicul)</Table.Th>
+        <Table.Th w={100}>UM</Table.Th>
+        <Table.Th w={120}>Cantitate</Table.Th>
+        <Table.Th w={50} />
+      </Table.Tr>
+    </Table.Thead>
+  );
+}
+
 function RandMaterial({
   nr,
   index: i,
@@ -124,6 +216,13 @@ function RandMaterial({
         </Group>
       </Table.Td>
       <Table.Td>
+        <TextInput
+          placeholder="120673"
+          {...form.getInputProps(`materiale.${i}.cod`)}
+          {...pulseProps}
+        />
+      </Table.Td>
+      <Table.Td>
         {/* The document prints this vehicul's plate — see derived.ts. */}
         <Select
           placeholder="Caută un vehicul"
@@ -144,13 +243,6 @@ function RandMaterial({
           decimalScale={3}
           placeholder="2"
           {...form.getInputProps(`materiale.${i}.cantitate`)}
-        />
-      </Table.Td>
-      <Table.Td>
-        <TextInput
-          placeholder="120673"
-          {...form.getInputProps(`materiale.${i}.cod`)}
-          {...pulseProps}
         />
       </Table.Td>
       <Table.Td>

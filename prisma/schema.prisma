@@ -221,6 +221,12 @@ model ActDefectiuneData {
   pieseSchimb String
   lucrari     String
 
+  // A comanda can gather the pieces requested by several acts. The relation
+  // deliberately lives on the documents, rather than copying their pieces
+  // into ComandaMaterialeMaterial: edits to an act are reflected in the
+  // comanda preview and in a newly generated document.
+  comenziMateriale ComandaMaterialeData[]
+
   doc ActDefectiuneDoc?
 }
 
@@ -246,6 +252,9 @@ model ComandaMaterialeData {
   // Calendar date (ISO "YYYY-MM-DD")
   data String
 
+  // The acts whose piese de schimb are prepended to the manually entered
+  // materials when this comanda is generated.
+  acteDefectiune ActDefectiuneData[]
   materiale ComandaMaterialeMaterial[]
 
   doc ComandaMaterialeDoc?

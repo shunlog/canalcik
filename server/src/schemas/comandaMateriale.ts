@@ -21,6 +21,10 @@ const material = z.object({
 // factura.
 export const comandaMaterialeCreate = z.object({
   data: isoDate,
+  acteDefectiuneIds: z.array(z.number().int().positive()).refine(
+    (ids) => new Set(ids).size === ids.length,
+    "Fiecare act de defecțiune poate fi selectat o singură dată",
+  ),
   materiale: z.array(material),
 });
 

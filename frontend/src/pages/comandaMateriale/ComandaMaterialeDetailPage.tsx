@@ -66,7 +66,7 @@ export function ComandaMaterialeDetailPage() {
         <>
           <PageHeader
             title={`Comandă de materiale din ${formatIsoDate(c.data)}`}
-            subtitle={`${c.materiale.length} materiale · modificat ${formatTimestamp(c.updatedAt)}`}
+            subtitle={`${c.nrMateriale} materiale · modificat ${formatTimestamp(c.updatedAt)}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/comanda-materiale")}>

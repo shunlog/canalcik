@@ -432,6 +432,8 @@ export interface ActDefectiuneListItem {
   sofer: SoferRef;
   nrDefectiuni: number;
   nrPieseSchimb: number;
+  /** Included so a comanda can immediately preview a selected act's materials. */
+  pieseSchimb: PiesaSchimbLine[];
   document: GeneratedDocRef | null;
 }
 
@@ -488,13 +490,24 @@ export interface ComandaMaterialLineOut extends ComandaMaterialLine {
   spec: string;
 }
 
+/** A linked act and the material rows it contributes to a comanda. */
+export interface ComandaActDefectiune {
+  id: number;
+  data: IsoDate;
+  vehicul: VehiculRef;
+  pieseSchimb: PiesaSchimbLine[];
+}
+
 /** A comanda as it appears in the list. */
 export interface ComandaMaterialeListItem {
   id: number;
   data: IsoDate;
+  /** All document rows: linked acts' pieces plus manually entered materials. */
   nrMateriale: number;
   /** The vehicles its lines name, each once, in line order. */
   vehicule: VehiculRef[];
+  /** The defect reports whose pieces are included in this comanda. */
+  acteDefectiune: Array<Pick<ComandaActDefectiune, "id" | "data" | "vehicul">>;
   document: GeneratedDocRef | null;
 }
 
@@ -503,12 +516,16 @@ export interface ComandaMaterialeDetail {
   id: number;
   updatedAt: string;
   data: IsoDate;
+  /** All document rows: linked acts' pieces plus manually entered materials. */
+  nrMateriale: number;
+  acteDefectiune: ComandaActDefectiune[];
   materiale: ComandaMaterialLineOut[];
   document: GeneratedDocRef | null;
 }
 
 export interface ComandaMaterialeCreateBody {
   data: IsoDate;
+  acteDefectiuneIds: number[];
   materiale: ComandaMaterialLine[];
 }
 

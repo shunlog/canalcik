@@ -11,6 +11,7 @@ import { hasToken } from "../../../utils/googleAuth.ts";
 import { isoToDDMMYYYY } from "../../../utils/luni.ts";
 import { renderComandaMateriale } from "../../../templates/renderTemplates.ts";
 import { TEMPLATES, loadTemplate } from "../../../templates/templateManifest.ts";
+import type { ComandaMaterialeDetail } from "../api-types.ts";
 import { db } from "../db.ts";
 import {
   comandaMaterialeDetailSelect,
@@ -41,12 +42,47 @@ const toLineCreate = (lines: MaterialComandaInput[]) =>
     vehicul: { connect: { id: vehiculId } },
   }));
 
+/**
+ * The template has one table, while a comanda has two sources for its rows.
+ * Linked acts come first and every row is numbered only after the sources are
+ * combined, so the displayed sequence is continuous.
+ */
+export const materialePentruComandaTemplate = (
+  comanda: Pick<ComandaMaterialeDetail, "acteDefectiune" | "materiale">,
+) => {
+  const materialeDinActe = comanda.acteDefectiune.flatMap((act) =>
+    act.pieseSchimb.map((piesa) => ({
+      nume: piesa.piesaSchimb,
+      spec: `${act.vehicul.litere} ${act.vehicul.cifre}`,
+      um: piesa.um,
+      cantitate: String(piesa.cantitate),
+      cod: piesa.nrNomenclator,
+    })),
+  );
+  const materialeManuale = comanda.materiale.map((m) => ({
+    nume: m.nume,
+    spec: m.spec,
+    um: m.um,
+    cantitate: String(m.cantitate),
+    cod: m.cod,
+  }));
+  return [...materialeDinActe, ...materialeManuale].map((m, i) => ({ nr: i + 1, ...m }));
+};
+
 /** The vehicul is a required FK on every line, so a bad id must be caught before the write. */
 async function assertVehicule(lines: MaterialComandaInput[]) {
   const ids = [...new Set(lines.map((l) => l.vehiculId))];
   if (ids.length === 0) return;
   if ((await db.vehicul.count({ where: { id: { in: ids } } })) !== ids.length) {
     throw badRef("Unul dintre vehiculele selectate nu există");
+  }
+}
+
+/** Linked acts are required to exist, just like the vehicule on manual lines. */
+async function assertActeDefectiune(ids: number[]) {
+  if (ids.length === 0) return;
+  if ((await db.actDefectiuneData.count({ where: { id: { in: ids } } })) !== ids.length) {
+    throw badRef("Unul dintre actele de defecțiune selectate nu există");
   }
 }
 
@@ -70,11 +106,16 @@ comenziMateriale.get("/", async (c) => {
 });
 
 comenziMateriale.post("/", async (c) => {
-  const { materiale, ...scalars } = await readJson(c, comandaMaterialeCreate);
+  const { acteDefectiuneIds, materiale, ...scalars } = await readJson(c, comandaMaterialeCreate);
   await assertVehicule(materiale);
+  await assertActeDefectiune(acteDefectiuneIds);
 
   const row = await db.comandaMaterialeData.create({
-    data: { ...scalars, materiale: { create: toLineCreate(materiale) } },
+    data: {
+      ...scalars,
+      acteDefectiune: { connect: acteDefectiuneIds.map((id) => ({ id })) },
+      materiale: { create: toLineCreate(materiale) },
+    },
     select: comandaMaterialeDetailSelect,
   });
   return c.json(toComandaMaterialeDetail(row), 201);
@@ -92,13 +133,17 @@ comenziMateriale.get("/:id", async (c) => {
 // PUT, not PATCH: a comanda is one form and is saved whole, so a partial write
 // has no meaning here — the same reasoning as for an act de defectiune.
 comenziMateriale.put("/:id", async (c) => {
-  const { materiale, ...scalars } = await readJson(c, comandaMaterialeUpdate);
+  const { acteDefectiuneIds, materiale, ...scalars } = await readJson(c, comandaMaterialeUpdate);
   await assertVehicule(materiale);
+  await assertActeDefectiune(acteDefectiuneIds);
 
   const row = await db.comandaMaterialeData.update({
     where: { id: parseIdParam(c) },
     data: {
       ...scalars,
+      // A set replaces the links atomically, preserving exactly the acts the
+      // multiple-select currently shows.
+      acteDefectiune: { set: acteDefectiuneIds.map((id) => ({ id })) },
       // The lines are owned by the comanda and nothing references their ids, so
       // the set is replaced wholesale — as on a bon. Consequence: line ids are
       // NOT stable across saves.
@@ -133,14 +178,7 @@ comenziMateriale.post("/:id/generate", async (c) => {
   // and the detail also carries ids, the vehicul and the document ref.
   const buffer = renderComandaMateriale(template, {
     data: isoToDDMMYYYY(comanda.data),
-    materiale: comanda.materiale.map((m) => ({
-      nr: m.nr,
-      nume: m.nume,
-      spec: m.spec,
-      um: m.um,
-      cantitate: String(m.cantitate),
-      cod: m.cod,
-    })),
+    materiale: materialePentruComandaTemplate(comanda),
   });
   const nume = `${comanda.data}_comanda_materiale.docx`;
 

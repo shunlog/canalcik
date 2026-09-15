@@ -25,6 +25,7 @@ export interface MaterialRow {
 
 export interface ComandaFormValues {
   data: string | null;
+  acteDefectiuneIds: string[];
   materiale: MaterialRow[];
 }
 
@@ -43,6 +44,7 @@ export const newMaterialRow = (vehiculId: string | null = null): MaterialRow => 
 
 export const emptyComandaForm = (): ComandaFormValues => ({
   data: todayLocalIso(),
+  acteDefectiuneIds: [],
   materiale: [newMaterialRow()],
 });
 
@@ -50,6 +52,7 @@ export const emptyComandaForm = (): ComandaFormValues => ({
 
 export const fromComandaForm = (v: ComandaFormValues): ComandaMaterialeCreateBody => ({
   data: v.data ?? todayLocalIso(),
+  acteDefectiuneIds: v.acteDefectiuneIds.map(Number),
   // No `nr`: the document numbers the rows by their order — see
   // routes/comandaMateriale.ts.
   materiale: v.materiale.map((m) => ({
@@ -63,6 +66,7 @@ export const fromComandaForm = (v: ComandaFormValues): ComandaMaterialeCreateBod
 
 export const toComandaForm = (c: ComandaMaterialeDetail): ComandaFormValues => ({
   data: c.data,
+  acteDefectiuneIds: c.acteDefectiune.map((a) => String(a.id)),
   materiale: c.materiale.map((m) => ({
     key: randomId(),
     vehiculId: String(m.vehiculId),
