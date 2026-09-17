@@ -1,28 +1,88 @@
-import { Anchor, Badge, Button, Table, Text, TextInput } from "@mantine/core";
-import { IconPlus, IconSearch } from "@tabler/icons-react";
+import { Anchor, Badge, Button, MultiSelect, TextInput } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
+import type { VehiculListItem } from "@canalcik/server/api-types";
+import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { plate } from "../../lib/labels.ts";
-import { fuzzySearch } from "../../lib/search.ts";
+import { fuzzyOptionsFilter, fuzzySearch } from "../../lib/search.ts";
+
+function sortValue(vehicul: VehiculListItem, accessor: string): string | number {
+  switch (accessor) {
+    case "registration":
+      return plate(vehicul);
+    case "tip":
+      return vehicul.tip;
+    case "model":
+      return vehicul.model;
+    case "anProducere":
+      return vehicul.anProducere ?? 0;
+    case "nrInventar":
+      return vehicul.nrInventar;
+    case "nrGaraj":
+      return vehicul.nrGaraj;
+    case "sector":
+      return vehicul.sector ?? "";
+    case "nrSoferi":
+      return vehicul.nrSoferi;
+    case "nrBonuri":
+      return vehicul.nrBonuri;
+    default:
+      return "";
+  }
+}
 
 export function VehiculeListPage() {
-  const [search, setSearch] = useState("");
+  const [registrationFilter, setRegistrationFilter] = useState("");
+  const [modelFilter, setModelFilter] = useState("");
+  const [destinationFilter, setDestinationFilter] = useState<string[]>([]);
+  const [sectorFilter, setSectorFilter] = useState<string[]>([]);
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus<VehiculListItem>>({
+    columnAccessor: "registration",
+    direction: "asc",
+  });
   const query = useVehicule();
-  const vehicule = useMemo(
-    () =>
-      fuzzySearch(query.data ?? [], search, [
-        (v) => v.litere,
-        (v) => v.cifre,
-        (v) => v.model,
-        (v) => v.tip,
-        (v) => v.nrInventar,
-        (v) => v.nrGaraj,
-      ]),
-    [query.data, search],
+  const destinationOptions = useMemo(
+    () => [...new Set((query.data ?? []).map((v) => v.tip))].sort((a, b) => a.localeCompare(b, "ro")),
+    [query.data],
   );
+  const sectorOptions = useMemo(
+    () =>
+      [...new Set((query.data ?? []).flatMap((v) => (v.sector ? [v.sector] : [])))].sort((a, b) =>
+        a.localeCompare(b, "ro"),
+      ),
+    [query.data],
+  );
+  const vehicule = useMemo(() => {
+    let records = query.data ?? [];
+
+    if (registrationFilter.trim()) {
+      records = fuzzySearch(records, registrationFilter, [(v) => plate(v)]);
+    }
+
+    if (modelFilter.trim()) {
+      records = fuzzySearch(records, modelFilter, [(v) => v.model]);
+    }
+
+    records = records.filter(
+      (v) =>
+        (destinationFilter.length === 0 || destinationFilter.includes(v.tip)) &&
+        (sectorFilter.length === 0 || (v.sector !== null && sectorFilter.includes(v.sector))),
+    );
+
+    return records.sort((a, b) => {
+      const aValue = sortValue(a, String(sortStatus.columnAccessor));
+      const bValue = sortValue(b, String(sortStatus.columnAccessor));
+      const result =
+        typeof aValue === "number" && typeof bValue === "number"
+          ? aValue - bValue
+          : String(aValue).localeCompare(String(bValue), "ro", { numeric: true, sensitivity: "base" });
+      return sortStatus.direction === "asc" ? result : -result;
+    });
+  }, [destinationFilter, modelFilter, query.data, registrationFilter, sectorFilter, sortStatus]);
 
   return (
     <>
@@ -36,65 +96,108 @@ export function VehiculeListPage() {
         }
       />
 
-      <TextInput
-        placeholder="Caută după plăcuță, model, destinație sau nr. inventar"
-        leftSection={<IconSearch size={16} />}
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        mb="md"
-        maw={480}
-      />
-
       <QueryBoundary query={query}>
         {() =>
-          vehicule.length === 0 ? (
-            <Text c="dimmed">Niciun vehicul găsit.</Text>
-          ) : (
-            <Table.ScrollContainer minWidth={820}>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Nr. înmatriculare</Table.Th>
-                    <Table.Th>Destinația</Table.Th>
-                    <Table.Th>Marcă / Model</Table.Th>
-                    <Table.Th>An</Table.Th>
-                    <Table.Th>Inventar</Table.Th>
-                    <Table.Th>Garaj</Table.Th>
-                    <Table.Th>Sector</Table.Th>
-                    <Table.Th>Șoferi</Table.Th>
-                    <Table.Th>Bonuri</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {vehicule.map((v) => (
-                    <Table.Tr key={v.id}>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/vehicule/${v.id}`}>
-                          {plate(v)}
-                        </Anchor>
-                      </Table.Td>
-                      <Table.Td>{v.tip}</Table.Td>
-                      <Table.Td>{v.model}</Table.Td>
-                      <Table.Td>{v.anProducere ?? "—"}</Table.Td>
-                      <Table.Td>{v.nrInventar}</Table.Td>
-                      <Table.Td>{v.nrGaraj}</Table.Td>
-                      <Table.Td>{v.sector ?? "—"}</Table.Td>
-                      <Table.Td>
-                        <Badge variant="light">
-                          {v.nrSoferi}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge variant="light">
-                          {v.nrBonuri}
-                        </Badge>
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-          )
+          <DataTable
+            records={vehicule}
+            idAccessor="id"
+            striped
+            highlightOnHover
+            minHeight={vehicule.length === 0 ? 150 : undefined}
+            noRecordsText="Niciun vehicul găsit."
+            sortStatus={sortStatus}
+            onSortStatusChange={setSortStatus}
+            scrollAreaProps={{ type: "auto" }}
+            columns={[
+              {
+                accessor: "registration",
+                title: "Nr. înmatriculare",
+                sortable: true,
+                render: (v) => (
+                  <Anchor component={Link} to={`/vehicule/${v.id}`}>
+                    {plate(v)}
+                  </Anchor>
+                ),
+                filter: (
+                  <TextInput
+                    label="Caută după înmatriculare"
+                    placeholder="Nr. înmatriculare"
+                    value={registrationFilter}
+                    onChange={(event) => setRegistrationFilter(event.currentTarget.value)}
+                  />
+                ),
+                filtering: registrationFilter.trim() !== "",
+              },
+              {
+                accessor: "tip",
+                title: "Destinația",
+                sortable: true,
+                filter: (
+                  <MultiSelect
+                    label="Destinații"
+                    placeholder="Toate"
+                    searchable
+                    clearable
+                    filter={fuzzyOptionsFilter}
+                    data={destinationOptions}
+                    value={destinationFilter}
+                    onChange={setDestinationFilter}
+                    comboboxProps={{ withinPortal: false }}
+                  />
+                ),
+                filtering: destinationFilter.length > 0,
+              },
+              {
+                accessor: "model",
+                title: "Marcă / Model",
+                sortable: true,
+                filter: (
+                  <TextInput
+                    label="Caută după marcă / model"
+                    placeholder="Marcă / Model"
+                    value={modelFilter}
+                    onChange={(event) => setModelFilter(event.currentTarget.value)}
+                  />
+                ),
+                filtering: modelFilter.trim() !== "",
+              },
+              { accessor: "anProducere", title: "An", sortable: true, render: (v) => v.anProducere ?? "—" },
+              { accessor: "nrInventar", title: "Inventar", sortable: true },
+              { accessor: "nrGaraj", title: "Garaj", sortable: true },
+              {
+                accessor: "sector",
+                title: "Sector",
+                sortable: true,
+                render: (v) => v.sector ?? "—",
+                filter: (
+                  <MultiSelect
+                    label="Sectoare"
+                    placeholder="Toate"
+                    searchable
+                    clearable
+                    filter={fuzzyOptionsFilter}
+                    data={sectorOptions}
+                    value={sectorFilter}
+                    onChange={setSectorFilter}
+                    comboboxProps={{ withinPortal: false }}
+                  />
+                ),
+                filtering: sectorFilter.length > 0,
+              },
+              {
+                accessor: "nrSoferi",
+                title: "Șoferi",
+                sortable: true,
+                render: (v) => <Badge variant="light">{v.nrSoferi}</Badge>,
+              },
+              {
+                accessor: "nrBonuri",
+                title: "Bonuri",
+                sortable: true,
+                render: (v) => <Badge variant="light">{v.nrBonuri}</Badge>,
+              },
+            ]}
+          />
         }
       </QueryBoundary>
     </>
