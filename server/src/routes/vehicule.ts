@@ -15,7 +15,7 @@ export const vehicule = new Hono();
 vehicule.get("/", async (c) => {
   const rows = await db.vehicul.findMany({
     select: vehiculListSelect,
-    orderBy: [{ litere: "asc" }, { cifre: "asc" }],
+    orderBy: { nrInmatriculare: "asc" },
   });
   return c.json(rows.map(toVehiculListItem));
 });

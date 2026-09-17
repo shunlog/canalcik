@@ -15,8 +15,7 @@ export function VehiculCreatePage() {
   const form = useForm<VehiculFormValues>({
     initialValues: emptyVehiculForm,
     validate: {
-      litere: requiredText("Seria plăcuței"),
-      cifre: requiredText("Numărul plăcuței"),
+      nrInmatriculare: requiredText("Nr. înmatriculare"),
       nrInventar: requiredNum("Nr. inventar"),
       nrGaraj: requiredNum("Nr. garaj"),
       tip: requiredText("Destinația"),

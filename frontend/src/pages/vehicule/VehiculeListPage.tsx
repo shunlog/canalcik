@@ -7,13 +7,12 @@ import { Link } from "react-router";
 import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
-import { plate } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter, fuzzySearch } from "../../lib/search.ts";
 
 function sortValue(vehicul: VehiculListItem, accessor: string): string | number {
   switch (accessor) {
     case "registration":
-      return plate(vehicul);
+      return vehicul.nrInmatriculare;
     case "tip":
       return vehicul.tip;
     case "model":
@@ -60,7 +59,7 @@ export function VehiculeListPage() {
     let records = query.data ?? [];
 
     if (registrationFilter.trim()) {
-      records = fuzzySearch(records, registrationFilter, [(v) => plate(v)]);
+      records = fuzzySearch(records, registrationFilter, [(v) => v.nrInmatriculare]);
     }
 
     if (modelFilter.trim()) {
@@ -115,7 +114,7 @@ export function VehiculeListPage() {
                 sortable: true,
                 render: (v) => (
                   <Anchor component={Link} to={`/vehicule/${v.id}`}>
-                    {plate(v)}
+                    {v.nrInmatriculare}
                   </Anchor>
                 ),
                 filter: (

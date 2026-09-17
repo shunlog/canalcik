@@ -7,9 +7,12 @@ export function VehiculFields({ form }: { form: UseFormReturnType<VehiculFormVal
     <Stack maw={820}>
       <Fieldset legend="Identificare">
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
-          <TextInput label="Nr. înmatriculare (litere)" placeholder="MRZ" withAsterisk {...form.getInputProps("litere")} />
-          {/* Not a NumberInput: values like "f/n" occur in the source sheet. */}
-          <TextInput label="Nr. înmatriculare (cifre)" placeholder="40" withAsterisk {...form.getInputProps("cifre")} />
+          <TextInput
+            label="Nr. înmatriculare"
+            placeholder="MRZ 40"
+            withAsterisk
+            {...form.getInputProps("nrInmatriculare")}
+          />
           <NumberInput label="Nr. Inventar" allowDecimal={false} withAsterisk {...form.getInputProps("nrInventar")} />
           <NumberInput label="Nr. Garaj" allowDecimal={false} withAsterisk {...form.getInputProps("nrGaraj")} />
           <TextInput label="Destinația" placeholder="Tractor" withAsterisk {...form.getInputProps("tip")} />

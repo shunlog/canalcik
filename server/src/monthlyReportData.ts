@@ -81,7 +81,7 @@ export type MonthlyReportBon = {
   soferId: number;
   vehiculId: number;
   sofer: { nume: string; cod: number };
-  vehicul: { litere: string; cifre: string; nrInventar: number };
+  vehicul: { nrInmatriculare: string; nrInventar: number };
   linii: MonthlyReportBonLine[];
 };
 
@@ -148,8 +148,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
   };
   type Group = {
     key: string;
-    litere: string;
-    cifre: string;
+    nrInmatriculare: string;
     nrInventar: number;
     numeSofer: string;
     codSofer: number;
@@ -176,8 +175,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
       if (!group) {
         group = {
           key,
-          litere: bon.vehicul.litere,
-          cifre: bon.vehicul.cifre,
+          nrInmatriculare: bon.vehicul.nrInmatriculare,
           nrInventar: bon.vehicul.nrInventar,
           numeSofer: bon.sofer.nume,
           codSofer: bon.sofer.cod,
@@ -217,11 +215,9 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
     // Drop groups left with no rows (a bon with zero lines passes bonCreate).
     .filter((g) => g.rows.size > 0)
     .sort((a, b) =>
-      a.litere !== b.litere
-        ? a.litere.localeCompare(b.litere)
-        : a.cifre !== b.cifre
-          ? a.cifre.localeCompare(b.cifre)
-          : a.numeSofer.localeCompare(b.numeSofer),
+      a.nrInmatriculare !== b.nrInmatriculare
+        ? a.nrInmatriculare.localeCompare(b.nrInmatriculare)
+        : a.numeSofer.localeCompare(b.numeSofer),
     );
 
   const { luna, anul } = lunaSiAnul(input.month);
@@ -235,7 +231,7 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
           : a.lineId - b.lineId,
     );
     return {
-      nr_inregistrare: `${g.litere} ${g.cifre}`,
+      nr_inregistrare: g.nrInmatriculare,
       nume_sofer: g.numeSofer,
       cod_sofer: String(g.codSofer),
       nr_inventar: String(g.nrInventar),

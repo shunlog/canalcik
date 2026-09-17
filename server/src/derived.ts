@@ -4,9 +4,6 @@ import type { InfoSofer, InfoVehicul, SoferRef, VehiculRef, VehiculScalars } fro
 // with the frontend (@canalcik/server/derived) so the form previews exactly what
 // the document will print, from one definition rather than two.
 
-/** "MRZ 40" — the plate as the documents print it, from its two stored halves. */
-export const plate = (v: Pick<VehiculRef, "litere" | "cifre">) => `${v.litere} ${v.cifre}`;
-
 // EIP validity is a business rule, rather than data belonging to a particular
 // driver. Keep it here so both the API and the driver form use the same source
 // of truth without persisting calculated expiry dates.
@@ -45,13 +42,13 @@ export const eipExpiryDate = (
 
 type VehiculInfoSursa = Pick<
   VehiculScalars,
-  "litere" | "cifre" | "nrInventar" | "tip" | "model" | "anProducere"
+  "nrInmatriculare" | "nrInventar" | "tip" | "model" | "anProducere"
 >;
 
 /** The act's "Informatie activ" block, read off the vehicul it names. */
 export const infoVehicul = (v: VehiculInfoSursa): InfoVehicul => ({
   nrInventar: String(v.nrInventar),
-  nrInregistrare: plate(v),
+  nrInregistrare: v.nrInmatriculare,
   denumireVehicul: `${v.tip} ${v.model}`,
   anProducerii: v.anProducere?.toString() ?? "",
 });

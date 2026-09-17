@@ -2,9 +2,7 @@ import type { VehiculCreateBody, VehiculDetail } from "@canalcik/server/api-type
 import { emptyToNull, nullToEmpty, numOrNull, numOrZero } from "../../lib/forms.ts";
 
 export interface VehiculFormValues {
-  litere: string;
-  /** A string, not a number: the source data contains plates like "f/n". */
-  cifre: string;
+  nrInmatriculare: string;
   nrInventar: number | string;
   nrGaraj: number | string;
   tip: string;
@@ -17,8 +15,7 @@ export interface VehiculFormValues {
 }
 
 export const emptyVehiculForm: VehiculFormValues = {
-  litere: "",
-  cifre: "",
+  nrInmatriculare: "",
   nrInventar: "",
   nrGaraj: "",
   tip: "",
@@ -31,8 +28,7 @@ export const emptyVehiculForm: VehiculFormValues = {
 };
 
 export const toVehiculForm = (v: VehiculDetail): VehiculFormValues => ({
-  litere: v.litere,
-  cifre: v.cifre,
+  nrInmatriculare: v.nrInmatriculare,
   nrInventar: v.nrInventar,
   nrGaraj: v.nrGaraj,
   tip: v.tip,
@@ -45,8 +41,7 @@ export const toVehiculForm = (v: VehiculDetail): VehiculFormValues => ({
 });
 
 export const fromVehiculForm = (v: VehiculFormValues): VehiculCreateBody => ({
-  litere: v.litere.trim(),
-  cifre: v.cifre.trim(),
+  nrInmatriculare: v.nrInmatriculare.trim(),
   nrInventar: numOrZero(v.nrInventar),
   nrGaraj: numOrZero(v.nrGaraj),
   tip: v.tip.trim(),

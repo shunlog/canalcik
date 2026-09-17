@@ -9,7 +9,6 @@ import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate } from "../../lib/forms.ts";
-import { plate } from "../../lib/labels.ts";
 import { BonFields } from "./BonFields.tsx";
 import { bonValidation, emptyBonForm, fromBonForm, toBonForm, type BonFormValues } from "./bonForm.ts";
 
@@ -77,7 +76,7 @@ export function BonDetailPage() {
               <Text size="sm">
                 Vehicul:{" "}
                 <Anchor component={Link} to={`/vehicule/${b.vehicul.id}`}>
-                  {plate(b.vehicul)} — {b.vehicul.model}
+                  {b.vehicul.nrInmatriculare} — {b.vehicul.model}
                 </Anchor>
               </Text>
             </Group>

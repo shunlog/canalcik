@@ -19,7 +19,7 @@ import type {
   VehiculDetail,
   VehiculListItem,
 } from "./api-types.ts";
-import { infoSofer, infoVehicul, plate } from "./derived.ts";
+import { infoSofer, infoVehicul } from "./derived.ts";
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -27,8 +27,7 @@ import { infoSofer, infoVehicul, plate } from "./derived.ts";
 
 export const vehiculRefSelect = {
   id: true,
-  litere: true,
-  cifre: true,
+  nrInmatriculare: true,
   nrInventar: true,
   tip: true,
   model: true,
@@ -90,7 +89,7 @@ export const soferListSelect = {
 
 export const soferDetailSelect = {
   ...soferScalarSelect,
-  vehicule: { select: vehiculRefSelect, orderBy: [{ litere: "asc" }, { cifre: "asc" }] },
+  vehicule: { select: vehiculRefSelect, orderBy: { nrInmatriculare: "asc" } },
   bonuri: { select: bonRefSelect, orderBy: [{ data: "desc" }, { id: "desc" }] },
 } satisfies Prisma.SoferSelect;
 
@@ -124,8 +123,7 @@ export const toSoferDetail = ({
 const vehiculScalarSelect = {
   id: true,
   updatedAt: true,
-  litere: true,
-  cifre: true,
+  nrInmatriculare: true,
   nrInventar: true,
   nrGaraj: true,
   tip: true,
@@ -499,7 +497,7 @@ export const toComandaMaterialeDetail = ({
     updatedAt: updatedAt.toISOString(),
     nrMateriale: materiale.length + acte.reduce((total, act) => total + act.pieseSchimb.length, 0),
     acteDefectiune: acte,
-    materiale: materiale.map((m) => ({ ...m, spec: plate(m.vehicul) })),
+    materiale: materiale.map((m) => ({ ...m, spec: m.vehicul.nrInmatriculare })),
     document: doc ? toGeneratedDocRef(doc.document) : null,
   };
 };

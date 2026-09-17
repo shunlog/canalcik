@@ -3,9 +3,7 @@ import type { SetSoferiBody, VehiculCreateBody, VehiculUpdateBody } from "../api
 import { idList, nullableInt, nullableText, requiredText, type Same } from "./common.ts";
 
 export const vehiculCreate = z.object({
-  litere: requiredText("Seria plăcuței"),
-  // A string, not a number: the source data contains values like "f/n".
-  cifre: requiredText("Numărul plăcuței"),
+  nrInmatriculare: requiredText("Nr. înmatriculare"),
   nrInventar: z.number().int().positive("Nr. inventar este obligatoriu"),
   nrGaraj: z.number().int().positive("Nr. garaj este obligatoriu"),
   tip: requiredText("Destinația"),

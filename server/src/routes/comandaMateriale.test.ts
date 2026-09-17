@@ -11,8 +11,7 @@ describe("materialePentruComandaTemplate", () => {
           data: "2026-09-15",
           vehicul: {
             id: 8,
-            litere: "CA",
-            cifre: "786",
+            nrInmatriculare: "CA 786",
             nrInventar: 42691696,
             tip: "Tractor",
             model: "MTZ-82",
@@ -37,8 +36,7 @@ describe("materialePentruComandaTemplate", () => {
           vehiculId: 10,
           vehicul: {
             id: 10,
-            litere: "MRZ",
-            cifre: "40",
+            nrInmatriculare: "MRZ 40",
             nrInventar: 11,
             tip: "Autocamion",
             model: "MAZ",

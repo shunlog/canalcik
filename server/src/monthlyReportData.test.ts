@@ -56,13 +56,13 @@ const bon = (overrides: Partial<MonthlyReportBon> = {}): MonthlyReportBon => ({
   soferId: 1,
   vehiculId: 1,
   sofer: { nume: "Celpan Ion", cod: 4984 },
-  vehicul: { litere: "CBE", cifre: "276", nrInventar: 42691696 },
+  vehicul: { nrInmatriculare: "CBE 276", nrInventar: 42691696 },
   linii: [],
   ...overrides,
 });
 
 describe("buildMonthlyReport", () => {
-  it("groups bonuri by vehicul+sofer into one sheet each, ordered by (litere, cifre, sofer)", () => {
+  it("groups bonuri by vehicul+sofer into one sheet each, ordered by (nrInmatriculare, sofer)", () => {
     const input: BuildMonthlyReportInput = {
       month: MONTH,
       bonuri: [
@@ -70,7 +70,7 @@ describe("buildMonthlyReport", () => {
           id: 1,
           vehiculId: 2,
           soferId: 2,
-          vehicul: { litere: "CBE", cifre: "277", nrInventar: 42691697 },
+          vehicul: { nrInmatriculare: "CBE 277", nrInventar: 42691697 },
           sofer: { nume: "Rusu Maria", cod: 1111 },
           linii: [
             {

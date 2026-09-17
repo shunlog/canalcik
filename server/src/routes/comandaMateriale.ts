@@ -53,7 +53,7 @@ export const materialePentruComandaTemplate = (
   const materialeDinActe = comanda.acteDefectiune.flatMap((act) =>
     act.pieseSchimb.map((piesa) => ({
       nume: piesa.piesaSchimb,
-      spec: `${act.vehicul.litere} ${act.vehicul.cifre}`,
+      spec: act.vehicul.nrInmatriculare,
       um: piesa.um,
       cantitate: String(piesa.cantitate),
       cod: piesa.nrNomenclator,

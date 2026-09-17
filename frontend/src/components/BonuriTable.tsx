@@ -2,7 +2,6 @@ import type { BonRef } from "@canalcik/server/api-types";
 import { Anchor, Badge, Table } from "@mantine/core";
 import { Link } from "react-router";
 import { formatIsoDate } from "../lib/forms.ts";
-import { plate } from "../lib/labels.ts";
 
 /** The shared bon listing — used by the list page and by both detail pages. */
 export function BonuriTable({
@@ -43,7 +42,7 @@ export function BonuriTable({
               {!hideVehicul && (
                 <Table.Td>
                   <Anchor component={Link} to={`/vehicule/${b.vehicul.id}`}>
-                    {plate(b.vehicul)}
+                    {b.vehicul.nrInmatriculare}
                   </Anchor>
                 </Table.Td>
               )}

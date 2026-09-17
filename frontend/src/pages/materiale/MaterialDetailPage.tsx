@@ -10,7 +10,6 @@ import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, requiredText } from "../../lib/forms.ts";
-import { plate } from "../../lib/labels.ts";
 
 /**
  * One material, and every bon line that names it. The listing is per line
@@ -138,7 +137,7 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
               </Table.Td>
               <Table.Td>
                 <Anchor component={Link} to={`/vehicule/${u.bon.vehicul.id}`}>
-                  {plate(u.bon.vehicul)}
+                  {u.bon.vehicul.nrInmatriculare}
                 </Anchor>
               </Table.Td>
               <Table.Td>

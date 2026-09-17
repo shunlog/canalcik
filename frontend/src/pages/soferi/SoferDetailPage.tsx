@@ -13,7 +13,7 @@ import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredNum, requiredText } from "../../lib/forms.ts";
-import { plate, vehiculLabel } from "../../lib/labels.ts";
+import { vehiculLabel } from "../../lib/labels.ts";
 import { SoferFields } from "./SoferFields.tsx";
 import { emptySoferForm, fromSoferForm, toSoferForm, type SoferFormValues } from "./soferForm.ts";
 
@@ -95,7 +95,7 @@ export function SoferDetailPage() {
               <RefLinkList
                 items={s.vehicule.map((v) => ({
                   id: v.id,
-                  label: `${plate(v)} (${v.model})`,
+                  label: `${v.nrInmatriculare} (${v.model})`,
                   to: `/vehicule/${v.id}`,
                 }))}
                 empty="Niciun vehicul atribuit."

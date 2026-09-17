@@ -8,7 +8,7 @@ import { useVehicule } from "../../api/vehicule.ts";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
-import { plate, vehiculLabel } from "../../lib/labels.ts";
+import { vehiculLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 
 export function ComandaMaterialeListPage() {
@@ -104,7 +104,7 @@ export function ComandaMaterialeListPage() {
                             <Fragment key={v.id}>
                               {i > 0 && ", "}
                               <Anchor component={Link} to={`/vehicule/${v.id}`} size="sm">
-                                {plate(v)}
+                                {v.nrInmatriculare}
                               </Anchor>
                             </Fragment>
                           ))}
@@ -116,7 +116,7 @@ export function ComandaMaterialeListPage() {
                             <Fragment key={act.id}>
                               {i > 0 && ", "}
                               <Anchor component={Link} to={`/act-defectiune/${act.id}`} size="sm">
-                                {formatIsoDate(act.data)} - {plate(act.vehicul)}
+                                {formatIsoDate(act.data)} - {act.vehicul.nrInmatriculare}
                               </Anchor>
                             </Fragment>
                           ))}

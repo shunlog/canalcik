@@ -13,7 +13,7 @@ import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredNum, requiredText } from "../../lib/forms.ts";
-import { plate, soferLabel } from "../../lib/labels.ts";
+import { soferLabel } from "../../lib/labels.ts";
 import { VehiculFields } from "./VehiculFields.tsx";
 import {
   emptyVehiculForm,
@@ -35,8 +35,7 @@ export function VehiculDetailPage() {
   const form = useForm<VehiculFormValues>({
     initialValues: emptyVehiculForm,
     validate: {
-      litere: requiredText("Seria plăcuței"),
-      cifre: requiredText("Numărul plăcuței"),
+      nrInmatriculare: requiredText("Nr. înmatriculare"),
       nrInventar: requiredNum("Nr. inventar"),
       nrGaraj: requiredNum("Nr. garaj"),
       tip: requiredText("Destinația"),
@@ -65,7 +64,7 @@ export function VehiculDetailPage() {
       {(v) => (
         <>
           <PageHeader
-            title={plate(v)}
+            title={v.nrInmatriculare}
             subtitle={`${v.tip} · ${v.model} · modificat ${new Date(v.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
@@ -73,7 +72,7 @@ export function VehiculDetailPage() {
                   Înapoi
                 </Button>
                 <DeleteButton
-                  confirmText={`Ștergeți vehiculul „${plate(v)}”? Acțiunea nu poate fi anulată.`}
+                  confirmText={`Ștergeți vehiculul „${v.nrInmatriculare}”? Acțiunea nu poate fi anulată.`}
                   backTo="/vehicule"
                   loading={remove.isPending}
                   onDelete={() => remove.mutateAsync()}

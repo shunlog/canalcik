@@ -79,8 +79,7 @@ export interface TemplateInfo {
 
 export interface VehiculRef {
   id: number;
-  litere: string;
-  cifre: string;
+  nrInmatriculare: string;
   nrInventar: number;
   tip: string;
   model: string;
@@ -147,8 +146,7 @@ export interface SetVehiculeBody {
 // -------------------------------------------------------------------- vehicul
 
 export interface VehiculScalars {
-  litere: string;
-  cifre: string;
+  nrInmatriculare: string;
   nrInventar: number;
   nrGaraj: number;
   tip: string;

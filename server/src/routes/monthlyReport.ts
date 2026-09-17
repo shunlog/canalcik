@@ -179,7 +179,7 @@ monthlyReport.post("/:month/generate", async (c) => {
         soferId: true,
         vehiculId: true,
         sofer: { select: { nume: true, cod: true } },
-        vehicul: { select: { litere: true, cifre: true, nrInventar: true } },
+        vehicul: { select: { nrInmatriculare: true, nrInventar: true } },
         materiale: bonuriLinesSelect,
       },
     }),

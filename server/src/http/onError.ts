@@ -32,7 +32,7 @@ export const onError: ErrorHandler = (err, c) => {
       case "P2025":
         return c.json(body("NOT_FOUND", "Înregistrarea nu a fost găsită"), 404);
 
-      // Sofer.cod, Vehicul.nrInventar, Vehicul.nrGaraj, @@unique([litere, cifre])
+      // Sofer.cod, Vehicul.nrInmatriculare, Vehicul.nrInventar, Vehicul.nrGaraj
       // are all editable from the UI, so this one will fire in normal use.
       case "P2002": {
         const target = (err.meta?.target as string[] | undefined)?.join(", ");

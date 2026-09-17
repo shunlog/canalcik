@@ -22,12 +22,7 @@ model Vehicul {
   id        Int      @id @default(autoincrement())
   updatedAt DateTime @default(now()) @updatedAt
 
-  // The plate is kept split, as in the first two "Nr. înmatriculare" columns
-  // ("MRZ" + "40"); that pair is also how the soferi sheet references a
-  // vehicle, so it is the join key on import. The sheet's 3rd
-  // "Nr. înmatriculare" column (a hand-written display form) is ignored.
-  litere              String // "Nr. înmatriculare" (1st col)
-  cifre               String // "Nr. înmatriculare" (2nd col) — not always numeric ("f/n")
+  nrInmatriculare     String  @unique // e.g. "MRZ 40"; suffixes may be non-numeric ("f/n")
   nrInventar          Int     @unique // "Nr. Inventar"
   nrGaraj             Int     @unique // "Nr. Garaj"
   tip                 String // "Destinatia"      — Tractor, Excavator, ...
@@ -43,7 +38,6 @@ model Vehicul {
   acteDefectiune ActDefectiuneData[]
   comenzi        ComandaMaterialeMaterial[]
 
-  @@unique([litere, cifre])
 }
 
 model Sofer {
