@@ -21,29 +21,6 @@ const EIP_FIELDS: EipEquipmentField[] = [
 
 type SoferRecord = SoferListItem & { expiredEquipment: number };
 
-function sortValue(sofer: SoferRecord, accessor: string): string | number {
-  switch (accessor) {
-    case "cod":
-      return sofer.cod;
-    case "nume":
-      return sofer.nume;
-    case "functie":
-      return sofer.functie ?? "";
-    case "sector":
-      return sofer.sector ?? "";
-    case "telefon":
-      return sofer.telefon ?? "";
-    case "expiredEquipment":
-      return sofer.expiredEquipment;
-    case "nrVehicule":
-      return sofer.nrVehicule;
-    case "nrBonuri":
-      return sofer.nrBonuri;
-    default:
-      return "";
-  }
-}
-
 export function SoferiListPage() {
   const [pontajFilter, setPontajFilter] = useState("");
   const [numeFilter, setNumeFilter] = useState("");
@@ -95,12 +72,16 @@ export function SoferiListPage() {
     );
 
     return records.sort((a, b) => {
-      const aValue = sortValue(a, String(sortStatus.columnAccessor));
-      const bValue = sortValue(b, String(sortStatus.columnAccessor));
+      const accessor = sortStatus.columnAccessor as keyof SoferRecord;
+      const aValue = a[accessor];
+      const bValue = b[accessor];
       const result =
         typeof aValue === "number" && typeof bValue === "number"
           ? aValue - bValue
-          : String(aValue).localeCompare(String(bValue), "ro", { numeric: true, sensitivity: "base" });
+          : String(aValue ?? "").localeCompare(String(bValue ?? ""), "ro", {
+              numeric: true,
+              sensitivity: "base",
+            });
       return sortStatus.direction === "asc" ? result : -result;
     });
   }, [

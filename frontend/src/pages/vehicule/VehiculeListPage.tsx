@@ -9,38 +9,13 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { fuzzyOptionsFilter, fuzzySearch } from "../../lib/search.ts";
 
-function sortValue(vehicul: VehiculListItem, accessor: string): string | number {
-  switch (accessor) {
-    case "registration":
-      return vehicul.nrInmatriculare;
-    case "tip":
-      return vehicul.tip;
-    case "model":
-      return vehicul.model;
-    case "anProducere":
-      return vehicul.anProducere ?? 0;
-    case "nrInventar":
-      return vehicul.nrInventar;
-    case "nrGaraj":
-      return vehicul.nrGaraj;
-    case "sector":
-      return vehicul.sector ?? "";
-    case "nrSoferi":
-      return vehicul.nrSoferi;
-    case "nrBonuri":
-      return vehicul.nrBonuri;
-    default:
-      return "";
-  }
-}
-
 export function VehiculeListPage() {
   const [registrationFilter, setRegistrationFilter] = useState("");
   const [modelFilter, setModelFilter] = useState("");
   const [destinationFilter, setDestinationFilter] = useState<string[]>([]);
   const [sectorFilter, setSectorFilter] = useState<string[]>([]);
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus<VehiculListItem>>({
-    columnAccessor: "registration",
+    columnAccessor: "nrInmatriculare",
     direction: "asc",
   });
   const query = useVehicule();
@@ -73,12 +48,16 @@ export function VehiculeListPage() {
     );
 
     return records.sort((a, b) => {
-      const aValue = sortValue(a, String(sortStatus.columnAccessor));
-      const bValue = sortValue(b, String(sortStatus.columnAccessor));
+      const accessor = sortStatus.columnAccessor as keyof VehiculListItem;
+      const aValue = a[accessor];
+      const bValue = b[accessor];
       const result =
         typeof aValue === "number" && typeof bValue === "number"
           ? aValue - bValue
-          : String(aValue).localeCompare(String(bValue), "ro", { numeric: true, sensitivity: "base" });
+          : String(aValue ?? "").localeCompare(String(bValue ?? ""), "ro", {
+              numeric: true,
+              sensitivity: "base",
+            });
       return sortStatus.direction === "asc" ? result : -result;
     });
   }, [destinationFilter, modelFilter, query.data, registrationFilter, sectorFilter, sortStatus]);
@@ -109,7 +88,7 @@ export function VehiculeListPage() {
             scrollAreaProps={{ type: "auto" }}
             columns={[
               {
-                accessor: "registration",
+                accessor: "nrInmatriculare",
                 title: "Nr. înmatriculare",
                 sortable: true,
                 render: (v) => (
