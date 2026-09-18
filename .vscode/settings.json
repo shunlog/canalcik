@@ -4,5 +4,7 @@
         ".vscode": true,
         "node_modules": true
     },
-    "prisma.pinToPrisma6": true
+    "prisma.pinToPrisma6": true,
+    "gitlens.currentLine.enabled": false,
+    "gitlens.hovers.currentLine.over": "line"
 }
