@@ -1,14 +1,8 @@
-import { ActionIcon, Anchor, Badge, Button, Group, Table, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Anchor, Badge, Button, Group, Text, TextInput } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import type { MaterialListItem } from "@canalcik/server/api-types";
-import {
-  IconCheck,
-  IconPencil,
-  IconPlus,
-  IconSearch,
-  IconTrash,
-  IconX,
-} from "@tabler/icons-react";
+import { IconCheck, IconPencil, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
+import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
@@ -17,11 +11,13 @@ import {
   useMateriale,
   useUpdateMaterial,
 } from "../../api/materiale.ts";
+import { textFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, showSaved } from "../../lib/feedback.ts";
 import { fuzzySearch } from "../../lib/search.ts";
+import { sortRecords } from "../../lib/sort.ts";
 
 /**
  * The catalogue of materials a bon line can point at. There is only one
@@ -29,12 +25,16 @@ import { fuzzySearch } from "../../lib/search.ts";
  * page; a rename shows up on every bon that ever named the material.
  */
 export function MaterialeListPage() {
-  const [search, setSearch] = useState("");
+  const [numeFilter, setNumeFilter] = useState("");
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus<MaterialListItem>>({
+    columnAccessor: "nume",
+    direction: "asc",
+  });
   const query = useMateriale();
-  const materiale = useMemo(
-    () => fuzzySearch(query.data ?? [], search, [(m) => m.nume]),
-    [query.data, search],
-  );
+  const materiale = useMemo(() => {
+    const filtered = fuzzySearch(query.data ?? [], numeFilter, [(m) => m.nume]);
+    return sortRecords(filtered, sortStatus);
+  }, [query.data, numeFilter, sortStatus]);
 
   const [nume, setNume] = useState("");
   const create = useCreateMaterial();
@@ -85,44 +85,47 @@ export function MaterialeListPage() {
         </Button>
       </Group>
 
-      <TextInput
-        placeholder="Caută după denumire"
-        leftSection={<IconSearch size={16} />}
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        mb="md"
-        maw={480}
-      />
-
       <QueryBoundary query={query}>
         {() =>
-          materiale.length === 0 ? (
-            <Text c="dimmed">Niciun material găsit.</Text>
-          ) : (
-            <Table.ScrollContainer minWidth={620}>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Denumire</Table.Th>
-                    <Table.Th w={130}>Linii de bon</Table.Th>
-                    <Table.Th w={110} />
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {materiale.map((m) => (
-                    <MaterialRow key={m.id} material={m} />
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-          )
+          <DataTable
+            records={materiale}
+            idAccessor="id"
+            striped
+            highlightOnHover
+            minHeight={materiale.length === 0 ? 150 : undefined}
+            noRecordsText="Niciun material găsit."
+            sortStatus={sortStatus}
+            onSortStatusChange={setSortStatus}
+            scrollAreaProps={{ type: "auto" }}
+            columns={[
+              {
+                accessor: "nume",
+                title: "Denumire",
+                sortable: true,
+                render: (m) => <MaterialNameCell material={m} />,
+                ...textFilterColumn({
+                  label: "Caută după denumire",
+                  placeholder: "Denumire",
+                  value: numeFilter,
+                  onChange: setNumeFilter,
+                }),
+              },
+              {
+                accessor: "nrLinii",
+                title: "Linii de bon",
+                width: 130,
+                sortable: true,
+                render: (m) => <Badge variant="light">{m.nrLinii}</Badge>,
+              },
+            ]}
+          />
         }
       </QueryBoundary>
     </>
   );
 }
 
-function MaterialRow({ material }: { material: MaterialListItem }) {
+function MaterialNameCell({ material }: { material: MaterialListItem }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(material.nume);
   const update = useUpdateMaterial(material.id);
@@ -169,73 +172,52 @@ function MaterialRow({ material }: { material: MaterialListItem }) {
       },
     });
 
+  if (editing) {
+    return (
+      <Group gap={4} wrap="nowrap">
+        <TextInput
+          value={draft}
+          autoFocus
+          onChange={(e) => setDraft(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              save();
+            }
+            if (e.key === "Escape") setEditing(false);
+          }}
+          error={update.error instanceof ApiError ? update.error.message : undefined}
+          style={{ flex: 1 }}
+        />
+        <ActionIcon variant="subtle" aria-label="Salvează denumirea" loading={update.isPending} onClick={save}>
+          <IconCheck size={16} />
+        </ActionIcon>
+        <ActionIcon variant="subtle" color="gray" aria-label="Anulează" onClick={() => setEditing(false)}>
+          <IconX size={16} />
+        </ActionIcon>
+      </Group>
+    );
+  }
+
   return (
-    <Table.Tr>
-      <Table.Td>
-        {editing ? (
-          <TextInput
-            value={draft}
-            autoFocus
-            onChange={(e) => setDraft(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                save();
-              }
-              if (e.key === "Escape") setEditing(false);
-            }}
-            error={update.error instanceof ApiError ? update.error.message : undefined}
-          />
-        ) : (
-          <Anchor component={Link} to={`/materiale/${material.id}`}>
-            {material.nume}
-          </Anchor>
-        )}
-      </Table.Td>
-      <Table.Td>
-        <Badge variant="light">
-          {material.nrLinii}
-        </Badge>
-      </Table.Td>
-      <Table.Td>
-        <Group gap={4} wrap="nowrap">
-          {editing ? (
-            <>
-              <ActionIcon
-                variant="subtle"
-                aria-label="Salvează denumirea"
-                loading={update.isPending}
-                onClick={save}
-              >
-                <IconCheck size={16} />
-              </ActionIcon>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                aria-label="Anulează"
-                onClick={() => setEditing(false)}
-              >
-                <IconX size={16} />
-              </ActionIcon>
-            </>
-          ) : (
-            <>
-              <ActionIcon variant="subtle" aria-label="Redenumește" onClick={startEditing}>
-                <IconPencil size={16} />
-              </ActionIcon>
-              <ActionIcon
-                variant="subtle"
-                color="red"
-                aria-label="Șterge materialul"
-                loading={remove.isPending}
-                onClick={confirmDelete}
-              >
-                <IconTrash size={16} />
-              </ActionIcon>
-            </>
-          )}
-        </Group>
-      </Table.Td>
-    </Table.Tr>
+    <Group gap={4} wrap="nowrap" justify="space-between">
+      <Anchor component={Link} to={`/materiale/${material.id}`}>
+        {material.nume}
+      </Anchor>
+      <Group gap={4} wrap="nowrap">
+        <ActionIcon variant="subtle" aria-label="Redenumește" onClick={startEditing}>
+          <IconPencil size={16} />
+        </ActionIcon>
+        <ActionIcon
+          variant="subtle"
+          color="red"
+          aria-label="Șterge materialul"
+          loading={remove.isPending}
+          onClick={confirmDelete}
+        >
+          <IconTrash size={16} />
+        </ActionIcon>
+      </Group>
+    </Group>
   );
 }

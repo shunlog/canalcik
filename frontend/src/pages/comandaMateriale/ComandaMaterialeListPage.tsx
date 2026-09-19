@@ -1,39 +1,58 @@
-import { Anchor, Badge, Button, Group, Select, Table, Text } from "@mantine/core";
+import { Anchor, Badge, Button, Group, Text } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
-import { Fragment, useState } from "react";
+import type { ComandaMaterialeListItem } from "@canalcik/server/api-types";
+import { DataTable, type DataTableSortStatus } from "mantine-datatable";
+import { Fragment, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useComenziMateriale } from "../../api/comenziMateriale.ts";
-import { useVehicule } from "../../api/vehicule.ts";
+import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
-import { vehiculLabel } from "../../lib/labels.ts";
-import { fuzzyOptionsFilter } from "../../lib/search.ts";
+import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
 export function ComandaMaterialeListPage() {
-  const [vehiculId, setVehiculId] = useState<string | null>(null);
+  const [vehiculFilter, setVehiculFilter] = useState<string[]>([]);
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
-
-  const vehicule = useVehicule();
-  const query = useComenziMateriale({
-    vehiculId: vehiculId ? Number(vehiculId) : undefined,
-    from: from ?? undefined,
-    to: to ?? undefined,
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus<ComandaMaterialeListItem>>({
+    columnAccessor: "data",
+    direction: "desc",
   });
 
+  const query = useComenziMateriale();
+
+  const vehiculOptions = useMemo(
+    () => uniqueSortedOptions((query.data ?? []).flatMap((c) => c.vehicule), (v) => v.nrInmatriculare),
+    [query.data],
+  );
+
   const clearFilters = () => {
-    setVehiculId(null);
+    setVehiculFilter([]);
     setFrom(null);
     setTo(null);
   };
+
+  const comenzi = useMemo(() => {
+    let records = query.data ?? [];
+
+    records = records.filter(
+      (c) =>
+        (vehiculFilter.length === 0 ||
+          c.vehicule.some((v) => vehiculFilter.includes(v.nrInmatriculare))) &&
+        (!from || c.data >= from) &&
+        (!to || c.data <= to),
+    );
+
+    return sortRecords(records, sortStatus);
+  }, [from, query.data, sortStatus, to, vehiculFilter]);
 
   return (
     <>
       <PageHeader
         title="Comenzi de materiale"
-        subtitle={query.data ? `${query.data.length} comenzi` : undefined}
+        subtitle={query.data ? `${comenzi.length} comenzi` : undefined}
         actions={
           <Button component={Link} to="/comanda-materiale/nou" leftSection={<IconPlus size={16} />}>
             Comandă nouă
@@ -42,108 +61,97 @@ export function ComandaMaterialeListPage() {
       />
 
       <Group align="flex-end" mb="md">
-        <Select
-          label="Vehicul"
-          placeholder="Toate"
-          searchable
-          clearable
-          filter={fuzzyOptionsFilter}
-          w={280}
-          data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
-          value={vehiculId}
-          onChange={setVehiculId}
-        />
-        <DateInput
-          label="De la"
-          valueFormat="DD.MM.YYYY"
-          clearable
-          w={150}
-          value={from}
-          onChange={setFrom}
-        />
-        <DateInput
-          label="Până la"
-          valueFormat="DD.MM.YYYY"
-          clearable
-          w={150}
-          value={to}
-          onChange={setTo}
-        />
+        <DateInput label="De la" valueFormat="DD.MM.YYYY" clearable w={150} value={from} onChange={setFrom} />
+        <DateInput label="Până la" valueFormat="DD.MM.YYYY" clearable w={150} value={to} onChange={setTo} />
         <Button variant="subtle" onClick={clearFilters}>
           Resetează filtrele
         </Button>
       </Group>
 
       <QueryBoundary query={query}>
-        {(comenzi) =>
-          comenzi.length === 0 ? (
-            <Text c="dimmed">Nicio comandă găsită.</Text>
-          ) : (
-            <Table.ScrollContainer minWidth={950}>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th w={140}>Data</Table.Th>
-                    <Table.Th>Vehicule</Table.Th>
-                    <Table.Th>Acte Defecțiune</Table.Th>
-                    <Table.Th w={130}>Materiale</Table.Th>
-                    <Table.Th w={180}>Document</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {comenzi.map((c) => (
-                    <Table.Tr key={c.id}>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/comanda-materiale/${c.id}`}>
-                          {formatIsoDate(c.data)}
+        {() =>
+          <DataTable
+            records={comenzi}
+            idAccessor="id"
+            striped
+            highlightOnHover
+            minHeight={comenzi.length === 0 ? 150 : undefined}
+            noRecordsText="Nicio comandă găsită."
+            sortStatus={sortStatus}
+            onSortStatusChange={setSortStatus}
+            scrollAreaProps={{ type: "auto" }}
+            columns={[
+              {
+                accessor: "data",
+                title: "Data",
+                width: 140,
+                sortable: true,
+                render: (c) => (
+                  <Anchor component={Link} to={`/comanda-materiale/${c.id}`}>
+                    {formatIsoDate(c.data)}
+                  </Anchor>
+                ),
+              },
+              {
+                accessor: "vehicule",
+                title: "Vehicule",
+                render: (c) => (
+                  <Text size="sm">
+                    {c.vehicule.map((v, i) => (
+                      <Fragment key={v.id}>
+                        {i > 0 && ", "}
+                        <Anchor component={Link} to={`/vehicule/${v.id}`} size="sm">
+                          {v.nrInmatriculare}
                         </Anchor>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm">
-                          {c.vehicule.map((v, i) => (
-                            <Fragment key={v.id}>
-                              {i > 0 && ", "}
-                              <Anchor component={Link} to={`/vehicule/${v.id}`} size="sm">
-                                {v.nrInmatriculare}
-                              </Anchor>
-                            </Fragment>
-                          ))}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm">
-                          {c.acteDefectiune.map((act, i) => (
-                            <Fragment key={act.id}>
-                              {i > 0 && ", "}
-                              <Anchor component={Link} to={`/act-defectiune/${act.id}`} size="sm">
-                                {formatIsoDate(act.data)} - {act.vehicul.nrInmatriculare}
-                              </Anchor>
-                            </Fragment>
-                          ))}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge variant="light">{c.nrMateriale}</Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        {c.document ? (
-                          <Anchor
-                            href={c.document.driveUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {formatTimestamp(c.document.createdAt)}
-                          </Anchor>
-                        ) : (
-                          formatTimestamp(null)
-                        )}
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-          )
+                      </Fragment>
+                    ))}
+                  </Text>
+                ),
+                ...multiSelectFilterColumn({
+                  label: "Vehicule",
+                  data: vehiculOptions,
+                  value: vehiculFilter,
+                  onChange: setVehiculFilter,
+                }),
+              },
+              {
+                accessor: "acteDefectiune",
+                title: "Acte Defecțiune",
+                render: (c) => (
+                  <Text size="sm">
+                    {c.acteDefectiune.map((act, i) => (
+                      <Fragment key={act.id}>
+                        {i > 0 && ", "}
+                        <Anchor component={Link} to={`/act-defectiune/${act.id}`} size="sm">
+                          {formatIsoDate(act.data)} - {act.vehicul.nrInmatriculare}
+                        </Anchor>
+                      </Fragment>
+                    ))}
+                  </Text>
+                ),
+              },
+              {
+                accessor: "nrMateriale",
+                title: "Materiale",
+                width: 130,
+                sortable: true,
+                render: (c) => <Badge variant="light">{c.nrMateriale}</Badge>,
+              },
+              {
+                accessor: "document",
+                title: "Document",
+                width: 180,
+                render: (c) =>
+                  c.document ? (
+                    <Anchor href={c.document.driveUrl} target="_blank" rel="noreferrer">
+                      {formatTimestamp(c.document.createdAt)}
+                    </Anchor>
+                  ) : (
+                    formatTimestamp(null)
+                  ),
+              },
+            ]}
+          />
         }
       </QueryBoundary>
     </>

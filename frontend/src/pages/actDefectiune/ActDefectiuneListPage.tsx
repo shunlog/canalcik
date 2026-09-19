@@ -1,44 +1,79 @@
-import { Anchor, Badge, Button, Group, Select, Table, Text } from "@mantine/core";
+import { Anchor, Badge, Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
-import { useState } from "react";
+import type { ActDefectiuneListItem } from "@canalcik/server/api-types";
+import { DataTable, type DataTableSortStatus } from "mantine-datatable";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useActeDefectiune } from "../../api/acteDefectiune.ts";
-import { useSoferi } from "../../api/soferi.ts";
-import { useVehicule } from "../../api/vehicule.ts";
+import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
 import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
-import { fuzzyOptionsFilter } from "../../lib/search.ts";
+import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
+
+type ActRecord = ActDefectiuneListItem & { vehiculDisplay: string; soferDisplay: string };
 
 export function ActDefectiuneListPage() {
-  const [vehiculId, setVehiculId] = useState<string | null>(null);
-  const [soferId, setSoferId] = useState<string | null>(null);
+  const [vehiculFilter, setVehiculFilter] = useState<string[]>([]);
+  const [soferFilter, setSoferFilter] = useState<string[]>([]);
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
-
-  const vehicule = useVehicule();
-  const soferi = useSoferi();
-  const query = useActeDefectiune({
-    vehiculId: vehiculId ? Number(vehiculId) : undefined,
-    soferId: soferId ? Number(soferId) : undefined,
-    from: from ?? undefined,
-    to: to ?? undefined,
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus<ActRecord>>({
+    columnAccessor: "data",
+    direction: "desc",
   });
 
+  const query = useActeDefectiune();
+
+  const acteWithLabels = useMemo(
+    () =>
+      (query.data ?? []).map(
+        (a): ActRecord => ({
+          ...a,
+          vehiculDisplay: vehiculLabel(a.vehicul),
+          soferDisplay: soferLabel(a.sofer),
+        }),
+      ),
+    [query.data],
+  );
+
+  const vehiculOptions = useMemo(
+    () => uniqueSortedOptions(acteWithLabels, (a) => a.vehiculDisplay),
+    [acteWithLabels],
+  );
+  const soferOptions = useMemo(
+    () => uniqueSortedOptions(acteWithLabels, (a) => a.soferDisplay),
+    [acteWithLabels],
+  );
+
   const clearFilters = () => {
-    setVehiculId(null);
-    setSoferId(null);
+    setVehiculFilter([]);
+    setSoferFilter([]);
     setFrom(null);
     setTo(null);
   };
+
+  const acte = useMemo(() => {
+    let records = acteWithLabels;
+
+    records = records.filter(
+      (a) =>
+        (vehiculFilter.length === 0 || vehiculFilter.includes(a.vehiculDisplay)) &&
+        (soferFilter.length === 0 || soferFilter.includes(a.soferDisplay)) &&
+        (!from || a.data >= from) &&
+        (!to || a.data <= to),
+    );
+
+    return sortRecords(records, sortStatus);
+  }, [acteWithLabels, from, soferFilter, sortStatus, to, vehiculFilter]);
 
   return (
     <>
       <PageHeader
         title="Acte de defecțiune"
-        subtitle={query.data ? `${query.data.length} acte` : undefined}
+        subtitle={query.data ? `${acte.length} acte` : undefined}
         actions={
           <Button component={Link} to="/act-defectiune/nou" leftSection={<IconPlus size={16} />}>
             Act nou
@@ -47,109 +82,98 @@ export function ActDefectiuneListPage() {
       />
 
       <Group align="flex-end" mb="md">
-        <Select
-          label="Vehicul"
-          placeholder="Toate"
-          searchable
-          clearable
-          filter={fuzzyOptionsFilter}
-          w={280}
-          data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
-          value={vehiculId}
-          onChange={setVehiculId}
-        />
-        <Select
-          label="Șofer"
-          placeholder="Toți"
-          searchable
-          clearable
-          filter={fuzzyOptionsFilter}
-          w={260}
-          data={(soferi.data ?? []).map((s) => ({ value: String(s.id), label: soferLabel(s) }))}
-          value={soferId}
-          onChange={setSoferId}
-        />
-        <DateInput
-          label="De la"
-          valueFormat="DD.MM.YYYY"
-          clearable
-          w={150}
-          value={from}
-          onChange={setFrom}
-        />
-        <DateInput
-          label="Până la"
-          valueFormat="DD.MM.YYYY"
-          clearable
-          w={150}
-          value={to}
-          onChange={setTo}
-        />
+        <DateInput label="De la" valueFormat="DD.MM.YYYY" clearable w={150} value={from} onChange={setFrom} />
+        <DateInput label="Până la" valueFormat="DD.MM.YYYY" clearable w={150} value={to} onChange={setTo} />
         <Button variant="subtle" onClick={clearFilters}>
           Resetează filtrele
         </Button>
       </Group>
 
       <QueryBoundary query={query}>
-        {(acte) =>
-          acte.length === 0 ? (
-            <Text c="dimmed">Niciun act găsit.</Text>
-          ) : (
-            <Table.ScrollContainer minWidth={950}>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th w={140}>Data</Table.Th>
-                    <Table.Th>Vehicul</Table.Th>
-                    <Table.Th>Șofer</Table.Th>
-                    <Table.Th w={130}>Defecțiuni</Table.Th>
-                    <Table.Th w={150}>Piese de schimb</Table.Th>
-                    <Table.Th w={180}>Document</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {acte.map((a) => (
-                    <Table.Tr key={a.id}>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/act-defectiune/${a.id}`}>
-                          {formatIsoDate(a.data)}
-                        </Anchor>
-                      </Table.Td>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/vehicule/${a.vehicul.id}`}>
-                          {vehiculLabel(a.vehicul)}
-                        </Anchor>
-                      </Table.Td>
-                      <Table.Td>
-                        <Anchor component={Link} to={`/soferi/${a.sofer.id}`}>
-                          {soferLabel(a.sofer)}
-                        </Anchor>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge variant="light">{a.nrDefectiuni}</Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge variant="light">{a.nrPieseSchimb}</Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        {a.document ? (
-                          <Anchor
-                            href={a.document.driveUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {formatTimestamp(a.document.createdAt)}
-                          </Anchor>
-                        ) : (
-                          formatTimestamp(null)
-                        )}
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-          )
+        {() =>
+          <DataTable
+            records={acte}
+            idAccessor="id"
+            striped
+            highlightOnHover
+            minHeight={acte.length === 0 ? 150 : undefined}
+            noRecordsText="Niciun act găsit."
+            sortStatus={sortStatus}
+            onSortStatusChange={setSortStatus}
+            scrollAreaProps={{ type: "auto" }}
+            columns={[
+              {
+                accessor: "data",
+                title: "Data",
+                width: 140,
+                sortable: true,
+                render: (a) => (
+                  <Anchor component={Link} to={`/act-defectiune/${a.id}`}>
+                    {formatIsoDate(a.data)}
+                  </Anchor>
+                ),
+              },
+              {
+                accessor: "vehiculDisplay",
+                title: "Vehicul",
+                sortable: true,
+                render: (a) => (
+                  <Anchor component={Link} to={`/vehicule/${a.vehicul.id}`}>
+                    {a.vehiculDisplay}
+                  </Anchor>
+                ),
+                ...multiSelectFilterColumn({
+                  label: "Vehicule",
+                  data: vehiculOptions,
+                  value: vehiculFilter,
+                  onChange: setVehiculFilter,
+                }),
+              },
+              {
+                accessor: "soferDisplay",
+                title: "Șofer",
+                sortable: true,
+                render: (a) => (
+                  <Anchor component={Link} to={`/soferi/${a.sofer.id}`}>
+                    {a.soferDisplay}
+                  </Anchor>
+                ),
+                ...multiSelectFilterColumn({
+                  label: "Șoferi",
+                  data: soferOptions,
+                  value: soferFilter,
+                  onChange: setSoferFilter,
+                }),
+              },
+              {
+                accessor: "nrDefectiuni",
+                title: "Defecțiuni",
+                width: 130,
+                sortable: true,
+                render: (a) => <Badge variant="light">{a.nrDefectiuni}</Badge>,
+              },
+              {
+                accessor: "nrPieseSchimb",
+                title: "Piese de schimb",
+                width: 150,
+                sortable: true,
+                render: (a) => <Badge variant="light">{a.nrPieseSchimb}</Badge>,
+              },
+              {
+                accessor: "document",
+                title: "Document",
+                width: 180,
+                render: (a) =>
+                  a.document ? (
+                    <Anchor href={a.document.driveUrl} target="_blank" rel="noreferrer">
+                      {formatTimestamp(a.document.createdAt)}
+                    </Anchor>
+                  ) : (
+                    formatTimestamp(null)
+                  ),
+              },
+            ]}
+          />
         }
       </QueryBoundary>
     </>
