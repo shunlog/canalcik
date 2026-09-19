@@ -17,6 +17,8 @@ export const EIP_EXPIRY_MONTHS = {
 
 export type EipEquipmentField = keyof typeof EIP_EXPIRY_MONTHS;
 
+export const EIP_EQUIPMENT_FIELDS = Object.keys(EIP_EXPIRY_MONTHS) as EipEquipmentField[];
+
 /**
  * Adds the equipment's calendar-month validity to an ISO calendar date.
  * The day is capped at the end of the target month (e.g. 29 February + 12

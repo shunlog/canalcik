@@ -1,7 +1,7 @@
 import { Anchor, Badge, Button, Group, MultiSelect, TextInput } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { SoferListItem } from "@canalcik/server/api-types";
-import { eipExpiryDate, type EipEquipmentField } from "@canalcik/server/derived";
+import { EIP_EQUIPMENT_FIELDS, eipExpiryDate } from "@canalcik/server/derived";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
@@ -10,14 +10,6 @@ import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { todayLocalIso } from "../../lib/forms.ts";
 import { fuzzyOptionsFilter, fuzzySearch } from "../../lib/search.ts";
-
-const EIP_FIELDS: EipEquipmentField[] = [
-  "eipScurta",
-  "eipIncaltaminte",
-  "eipCostum",
-  "eipPantaloni",
-  "eipVestaAvertizare",
-];
 
 type SoferRecord = SoferListItem & { expiredEquipment: number };
 
@@ -46,16 +38,21 @@ export function SoferiListPage() {
       ),
     [query.data],
   );
+  const soferiWithExpiry = useMemo(
+    () =>
+      (query.data ?? []).map(
+        (s): SoferRecord => ({
+          ...s,
+          expiredEquipment: EIP_EQUIPMENT_FIELDS.filter((field) => {
+            const expiryDate = eipExpiryDate(s[field], field);
+            return expiryDate !== null && expiryDate < today;
+          }).length,
+        }),
+      ),
+    [query.data, today],
+  );
   const soferi = useMemo(() => {
-    let records = (query.data ?? []).map(
-      (s): SoferRecord => ({
-        ...s,
-        expiredEquipment: EIP_FIELDS.filter((field) => {
-          const expiryDate = eipExpiryDate(s[field], field);
-          return expiryDate !== null && expiryDate < today;
-        }).length,
-      }),
-    );
+    let records = soferiWithExpiry;
 
     if (pontajFilter.trim()) {
       records = fuzzySearch(records, pontajFilter, [(s) => s.cod]);
@@ -84,15 +81,7 @@ export function SoferiListPage() {
             });
       return sortStatus.direction === "asc" ? result : -result;
     });
-  }, [
-    functieFilter,
-    numeFilter,
-    pontajFilter,
-    query.data,
-    sectorFilter,
-    sortStatus,
-    today,
-  ]);
+  }, [functieFilter, numeFilter, pontajFilter, sectorFilter, sortStatus, soferiWithExpiry]);
 
   return (
     <>

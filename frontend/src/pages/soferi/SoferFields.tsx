@@ -1,17 +1,21 @@
 import { Fieldset, NumberInput, SimpleGrid, Stack, Table, Textarea, TextInput } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import type { UseFormReturnType } from "@mantine/form";
-import { eipExpiryDate, type EipEquipmentField } from "@canalcik/server/derived";
+import {
+  EIP_EQUIPMENT_FIELDS,
+  eipExpiryDate,
+  type EipEquipmentField,
+} from "@canalcik/server/derived";
 import { formatIsoDate, todayLocalIso } from "../../lib/forms.ts";
 import type { SoferFormValues } from "./soferForm.ts";
 
-const EIP_FIELDS = [
-  ["eipScurta", "Scurtă"],
-  ["eipIncaltaminte", "Încălțăminte"],
-  ["eipCostum", "Costum"],
-  ["eipPantaloni", "Pantaloni"],
-  ["eipVestaAvertizare", "Vestă avertizare"],
-] as const;
+const EIP_LABELS: Record<EipEquipmentField, string> = {
+  eipScurta: "Scurtă",
+  eipIncaltaminte: "Încălțăminte",
+  eipCostum: "Costum",
+  eipPantaloni: "Pantaloni",
+  eipVestaAvertizare: "Vestă avertizare",
+};
 
 export function SoferFields({ form }: { form: UseFormReturnType<SoferFormValues> }) {
   return (
@@ -46,17 +50,13 @@ export function SoferFields({ form }: { form: UseFormReturnType<SoferFormValues>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {EIP_FIELDS.map(([name, label]) => {
-                const expiryDate = eipExpiryDate(
-                  form.getValues()[name],
-                  name as EipEquipmentField,
-                );
+              {EIP_EQUIPMENT_FIELDS.map((name) => {
+                const label = EIP_LABELS[name];
+                const expiryDate = eipExpiryDate(form.getValues()[name], name);
                 const expired = expiryDate !== null && expiryDate < todayLocalIso();
 
                 return (
-                  <Table.Tr
-                    key={name}
-                  >
+                  <Table.Tr key={name}>
                     <Table.Td>{label}</Table.Td>
                     <Table.Td>
                       <DateInput
