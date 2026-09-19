@@ -20,7 +20,7 @@ import {
   toActDefectiuneListItem,
 } from "../dto.ts";
 import { badRef, driveNotConnected, notFound, templateMissing } from "../http/errors.ts";
-import { optionalIdQuery, parseIdParam, readJson } from "../http/read.ts";
+import { parseIdParam, readJson } from "../http/read.ts";
 import { actDefectiuneCreate, actDefectiuneUpdate } from "../schemas/actDefectiune.ts";
 
 export const acteDefectiune = new Hono();
@@ -44,19 +44,7 @@ async function assertRefs(vehiculId: number, soferId: number) {
 }
 
 acteDefectiune.get("/", async (c) => {
-  const vehiculId = optionalIdQuery(c, "vehiculId");
-  const soferId = optionalIdQuery(c, "soferId");
-  const from = c.req.query("from")?.trim() || undefined;
-  const to = c.req.query("to")?.trim() || undefined;
-
   const rows = await db.actDefectiuneData.findMany({
-    where: {
-      vehiculId,
-      soferId,
-      // `data` is a "YYYY-MM-DD" string, which sorts and compares
-      // chronologically as text — that is why the column is a string.
-      data: from || to ? { gte: from, lte: to } : undefined,
-    },
     select: actDefectiuneListSelect,
     orderBy: [{ data: "desc" }, { id: "desc" }],
   });

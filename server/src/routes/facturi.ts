@@ -43,13 +43,7 @@ const toLineCreate = (lines: FacturaLineInput[]) =>
   }));
 
 facturi.get("/", async (c) => {
-  const from = c.req.query("from")?.trim() || undefined;
-  const to = c.req.query("to")?.trim() || undefined;
-
   const rows = await db.facturaExpeditie.findMany({
-    // `data` is a "YYYY-MM-DD" string, which sorts and compares
-    // chronologically as text — that is why the column is a string.
-    where: { data: from || to ? { gte: from, lte: to } : undefined },
     select: facturaRefSelect,
     orderBy: [{ data: "desc" }, { id: "desc" }],
   });

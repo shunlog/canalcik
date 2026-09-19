@@ -38,13 +38,3 @@ export function parseMonthParam(c: Context, name = "month"): string {
   return result.data;
 }
 
-/** A positive-integer query param, or undefined when absent/blank. */
-export function optionalIdQuery(c: Context, name: string): number | undefined {
-  const raw = c.req.query(name);
-  if (raw === undefined || raw.trim() === "") return undefined;
-  const n = Number(raw);
-  if (!Number.isInteger(n) || n <= 0) {
-    throw new ApiError(400, "VALIDATION", `Parametrul "${name}" nu este un id valid`);
-  }
-  return n;
-}

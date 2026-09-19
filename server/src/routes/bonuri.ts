@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { db } from "../db.ts";
 import { bonDetailSelect, bonRefSelect, toBonDetail, toBonRef } from "../dto.ts";
 import { badRef, notFound } from "../http/errors.ts";
-import { optionalIdQuery, parseIdParam, readJson } from "../http/read.ts";
+import { parseIdParam, readJson } from "../http/read.ts";
 import { bonCreate, bonUpdate, type MaterialLineInput } from "../schemas/bon.ts";
 
 export const bonuri = new Hono();
@@ -31,19 +31,7 @@ async function assertRefs(soferId?: number, vehiculId?: number) {
 }
 
 bonuri.get("/", async (c) => {
-  const soferId = optionalIdQuery(c, "soferId");
-  const vehiculId = optionalIdQuery(c, "vehiculId");
-  const from = c.req.query("from")?.trim() || undefined;
-  const to = c.req.query("to")?.trim() || undefined;
-
   const rows = await db.bonEliberare.findMany({
-    where: {
-      soferId,
-      vehiculId,
-      // `data` is a "YYYY-MM-DD" string, which sorts and compares
-      // chronologically as text — that is why the column is a string.
-      data: from || to ? { gte: from, lte: to } : undefined,
-    },
     select: bonRefSelect,
     orderBy: [{ data: "desc" }, { id: "desc" }],
   });

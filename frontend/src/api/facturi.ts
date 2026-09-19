@@ -5,13 +5,8 @@ import type {
   FacturaUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { facturaKeys, materialKeys } from "./keys.ts";
-
-export interface FacturaFilters {
-  from?: string;
-  to?: string;
-}
 
 /**
  * A factura's lines can add materials to the catalogue and always change their
@@ -27,11 +22,10 @@ function useFacturaInvalidation() {
   };
 }
 
-export function useFacturi(filters: FacturaFilters = {}) {
-  const qs = query({ ...filters });
+export function useFacturi() {
   return useQuery({
-    queryKey: facturaKeys.list(qs),
-    queryFn: () => api.get<FacturaListItem[]>(`/facturi${qs}`),
+    queryKey: facturaKeys.list,
+    queryFn: () => api.get<FacturaListItem[]>("/facturi"),
   });
 }
 

@@ -5,15 +5,8 @@ import type {
   ActDefectiuneUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { actDefectiuneKeys } from "./keys.ts";
-
-export interface ActDefectiuneFilters {
-  vehiculId?: number;
-  soferId?: number;
-  from?: string;
-  to?: string;
-}
 
 /**
  * Nothing outside the act points at it — the vehicul it names is a plain
@@ -27,11 +20,10 @@ function useActInvalidation() {
   };
 }
 
-export function useActeDefectiune(filters: ActDefectiuneFilters = {}) {
-  const qs = query({ ...filters });
+export function useActeDefectiune() {
   return useQuery({
-    queryKey: actDefectiuneKeys.list(qs),
-    queryFn: () => api.get<ActDefectiuneListItem[]>(`/acte-defectiune${qs}`),
+    queryKey: actDefectiuneKeys.list,
+    queryFn: () => api.get<ActDefectiuneListItem[]>("/acte-defectiune"),
   });
 }
 

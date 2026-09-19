@@ -20,7 +20,7 @@ import {
   toComandaMaterialeListItem,
 } from "../dto.ts";
 import { badRef, driveNotConnected, notFound, templateMissing } from "../http/errors.ts";
-import { optionalIdQuery, parseIdParam, readJson } from "../http/read.ts";
+import { parseIdParam, readJson } from "../http/read.ts";
 import {
   comandaMaterialeCreate,
   comandaMaterialeUpdate,
@@ -87,18 +87,7 @@ async function assertActeDefectiune(ids: number[]) {
 }
 
 comenziMateriale.get("/", async (c) => {
-  const vehiculId = optionalIdQuery(c, "vehiculId");
-  const from = c.req.query("from")?.trim() || undefined;
-  const to = c.req.query("to")?.trim() || undefined;
-
   const rows = await db.comandaMaterialeData.findMany({
-    where: {
-      // The vehicul is on the lines, so the filter is "has a line for it".
-      materiale: vehiculId ? { some: { vehiculId } } : undefined,
-      // `data` is a "YYYY-MM-DD" string, which sorts and compares
-      // chronologically as text — that is why the column is a string.
-      data: from || to ? { gte: from, lte: to } : undefined,
-    },
     select: comandaMaterialeListSelect,
     orderBy: [{ data: "desc" }, { id: "desc" }],
   });

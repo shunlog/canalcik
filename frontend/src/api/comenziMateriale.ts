@@ -5,14 +5,8 @@ import type {
   ComandaMaterialeUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { comandaMaterialeKeys } from "./keys.ts";
-
-export interface ComandaMaterialeFilters {
-  vehiculId?: number;
-  from?: string;
-  to?: string;
-}
 
 /**
  * Nothing outside the comanda points at it — the vehicule its lines name are
@@ -26,11 +20,10 @@ function useComandaInvalidation() {
   };
 }
 
-export function useComenziMateriale(filters: ComandaMaterialeFilters = {}) {
-  const qs = query({ ...filters });
+export function useComenziMateriale() {
   return useQuery({
-    queryKey: comandaMaterialeKeys.list(qs),
-    queryFn: () => api.get<ComandaMaterialeListItem[]>(`/comenzi-materiale${qs}`),
+    queryKey: comandaMaterialeKeys.list,
+    queryFn: () => api.get<ComandaMaterialeListItem[]>("/comenzi-materiale"),
   });
 }
 

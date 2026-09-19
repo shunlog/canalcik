@@ -44,12 +44,3 @@ export const api = {
   put: <T,>(path: string, body: unknown) => request<T>("PUT", path, body),
   del: (path: string) => request<void>("DELETE", path),
 };
-
-export const query = (params: Record<string, string | number | undefined>) => {
-  const sp = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== "") sp.set(k, String(v));
-  }
-  const s = sp.toString();
-  return s ? `?${s}` : "";
-};

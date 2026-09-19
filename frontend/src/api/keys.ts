@@ -15,7 +15,7 @@ export const vehiculKeys = {
 
 export const bonKeys = {
   all: ["bonuri"] as const,
-  list: (filters: string) => ["bonuri", "list", filters] as const,
+  list: ["bonuri", "list"] as const,
   detail: (id: number) => ["bonuri", "detail", id] as const,
 };
 
@@ -37,19 +37,19 @@ export const driveKeys = {
 
 export const facturaKeys = {
   all: ["facturi"] as const,
-  list: (filters: string) => ["facturi", "list", filters] as const,
+  list: ["facturi", "list"] as const,
   detail: (id: number) => ["facturi", "detail", id] as const,
 };
 
 export const actDefectiuneKeys = {
   all: ["acteDefectiune"] as const,
-  list: (filters: string) => ["acteDefectiune", "list", filters] as const,
+  list: ["acteDefectiune", "list"] as const,
   detail: (id: number) => ["acteDefectiune", "detail", id] as const,
 };
 
 export const comandaMaterialeKeys = {
   all: ["comenziMateriale"] as const,
-  list: (filters: string) => ["comenziMateriale", "list", filters] as const,
+  list: ["comenziMateriale", "list"] as const,
   detail: (id: number) => ["comenziMateriale", "detail", id] as const,
 };
 

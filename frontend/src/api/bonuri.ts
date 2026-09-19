@@ -5,15 +5,8 @@ import type {
   BonUpdateBody,
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, query } from "../lib/api.ts";
+import { api } from "../lib/api.ts";
 import { bonKeys, materialKeys, soferKeys, vehiculKeys } from "./keys.ts";
-
-export interface BonFilters {
-  soferId?: number;
-  vehiculId?: number;
-  from?: string;
-  to?: string;
-}
 
 /**
  * A bon write changes the `bonuri` list and counters on the sofer and vehicul
@@ -32,11 +25,10 @@ function useBonInvalidation() {
   };
 }
 
-export function useBonuri(filters: BonFilters = {}) {
-  const qs = query({ ...filters });
+export function useBonuri() {
   return useQuery({
-    queryKey: bonKeys.list(qs),
-    queryFn: () => api.get<BonListItem[]>(`/bonuri${qs}`),
+    queryKey: bonKeys.list,
+    queryFn: () => api.get<BonListItem[]>("/bonuri"),
   });
 }
 
