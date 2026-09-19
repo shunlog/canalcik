@@ -1,13 +1,15 @@
-import { Anchor, Badge, Button, MultiSelect, TextInput } from "@mantine/core";
+import { Anchor, Badge, Button } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { VehiculListItem } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useVehicule } from "../../api/vehicule.ts";
+import { multiSelectFilterColumn, textFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
-import { fuzzyOptionsFilter, fuzzySearch } from "../../lib/search.ts";
+import { fuzzySearch } from "../../lib/search.ts";
+import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
 export function VehiculeListPage() {
   const [registrationFilter, setRegistrationFilter] = useState("");
@@ -20,14 +22,11 @@ export function VehiculeListPage() {
   });
   const query = useVehicule();
   const destinationOptions = useMemo(
-    () => [...new Set((query.data ?? []).map((v) => v.tip))].sort((a, b) => a.localeCompare(b, "ro")),
+    () => uniqueSortedOptions(query.data ?? [], (v) => v.tip),
     [query.data],
   );
   const sectorOptions = useMemo(
-    () =>
-      [...new Set((query.data ?? []).flatMap((v) => (v.sector ? [v.sector] : [])))].sort((a, b) =>
-        a.localeCompare(b, "ro"),
-      ),
+    () => uniqueSortedOptions(query.data ?? [], (v) => v.sector),
     [query.data],
   );
   const vehicule = useMemo(() => {
@@ -47,19 +46,7 @@ export function VehiculeListPage() {
         (sectorFilter.length === 0 || (v.sector !== null && sectorFilter.includes(v.sector))),
     );
 
-    return records.sort((a, b) => {
-      const accessor = sortStatus.columnAccessor as keyof VehiculListItem;
-      const aValue = a[accessor];
-      const bValue = b[accessor];
-      const result =
-        typeof aValue === "number" && typeof bValue === "number"
-          ? aValue - bValue
-          : String(aValue ?? "").localeCompare(String(bValue ?? ""), "ro", {
-              numeric: true,
-              sensitivity: "base",
-            });
-      return sortStatus.direction === "asc" ? result : -result;
-    });
+    return sortRecords(records, sortStatus);
   }, [destinationFilter, modelFilter, query.data, registrationFilter, sectorFilter, sortStatus]);
 
   return (
@@ -96,48 +83,34 @@ export function VehiculeListPage() {
                     {v.nrInmatriculare}
                   </Anchor>
                 ),
-                filter: (
-                  <TextInput
-                    label="Caută după înmatriculare"
-                    placeholder="Nr. înmatriculare"
-                    value={registrationFilter}
-                    onChange={(event) => setRegistrationFilter(event.currentTarget.value)}
-                  />
-                ),
-                filtering: registrationFilter.trim() !== "",
+                ...textFilterColumn({
+                  label: "Caută după înmatriculare",
+                  placeholder: "Nr. înmatriculare",
+                  value: registrationFilter,
+                  onChange: setRegistrationFilter,
+                }),
               },
               {
                 accessor: "tip",
                 title: "Destinația",
                 sortable: true,
-                filter: (
-                  <MultiSelect
-                    label="Destinații"
-                    placeholder="Toate"
-                    searchable
-                    clearable
-                    filter={fuzzyOptionsFilter}
-                    data={destinationOptions}
-                    value={destinationFilter}
-                    onChange={setDestinationFilter}
-                    comboboxProps={{ withinPortal: false }}
-                  />
-                ),
-                filtering: destinationFilter.length > 0,
+                ...multiSelectFilterColumn({
+                  label: "Destinații",
+                  data: destinationOptions,
+                  value: destinationFilter,
+                  onChange: setDestinationFilter,
+                }),
               },
               {
                 accessor: "model",
                 title: "Marcă / Model",
                 sortable: true,
-                filter: (
-                  <TextInput
-                    label="Caută după marcă / model"
-                    placeholder="Marcă / Model"
-                    value={modelFilter}
-                    onChange={(event) => setModelFilter(event.currentTarget.value)}
-                  />
-                ),
-                filtering: modelFilter.trim() !== "",
+                ...textFilterColumn({
+                  label: "Caută după marcă / model",
+                  placeholder: "Marcă / Model",
+                  value: modelFilter,
+                  onChange: setModelFilter,
+                }),
               },
               { accessor: "anProducere", title: "An", sortable: true, render: (v) => v.anProducere ?? "—" },
               { accessor: "nrInventar", title: "Inventar", sortable: true },
@@ -147,20 +120,12 @@ export function VehiculeListPage() {
                 title: "Sector",
                 sortable: true,
                 render: (v) => v.sector ?? "—",
-                filter: (
-                  <MultiSelect
-                    label="Sectoare"
-                    placeholder="Toate"
-                    searchable
-                    clearable
-                    filter={fuzzyOptionsFilter}
-                    data={sectorOptions}
-                    value={sectorFilter}
-                    onChange={setSectorFilter}
-                    comboboxProps={{ withinPortal: false }}
-                  />
-                ),
-                filtering: sectorFilter.length > 0,
+                ...multiSelectFilterColumn({
+                  label: "Sectoare",
+                  data: sectorOptions,
+                  value: sectorFilter,
+                  onChange: setSectorFilter,
+                }),
               },
               {
                 accessor: "nrSoferi",

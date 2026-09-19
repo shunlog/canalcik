@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group, MultiSelect, TextInput } from "@mantine/core";
+import { Anchor, Badge, Button, Group } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { SoferListItem } from "@canalcik/server/api-types";
 import { EIP_EQUIPMENT_FIELDS, eipExpiryDate } from "@canalcik/server/derived";
@@ -6,10 +6,12 @@ import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useSoferi } from "../../api/soferi.ts";
+import { multiSelectFilterColumn, textFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { todayLocalIso } from "../../lib/forms.ts";
-import { fuzzyOptionsFilter, fuzzySearch } from "../../lib/search.ts";
+import { fuzzySearch } from "../../lib/search.ts";
+import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
 type SoferRecord = SoferListItem & { expiredEquipment: number };
 
@@ -25,17 +27,11 @@ export function SoferiListPage() {
   const query = useSoferi();
   const today = todayLocalIso();
   const functieOptions = useMemo(
-    () =>
-      [...new Set((query.data ?? []).flatMap((s) => (s.functie ? [s.functie] : [])))].sort((a, b) =>
-        a.localeCompare(b, "ro"),
-      ),
+    () => uniqueSortedOptions(query.data ?? [], (s) => s.functie),
     [query.data],
   );
   const sectorOptions = useMemo(
-    () =>
-      [...new Set((query.data ?? []).flatMap((s) => (s.sector ? [s.sector] : [])))].sort((a, b) =>
-        a.localeCompare(b, "ro"),
-      ),
+    () => uniqueSortedOptions(query.data ?? [], (s) => s.sector),
     [query.data],
   );
   const soferiWithExpiry = useMemo(
@@ -68,19 +64,7 @@ export function SoferiListPage() {
         (sectorFilter.length === 0 || (s.sector !== null && sectorFilter.includes(s.sector))),
     );
 
-    return records.sort((a, b) => {
-      const accessor = sortStatus.columnAccessor as keyof SoferRecord;
-      const aValue = a[accessor];
-      const bValue = b[accessor];
-      const result =
-        typeof aValue === "number" && typeof bValue === "number"
-          ? aValue - bValue
-          : String(aValue ?? "").localeCompare(String(bValue ?? ""), "ro", {
-              numeric: true,
-              sensitivity: "base",
-            });
-      return sortStatus.direction === "asc" ? result : -result;
-    });
+    return sortRecords(records, sortStatus);
   }, [functieFilter, numeFilter, pontajFilter, sectorFilter, sortStatus, soferiWithExpiry]);
 
   return (
@@ -112,15 +96,12 @@ export function SoferiListPage() {
                 accessor: "cod",
                 title: "Pontaj",
                 sortable: true,
-                filter: (
-                  <TextInput
-                    label="Caută după pontaj"
-                    placeholder="Nr. pontaj"
-                    value={pontajFilter}
-                    onChange={(event) => setPontajFilter(event.currentTarget.value)}
-                  />
-                ),
-                filtering: pontajFilter.trim() !== "",
+                ...textFilterColumn({
+                  label: "Caută după pontaj",
+                  placeholder: "Nr. pontaj",
+                  value: pontajFilter,
+                  onChange: setPontajFilter,
+                }),
               },
               {
                 accessor: "nume",
@@ -131,55 +112,36 @@ export function SoferiListPage() {
                     {s.nume}
                   </Anchor>
                 ),
-                filter: (
-                  <TextInput
-                    label="Caută după nume"
-                    placeholder="Nume"
-                    value={numeFilter}
-                    onChange={(event) => setNumeFilter(event.currentTarget.value)}
-                  />
-                ),
-                filtering: numeFilter.trim() !== "",
+                ...textFilterColumn({
+                  label: "Caută după nume",
+                  placeholder: "Nume",
+                  value: numeFilter,
+                  onChange: setNumeFilter,
+                }),
               },
               {
                 accessor: "functie",
                 title: "Funcție",
                 sortable: true,
                 render: (s) => s.functie ?? "—",
-                filter: (
-                  <MultiSelect
-                    label="Funcții"
-                    placeholder="Toate"
-                    searchable
-                    clearable
-                    filter={fuzzyOptionsFilter}
-                    data={functieOptions}
-                    value={functieFilter}
-                    onChange={setFunctieFilter}
-                    comboboxProps={{ withinPortal: false }}
-                  />
-                ),
-                filtering: functieFilter.length > 0,
+                ...multiSelectFilterColumn({
+                  label: "Funcții",
+                  data: functieOptions,
+                  value: functieFilter,
+                  onChange: setFunctieFilter,
+                }),
               },
               {
                 accessor: "sector",
                 title: "Sector",
                 sortable: true,
                 render: (s) => s.sector ?? "—",
-                filter: (
-                  <MultiSelect
-                    label="Sectoare"
-                    placeholder="Toate"
-                    searchable
-                    clearable
-                    filter={fuzzyOptionsFilter}
-                    data={sectorOptions}
-                    value={sectorFilter}
-                    onChange={setSectorFilter}
-                    comboboxProps={{ withinPortal: false }}
-                  />
-                ),
-                filtering: sectorFilter.length > 0,
+                ...multiSelectFilterColumn({
+                  label: "Sectoare",
+                  data: sectorOptions,
+                  value: sectorFilter,
+                  onChange: setSectorFilter,
+                }),
               },
               { accessor: "telefon", title: "Telefon", sortable: true, render: (s) => s.telefon ?? "—" },
               {
