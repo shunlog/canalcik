@@ -10,3 +10,14 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+declare global {
+  interface Window {
+    __TANSTACK_QUERY_CLIENT__: QueryClient;
+  }
+}
+
+// Lets the TanStack Query browser extension (Chrome/Firefox) attach to this app.
+if (import.meta.env.DEV) {
+  window.__TANSTACK_QUERY_CLIENT__ = queryClient;
+}
