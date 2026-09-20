@@ -6,11 +6,13 @@ import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { Fragment, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useComenziMateriale } from "../../api/comenziMateriale.ts";
+import { ActDefectiuneLink } from "../../components/ActDefectiuneLink.tsx";
+import { ComandaMaterialeLink } from "../../components/ComandaMaterialeLink.tsx";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { VehiculShortLink } from "../../components/VehiculLink.tsx";
-import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
+import { formatTimestamp } from "../../lib/forms.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
 export function ComandaMaterialeListPage() {
@@ -87,11 +89,7 @@ export function ComandaMaterialeListPage() {
                 title: "Data",
                 width: 140,
                 sortable: true,
-                render: (c) => (
-                  <Anchor component={Link} to={`/comanda-materiale/${c.id}`}>
-                    {formatIsoDate(c.data)}
-                  </Anchor>
-                ),
+                render: (c) => <ComandaMaterialeLink comanda={c} />,
               },
               {
                 accessor: "vehicule",
@@ -121,9 +119,7 @@ export function ComandaMaterialeListPage() {
                     {c.acteDefectiune.map((act, i) => (
                       <Fragment key={act.id}>
                         {i > 0 && ", "}
-                        <Anchor component={Link} to={`/act-defectiune/${act.id}`} size="sm">
-                          {formatIsoDate(act.data)} - {act.vehicul.nrInmatriculare}
-                        </Anchor>
+                        <ActDefectiuneLink act={act} size="sm" />
                       </Fragment>
                     ))}
                   </Text>

@@ -3,11 +3,14 @@ import { Alert, Anchor, Badge, Button, Fieldset, Group, Stack, Table, Text } fro
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
+import { FacturaLink } from "../../components/FacturaLink.tsx";
+import { MaterialLink } from "../../components/MaterialLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
+import { bonLabel } from "../../lib/labels.ts";
 import {
   GenerateMonthlyReportButton,
   INCONSISTENT_MESSAGE,
@@ -100,9 +103,7 @@ export function MonthlyReportDetailPage() {
                   Factură
                 </Text>
                 {m.factura ? (
-                  <Anchor component={Link} to={`/facturi/${m.factura.id}`} size="sm">
-                    {formatIsoDate(m.factura.data)}
-                  </Anchor>
+                  <FacturaLink factura={m.factura} size="sm" />
                 ) : (
                   <Text size="sm">{formatIsoDate(null)}</Text>
                 )}
@@ -143,9 +144,7 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
             <Table.Tr key={`${l.materialId}|${l.nrCart ?? ""}`}>
               <Table.Td>{l.nrCart ?? "—"}</Table.Td>
               <Table.Td>
-                <Anchor component={Link} to={`/materiale/${l.materialId}`}>
-                  {l.nume}
-                </Anchor>
+                <MaterialLink material={{ id: l.materialId, nume: l.nume }} />
               </Table.Td>
               <Table.Td>
                 {l.cantitateFactura === null
@@ -159,7 +158,7 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
                 <RefLinkList
                   items={l.bonuri.map((b) => ({
                     id: b.id,
-                    label: formatIsoDate(b.data),
+                    label: bonLabel(b),
                     to: `/bonuri/${b.id}`,
                   }))}
                   empty="—"

@@ -104,7 +104,7 @@ export function VehiculDetailPage() {
               <RefLinkList
                 items={v.soferi.map((s) => ({
                   id: s.id,
-                  label: `${s.nume} (${s.cod})`,
+                  label: soferLabel(s),
                   to: `/soferi/${s.id}`,
                 }))}
                 empty="Niciun șofer atribuit."

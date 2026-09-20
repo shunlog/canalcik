@@ -6,12 +6,13 @@ import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useActeDefectiune } from "../../api/acteDefectiune.ts";
+import { ActDefectiuneLink } from "../../components/ActDefectiuneLink.tsx";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { SoferLink } from "../../components/SoferLink.tsx";
 import { VehiculLink } from "../../components/VehiculLink.tsx";
-import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
+import { formatTimestamp } from "../../lib/forms.ts";
 import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
@@ -109,11 +110,7 @@ export function ActDefectiuneListPage() {
                 title: "Data",
                 width: 140,
                 sortable: true,
-                render: (a) => (
-                  <Anchor component={Link} to={`/act-defectiune/${a.id}`}>
-                    {formatIsoDate(a.data)}
-                  </Anchor>
-                ),
+                render: (a) => <ActDefectiuneLink act={a} />,
               },
               {
                 accessor: "vehiculDisplay",

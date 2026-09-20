@@ -2,12 +2,13 @@ import { Anchor } from "@mantine/core";
 import type { MonthlyReport } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
 import { useMonthlyReports, useGenerateMonthlyReport } from "../../api/monthlyReport.ts";
+import { FacturaLink } from "../../components/FacturaLink.tsx";
+import { MonthlyReportLink } from "../../components/MonthlyReportLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatMonth, formatTimestamp } from "../../lib/forms.ts";
+import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
 import { sortRecords } from "../../lib/sort.ts";
 import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
@@ -52,11 +53,7 @@ export function MonthlyReportListPage() {
                 accessor: "month",
                 title: "Luna",
                 sortable: true,
-                render: (m) => (
-                  <Anchor component={Link} to={`/monthly-report/${m.month}`}>
-                    {formatMonth(m.month)}
-                  </Anchor>
-                ),
+                render: (m) => <MonthlyReportLink report={m} />,
               },
               {
                 accessor: "nrBonuri",
@@ -69,14 +66,7 @@ export function MonthlyReportListPage() {
                 accessor: "factura",
                 title: "Factură",
                 width: 130,
-                render: (m) =>
-                  m.factura ? (
-                    <Anchor component={Link} to={`/facturi/${m.factura.id}`}>
-                      {formatIsoDate(m.factura.data)}
-                    </Anchor>
-                  ) : (
-                    formatIsoDate(null)
-                  ),
+                render: (m) => (m.factura ? <FacturaLink factura={m.factura} /> : formatIsoDate(null)),
               },
               {
                 accessor: "document",

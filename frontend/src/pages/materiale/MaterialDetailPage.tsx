@@ -4,6 +4,7 @@ import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useDeleteMaterial, useMaterial, useUpdateMaterial } from "../../api/materiale.ts";
+import { BonLink } from "../../components/BonLink.tsx";
 import { DeleteButton } from "../../components/DeleteButton.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
@@ -11,7 +12,7 @@ import { SoferLink } from "../../components/SoferLink.tsx";
 import { VehiculShortLink } from "../../components/VehiculLink.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, requiredText } from "../../lib/forms.ts";
+import { requiredText } from "../../lib/forms.ts";
 
 /**
  * One material, and every bon line that names it. The listing is per line
@@ -128,9 +129,7 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
           {utilizari.map((u) => (
             <Table.Tr key={u.lineId}>
               <Table.Td>
-                <Anchor component={Link} to={`/bonuri/${u.bon.id}`}>
-                  {formatIsoDate(u.bon.data)}
-                </Anchor>
+                <BonLink bon={u.bon} />
               </Table.Td>
               <Table.Td>
                 <SoferLink sofer={u.bon.sofer} />

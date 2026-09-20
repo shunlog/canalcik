@@ -1,4 +1,4 @@
-import { Anchor, Button, Group } from "@mantine/core";
+import { Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { FacturaListItem } from "@canalcik/server/api-types";
@@ -6,9 +6,10 @@ import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useFacturi } from "../../api/facturi.ts";
+import { FacturaLink } from "../../components/FacturaLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
-import { formatIsoDate, formatMoney } from "../../lib/forms.ts";
+import { formatMoney } from "../../lib/forms.ts";
 import { sortRecords } from "../../lib/sort.ts";
 
 export function FacturiListPage() {
@@ -68,11 +69,7 @@ export function FacturiListPage() {
                 accessor: "data",
                 title: "Data",
                 sortable: true,
-                render: (f) => (
-                  <Anchor component={Link} to={`/facturi/${f.id}`}>
-                    {formatIsoDate(f.data)}
-                  </Anchor>
-                ),
+                render: (f) => <FacturaLink factura={f} />,
               },
               {
                 accessor: "nrLinii",

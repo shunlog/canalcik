@@ -11,6 +11,7 @@ import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatMoney } from "../../lib/forms.ts";
+import { materialLabel } from "../../lib/labels.ts";
 import { FacturaFields } from "./FacturaFields.tsx";
 import {
   emptyFacturaForm,
@@ -111,7 +112,7 @@ function distinctMateriale(lines: FacturaLineOut[]) {
   const byId = new Map(lines.map((m) => [m.materialId, m.nume]));
   return [...byId].map(([materialId, nume]) => ({
     id: materialId,
-    label: nume,
+    label: materialLabel({ id: materialId, nume }),
     to: `/materiale/${materialId}`,
   }));
 }

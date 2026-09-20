@@ -1,10 +1,9 @@
-import { ActionIcon, Anchor, Button, Group, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Text, TextInput } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import type { MaterialListItem } from "@canalcik/server/api-types";
 import { IconCheck, IconPencil, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
 import {
   useCreateMaterial,
   useDeleteMaterial,
@@ -12,6 +11,7 @@ import {
   useUpdateMaterial,
 } from "../../api/materiale.ts";
 import { textFilterColumn } from "../../components/DataTableFilters.tsx";
+import { MaterialLink } from "../../components/MaterialLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
@@ -201,9 +201,7 @@ function MaterialNameCell({ material }: { material: MaterialListItem }) {
 
   return (
     <Group gap={4} wrap="nowrap" justify="space-between">
-      <Anchor component={Link} to={`/materiale/${material.id}`}>
-        {material.nume}
-      </Anchor>
+      <MaterialLink material={material} />
       <Group gap={4} wrap="nowrap">
         <ActionIcon variant="subtle" aria-label="Redenumește" onClick={startEditing}>
           <IconPencil size={16} />

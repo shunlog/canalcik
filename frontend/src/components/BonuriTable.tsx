@@ -1,7 +1,6 @@
 import type { BonRef } from "@canalcik/server/api-types";
-import { Anchor, Table } from "@mantine/core";
-import { Link } from "react-router";
-import { formatIsoDate } from "../lib/forms.ts";
+import { Table } from "@mantine/core";
+import { BonLink } from "./BonLink.tsx";
 import { SoferLink } from "./SoferLink.tsx";
 import { VehiculShortLink } from "./VehiculLink.tsx";
 
@@ -30,9 +29,7 @@ export function BonuriTable({
           {bonuri.map((b) => (
             <Table.Tr key={b.id}>
               <Table.Td>
-                <Anchor component={Link} to={`/bonuri/${b.id}`}>
-                  {formatIsoDate(b.data)}
-                </Anchor>
+                <BonLink bon={b} />
               </Table.Td>
               {!hideSofer && (
                 <Table.Td>

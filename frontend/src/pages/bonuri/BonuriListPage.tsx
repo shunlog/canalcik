@@ -1,4 +1,4 @@
-import { Anchor, Button, Group } from "@mantine/core";
+import { Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { BonListItem } from "@canalcik/server/api-types";
@@ -6,12 +6,12 @@ import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useBonuri } from "../../api/bonuri.ts";
+import { BonLink } from "../../components/BonLink.tsx";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { SoferLink } from "../../components/SoferLink.tsx";
-import { VehiculShortLink } from "../../components/VehiculLink.tsx";
-import { formatIsoDate } from "../../lib/forms.ts";
+import { VehiculLink } from "../../components/VehiculLink.tsx";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
 type BonRecord = BonListItem & { soferNume: string; vehiculNrInmatriculare: string };
@@ -107,11 +107,7 @@ export function BonuriListPage() {
                 accessor: "data",
                 title: "Data",
                 sortable: true,
-                render: (b) => (
-                  <Anchor component={Link} to={`/bonuri/${b.id}`}>
-                    {formatIsoDate(b.data)}
-                  </Anchor>
-                ),
+                render: (b) => <BonLink bon={b} />,
               },
               {
                 accessor: "soferNume",
@@ -129,7 +125,7 @@ export function BonuriListPage() {
                 accessor: "vehiculNrInmatriculare",
                 title: "Vehicul",
                 sortable: true,
-                render: (b) => <VehiculShortLink vehicul={b.vehicul} />,
+                render: (b) => <VehiculLink vehicul={b.vehicul} />,
                 ...multiSelectFilterColumn({
                   label: "Vehicule",
                   data: vehiculOptions,

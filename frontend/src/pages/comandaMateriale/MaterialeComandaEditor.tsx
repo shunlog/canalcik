@@ -19,7 +19,7 @@ import { useVehicule } from "../../api/vehicule.ts";
 import { ButonCautaProdus, CautaProdus } from "../../components/CautaProdus.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { usePulse, type PulseProps } from "../../components/usePulse.ts";
-import { vehiculLabel } from "../../lib/labels.ts";
+import { actDefectiuneLabel, vehiculLabel } from "../../lib/labels.ts";
 import type { ProdusIndexat } from "../../lib/produse.tsx";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import { newMaterialRow, type ComandaFormValues } from "./comandaForm.ts";
@@ -44,7 +44,7 @@ export function MaterialeComandaEditor({
     () =>
       (acte.data ?? []).map((a) => ({
         value: String(a.id),
-        label: `${a.data} - ${a.vehicul.nrInmatriculare}`,
+        label: actDefectiuneLabel(a),
       })),
     [acte.data],
   );
@@ -95,7 +95,7 @@ export function MaterialeComandaEditor({
         <RefLinkList
           items={acteSelectate.map((act) => ({
             id: act.id,
-            label: `${act.data} - ${act.vehicul.nrInmatriculare}`,
+            label: actDefectiuneLabel(act),
             to: `/act-defectiune/${act.id}`,
           }))}
           empty="Niciun act de defecțiune selectat."
