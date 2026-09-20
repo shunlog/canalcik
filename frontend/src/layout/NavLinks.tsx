@@ -8,6 +8,7 @@ import {
   IconFileText,
   IconPackages,
   IconSettings,
+  IconShirt,
   IconTruck,
   IconUsers,
 } from "@tabler/icons-react";
@@ -22,6 +23,7 @@ const SECTIONS = [
       { to: "/vehicule", label: "Vehicule", icon: IconTruck },
       { to: "/produse", label: "Produse", icon: IconBoxSeam },
       { to: "/materiale", label: "Materiale de întreținere", icon: IconPackages },
+      { to: "/echipament", label: "Echipament", icon: IconShirt },
     ],
   },
   {

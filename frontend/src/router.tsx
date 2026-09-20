@@ -9,6 +9,7 @@ import { BonuriListPage } from "./pages/bonuri/BonuriListPage.tsx";
 import { ComandaMaterialeCreatePage } from "./pages/comandaMateriale/ComandaMaterialeCreatePage.tsx";
 import { ComandaMaterialeDetailPage } from "./pages/comandaMateriale/ComandaMaterialeDetailPage.tsx";
 import { ComandaMaterialeListPage } from "./pages/comandaMateriale/ComandaMaterialeListPage.tsx";
+import { EchipamentListPage } from "./pages/echipament/EchipamentListPage.tsx";
 import { FacturaCreatePage } from "./pages/facturi/FacturaCreatePage.tsx";
 import { FacturaDetailPage } from "./pages/facturi/FacturaDetailPage.tsx";
 import { FacturiListPage } from "./pages/facturi/FacturiListPage.tsx";
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "/monthly-report/:month", element: <MonthlyReportDetailPage /> },
       { path: "/materiale", element: <MaterialeListPage /> },
       { path: "/materiale/:id", element: <MaterialDetailPage /> },
+      { path: "/echipament", element: <EchipamentListPage /> },
       { path: "/produse", element: <ProdusePage /> },
       { path: "/act-defectiune", element: <ActDefectiuneListPage /> },
       { path: "/act-defectiune/nou", element: <ActDefectiuneCreatePage /> },

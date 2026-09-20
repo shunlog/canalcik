@@ -1,21 +1,10 @@
 import { Fieldset, NumberInput, SimpleGrid, Stack, Table, Textarea, TextInput } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import type { UseFormReturnType } from "@mantine/form";
-import {
-  EIP_EQUIPMENT_FIELDS,
-  eipExpiryDate,
-  type EipEquipmentField,
-} from "@canalcik/server/derived";
+import { EIP_EQUIPMENT_FIELDS, eipExpiryDate } from "@canalcik/server/derived";
 import { formatIsoDate, todayLocalIso } from "../../lib/forms.ts";
+import { EIP_LABELS } from "../../lib/labels.ts";
 import type { SoferFormValues } from "./soferForm.ts";
-
-const EIP_LABELS: Record<EipEquipmentField, string> = {
-  eipScurta: "Scurtă",
-  eipIncaltaminte: "Încălțăminte",
-  eipCostum: "Costum",
-  eipPantaloni: "Pantaloni",
-  eipVestaAvertizare: "Vestă avertizare",
-};
 
 export function SoferFields({ form }: { form: UseFormReturnType<SoferFormValues> }) {
   return (

@@ -8,6 +8,7 @@ import type {
   SoferRef,
   VehiculRef,
 } from "@canalcik/server/api-types";
+import type { EipEquipmentField } from "@canalcik/server/derived";
 import { formatIsoDate, formatMonth } from "./forms.ts";
 
 export const vehiculLabel = (v: VehiculRef) =>
@@ -31,3 +32,11 @@ export const comandaMaterialeLabel = (c: Pick<ComandaMaterialeListItem, "data">)
   formatIsoDate(c.data);
 
 export const monthlyReportLabel = (r: Pick<MonthlyReport, "month">) => formatMonth(r.month);
+
+export const EIP_LABELS: Record<EipEquipmentField, string> = {
+  eipScurta: "Scurtă",
+  eipIncaltaminte: "Încălțăminte",
+  eipCostum: "Costum",
+  eipPantaloni: "Pantaloni",
+  eipVestaAvertizare: "Vestă avertizare",
+};
