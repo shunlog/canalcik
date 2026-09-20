@@ -9,6 +9,7 @@ import { useComenziMateriale } from "../../api/comenziMateriale.ts";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { VehiculShortLink } from "../../components/VehiculLink.tsx";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
@@ -100,9 +101,7 @@ export function ComandaMaterialeListPage() {
                     {c.vehicule.map((v, i) => (
                       <Fragment key={v.id}>
                         {i > 0 && ", "}
-                        <Anchor component={Link} to={`/vehicule/${v.id}`} size="sm">
-                          {v.nrInmatriculare}
-                        </Anchor>
+                        <VehiculShortLink vehicul={v} size="sm" />
                       </Fragment>
                     ))}
                   </Text>

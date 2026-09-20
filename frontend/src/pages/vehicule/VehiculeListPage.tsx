@@ -1,4 +1,4 @@
-import { Anchor, Button } from "@mantine/core";
+import { Button } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { VehiculListItem } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
@@ -8,6 +8,7 @@ import { useVehicule } from "../../api/vehicule.ts";
 import { multiSelectFilterColumn, textFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { VehiculShortLink } from "../../components/VehiculLink.tsx";
 import { fuzzySearch } from "../../lib/search.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
@@ -78,11 +79,7 @@ export function VehiculeListPage() {
                 accessor: "nrInmatriculare",
                 title: "Nr. înmatriculare",
                 sortable: true,
-                render: (v) => (
-                  <Anchor component={Link} to={`/vehicule/${v.id}`}>
-                    {v.nrInmatriculare}
-                  </Anchor>
-                ),
+                render: (v) => <VehiculShortLink vehicul={v} />,
                 ...textFilterColumn({
                   label: "Caută după înmatriculare",
                   placeholder: "Nr. înmatriculare",

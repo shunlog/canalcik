@@ -9,6 +9,8 @@ import { useBonuri } from "../../api/bonuri.ts";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { SoferLink } from "../../components/SoferLink.tsx";
+import { VehiculShortLink } from "../../components/VehiculLink.tsx";
 import { formatIsoDate } from "../../lib/forms.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
 
@@ -115,11 +117,7 @@ export function BonuriListPage() {
                 accessor: "soferNume",
                 title: "Șofer",
                 sortable: true,
-                render: (b) => (
-                  <Anchor component={Link} to={`/soferi/${b.sofer.id}`}>
-                    {b.sofer.nume}
-                  </Anchor>
-                ),
+                render: (b) => <SoferLink sofer={b.sofer} />,
                 ...multiSelectFilterColumn({
                   label: "Șoferi",
                   data: soferOptions,
@@ -131,11 +129,7 @@ export function BonuriListPage() {
                 accessor: "vehiculNrInmatriculare",
                 title: "Vehicul",
                 sortable: true,
-                render: (b) => (
-                  <Anchor component={Link} to={`/vehicule/${b.vehicul.id}`}>
-                    {b.vehicul.nrInmatriculare}
-                  </Anchor>
-                ),
+                render: (b) => <VehiculShortLink vehicul={b.vehicul} />,
                 ...multiSelectFilterColumn({
                   label: "Vehicule",
                   data: vehiculOptions,

@@ -1,11 +1,13 @@
-import { Anchor, Button, Fieldset, Group, Text } from "@mantine/core";
+import { Button, Fieldset, Group, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useBon, useDeleteBon, useUpdateBon } from "../../api/bonuri.ts";
 import { DeleteButton } from "../../components/DeleteButton.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { SoferLink } from "../../components/SoferLink.tsx";
+import { VehiculLink } from "../../components/VehiculLink.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate } from "../../lib/forms.ts";
@@ -68,16 +70,10 @@ export function BonDetailPage() {
           <Fieldset legend="Legături" mb="md">
             <Group gap="xl">
               <Text size="sm">
-                Șofer:{" "}
-                <Anchor component={Link} to={`/soferi/${b.sofer.id}`}>
-                  {b.sofer.nume} ({b.sofer.cod})
-                </Anchor>
+                Șofer: <SoferLink sofer={b.sofer} />
               </Text>
               <Text size="sm">
-                Vehicul:{" "}
-                <Anchor component={Link} to={`/vehicule/${b.vehicul.id}`}>
-                  {b.vehicul.nrInmatriculare} — {b.vehicul.model}
-                </Anchor>
+                Vehicul: <VehiculLink vehicul={b.vehicul} />
               </Text>
             </Group>
           </Fieldset>

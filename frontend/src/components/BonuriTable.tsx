@@ -2,6 +2,8 @@ import type { BonRef } from "@canalcik/server/api-types";
 import { Anchor, Table } from "@mantine/core";
 import { Link } from "react-router";
 import { formatIsoDate } from "../lib/forms.ts";
+import { SoferLink } from "./SoferLink.tsx";
+import { VehiculShortLink } from "./VehiculLink.tsx";
 
 /** The shared bon listing — used by the list page and by both detail pages. */
 export function BonuriTable({
@@ -34,16 +36,12 @@ export function BonuriTable({
               </Table.Td>
               {!hideSofer && (
                 <Table.Td>
-                  <Anchor component={Link} to={`/soferi/${b.sofer.id}`}>
-                    {b.sofer.nume}
-                  </Anchor>
+                  <SoferLink sofer={b.sofer} />
                 </Table.Td>
               )}
               {!hideVehicul && (
                 <Table.Td>
-                  <Anchor component={Link} to={`/vehicule/${b.vehicul.id}`}>
-                    {b.vehicul.nrInmatriculare}
-                  </Anchor>
+                  <VehiculShortLink vehicul={b.vehicul} />
                 </Table.Td>
               )}
               <Table.Td>

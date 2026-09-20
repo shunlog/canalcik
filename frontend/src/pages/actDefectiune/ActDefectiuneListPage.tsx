@@ -9,6 +9,8 @@ import { useActeDefectiune } from "../../api/acteDefectiune.ts";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { SoferLink } from "../../components/SoferLink.tsx";
+import { VehiculLink } from "../../components/VehiculLink.tsx";
 import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
 import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
@@ -117,11 +119,7 @@ export function ActDefectiuneListPage() {
                 accessor: "vehiculDisplay",
                 title: "Vehicul",
                 sortable: true,
-                render: (a) => (
-                  <Anchor component={Link} to={`/vehicule/${a.vehicul.id}`}>
-                    {a.vehiculDisplay}
-                  </Anchor>
-                ),
+                render: (a) => <VehiculLink vehicul={a.vehicul} />,
                 ...multiSelectFilterColumn({
                   label: "Vehicule",
                   data: vehiculOptions,
@@ -133,11 +131,7 @@ export function ActDefectiuneListPage() {
                 accessor: "soferDisplay",
                 title: "Șofer",
                 sortable: true,
-                render: (a) => (
-                  <Anchor component={Link} to={`/soferi/${a.sofer.id}`}>
-                    {a.soferDisplay}
-                  </Anchor>
-                ),
+                render: (a) => <SoferLink sofer={a.sofer} />,
                 ...multiSelectFilterColumn({
                   label: "Șoferi",
                   data: soferOptions,

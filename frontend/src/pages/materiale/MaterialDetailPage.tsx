@@ -7,6 +7,8 @@ import { useDeleteMaterial, useMaterial, useUpdateMaterial } from "../../api/mat
 import { DeleteButton } from "../../components/DeleteButton.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { SoferLink } from "../../components/SoferLink.tsx";
+import { VehiculShortLink } from "../../components/VehiculLink.tsx";
 import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, requiredText } from "../../lib/forms.ts";
@@ -131,14 +133,10 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
                 </Anchor>
               </Table.Td>
               <Table.Td>
-                <Anchor component={Link} to={`/soferi/${u.bon.sofer.id}`}>
-                  {u.bon.sofer.nume}
-                </Anchor>
+                <SoferLink sofer={u.bon.sofer} />
               </Table.Td>
               <Table.Td>
-                <Anchor component={Link} to={`/vehicule/${u.bon.vehicul.id}`}>
-                  {u.bon.vehicul.nrInmatriculare}
-                </Anchor>
+                <VehiculShortLink vehicul={u.bon.vehicul} />
               </Table.Td>
               <Table.Td>
                 {u.cantitate} {u.um}

@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group } from "@mantine/core";
+import { Badge, Button, Group } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { SoferListItem } from "@canalcik/server/api-types";
 import { EIP_EQUIPMENT_FIELDS, eipExpiryDate } from "@canalcik/server/derived";
@@ -9,6 +9,7 @@ import { useSoferi } from "../../api/soferi.ts";
 import { multiSelectFilterColumn, textFilterColumn } from "../../components/DataTableFilters.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { SoferLink } from "../../components/SoferLink.tsx";
 import { todayLocalIso } from "../../lib/forms.ts";
 import { fuzzySearch } from "../../lib/search.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
@@ -108,11 +109,7 @@ export function SoferiListPage() {
                 accessor: "nume",
                 title: "Nume",
                 sortable: true,
-                render: (s) => (
-                  <Anchor component={Link} to={`/soferi/${s.id}`}>
-                    {s.nume}
-                  </Anchor>
-                ),
+                render: (s) => <SoferLink sofer={s} />,
                 ...textFilterColumn({
                   label: "Caută după nume",
                   placeholder: "Nume",
