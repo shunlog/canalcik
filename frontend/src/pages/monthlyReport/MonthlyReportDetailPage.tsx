@@ -93,7 +93,7 @@ export function MonthlyReportDetailPage() {
                 <Text size="sm" c="dimmed">
                   Bonuri
                 </Text>
-                <Badge variant="light">{m.nrBonuri}</Badge>
+                <Text>{m.nrBonuri}</Text>
               </Group>
               <Group gap="xs">
                 <Text size="sm" c="dimmed">
@@ -189,9 +189,9 @@ function DiferentaBadge({ linie }: { linie: MonthlyReportLine }) {
   const semn = linie.diferenta > 0 ? "+" : "−";
   return (
     <Badge color="red" variant="light" leftSection={<IconX size={12} />}>
-      {semn}
-      {formatQty(Math.abs(linie.diferenta))} {linie.um}
-    </Badge>
+        {semn}
+        {formatQty(Math.abs(linie.diferenta))} {linie.um}
+      </Badge>
   );
 }
 

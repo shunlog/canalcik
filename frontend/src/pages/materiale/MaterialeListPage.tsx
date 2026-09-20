@@ -1,4 +1,4 @@
-import { ActionIcon, Anchor, Badge, Button, Group, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Anchor, Button, Group, Text, TextInput } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import type { MaterialListItem } from "@canalcik/server/api-types";
 import { IconCheck, IconPencil, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
@@ -115,7 +115,7 @@ export function MaterialeListPage() {
                 title: "Linii de bon",
                 width: 130,
                 sortable: true,
-                render: (m) => <Badge variant="light">{m.nrLinii}</Badge>,
+                render: (m) => m.nrLinii,
               },
             ]}
           />

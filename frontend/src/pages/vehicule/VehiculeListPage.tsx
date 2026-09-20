@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button } from "@mantine/core";
+import { Anchor, Button } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import type { VehiculListItem } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
@@ -131,13 +131,13 @@ export function VehiculeListPage() {
                 accessor: "nrSoferi",
                 title: "Șoferi",
                 sortable: true,
-                render: (v) => <Badge variant="light">{v.nrSoferi}</Badge>,
+                render: (v) => v.nrSoferi,
               },
               {
                 accessor: "nrBonuri",
                 title: "Bonuri",
                 sortable: true,
-                render: (v) => <Badge variant="light">{v.nrBonuri}</Badge>,
+                render: (v) => v.nrBonuri,
               },
             ]}
           />

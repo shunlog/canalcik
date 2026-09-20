@@ -12,6 +12,7 @@ import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { todayLocalIso } from "../../lib/forms.ts";
 import { fuzzySearch } from "../../lib/search.ts";
 import { sortRecords, uniqueSortedOptions } from "../../lib/sort.ts";
+import { HelpTooltip } from "../../components/HelpTooltip.tsx";
 
 type SoferRecord = SoferListItem & { expiredEquipment: number };
 
@@ -146,7 +147,7 @@ export function SoferiListPage() {
               { accessor: "telefon", title: "Telefon", sortable: true, render: (s) => s.telefon ?? "—" },
               {
                 accessor: "expiredEquipment",
-                title: "Echipament expirat",
+                title: <HelpTooltip label="Echipament expirat">Echip.</HelpTooltip>,
                 width: 130,
                 sortable: true,
                 render: (s) =>
@@ -156,9 +157,9 @@ export function SoferiListPage() {
                     </Badge>
                   ) : (
                     <Group gap={4} wrap="nowrap">
-                      <span aria-label="Echipament expirat">⚠️</span>
                       <Badge color="yellow" variant="light">
                         {s.expiredEquipment}
+                        <span aria-label="Echipament expirat"> ⚠️</span>
                       </Badge>
                     </Group>
                   ),
@@ -167,13 +168,13 @@ export function SoferiListPage() {
                 accessor: "nrVehicule",
                 title: "Vehicule",
                 sortable: true,
-                render: (s) => <Badge variant="light">{s.nrVehicule}</Badge>,
+                render: (s) => s.nrVehicule,
               },
               {
                 accessor: "nrBonuri",
                 title: "Bonuri",
                 sortable: true,
-                render: (s) => <Badge variant="light">{s.nrBonuri}</Badge>,
+                render: (s) => s.nrBonuri,
               },
             ]}
           />

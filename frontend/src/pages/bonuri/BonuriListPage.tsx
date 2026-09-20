@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group } from "@mantine/core";
+import { Anchor, Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { BonListItem } from "@canalcik/server/api-types";
@@ -147,7 +147,7 @@ export function BonuriListPage() {
                 accessor: "nrLinii",
                 title: "Materiale",
                 sortable: true,
-                render: (b) => <Badge variant="light">{b.nrLinii}</Badge>,
+                render: (b) => b.nrLinii,
               },
             ]}
           />

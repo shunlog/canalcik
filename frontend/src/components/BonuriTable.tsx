@@ -1,5 +1,5 @@
 import type { BonRef } from "@canalcik/server/api-types";
-import { Anchor, Badge, Table } from "@mantine/core";
+import { Anchor, Table } from "@mantine/core";
 import { Link } from "react-router";
 import { formatIsoDate } from "../lib/forms.ts";
 
@@ -47,7 +47,7 @@ export function BonuriTable({
                 </Table.Td>
               )}
               <Table.Td>
-                <Badge variant="light">{b.nrLinii}</Badge>
+                {b.nrLinii}
               </Table.Td>
             </Table.Tr>
           ))}

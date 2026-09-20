@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group } from "@mantine/core";
+import { Anchor, Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { FacturaListItem } from "@canalcik/server/api-types";
@@ -79,7 +79,7 @@ export function FacturiListPage() {
                 title: "Materiale",
                 width: 130,
                 sortable: true,
-                render: (f) => <Badge variant="light">{f.nrLinii}</Badge>,
+                render: (f) => f.nrLinii,
               },
               {
                 accessor: "total",

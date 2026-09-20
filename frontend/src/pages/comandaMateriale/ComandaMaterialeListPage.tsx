@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group, Text } from "@mantine/core";
+import { Anchor, Button, Group, Text } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { ComandaMaterialeListItem } from "@canalcik/server/api-types";
@@ -135,7 +135,7 @@ export function ComandaMaterialeListPage() {
                 title: "Materiale",
                 width: 130,
                 sortable: true,
-                render: (c) => <Badge variant="light">{c.nrMateriale}</Badge>,
+                render: (c) => c.nrMateriale,
               },
               {
                 accessor: "document",

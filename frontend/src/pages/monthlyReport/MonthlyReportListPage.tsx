@@ -1,4 +1,4 @@
-import { Anchor, Badge } from "@mantine/core";
+import { Anchor } from "@mantine/core";
 import type { MonthlyReport } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
@@ -63,7 +63,7 @@ export function MonthlyReportListPage() {
                 title: "Bonuri",
                 width: 90,
                 sortable: true,
-                render: (m) => <Badge variant="light">{m.nrBonuri}</Badge>,
+                render: (m) => m.nrBonuri,
               },
               {
                 accessor: "factura",

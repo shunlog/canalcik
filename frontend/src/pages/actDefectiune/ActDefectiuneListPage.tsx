@@ -1,4 +1,4 @@
-import { Anchor, Badge, Button, Group } from "@mantine/core";
+import { Anchor, Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { ActDefectiuneListItem } from "@canalcik/server/api-types";
@@ -150,14 +150,14 @@ export function ActDefectiuneListPage() {
                 title: "Defecțiuni",
                 width: 130,
                 sortable: true,
-                render: (a) => <Badge variant="light">{a.nrDefectiuni}</Badge>,
+                render: (a) => a.nrDefectiuni,
               },
               {
                 accessor: "nrPieseSchimb",
                 title: "Piese de schimb",
                 width: 150,
                 sortable: true,
-                render: (a) => <Badge variant="light">{a.nrPieseSchimb}</Badge>,
+                render: (a) => a.nrPieseSchimb,
               },
               {
                 accessor: "document",
