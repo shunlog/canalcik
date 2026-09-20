@@ -1,5 +1,7 @@
 - Tech stack: pnpm, TypeScript, jest
 - Write comments in code very sparingly, only when it would actually be useful to an advanced developer
+- Prefer consistency throughout the codebase to quick hacks that "just work"
+- Prefer simple solutions, ask before attempting a complex solution
 
 # Frontend
 
