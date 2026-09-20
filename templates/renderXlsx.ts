@@ -50,8 +50,11 @@ export function renderXlsxTabs(
   // in a new workbook would. Copy before substituting so every tab starts from
   // the untouched placeholder sheet.
   const template = new XlsxTemplate(Buffer.from(templateBuf));
-  for (const { name } of tabs) template.copySheet(1, name);
-  template.deleteSheet(1);
+  // xlsx-template's types say copySheet/deleteSheet take a sheet name, but
+  // (like substitute()) they also accept a 1-based sheet index at runtime.
+  const firstSheet = 1 as unknown as string;
+  for (const { name } of tabs) template.copySheet(firstSheet, name);
+  template.deleteSheet(firstSheet);
 
   for (const [index, { data }] of tabs.entries()) {
     renderXlsxSheet(template, templateBuf, data, index + 1);

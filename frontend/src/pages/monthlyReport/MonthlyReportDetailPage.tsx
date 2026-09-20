@@ -1,5 +1,5 @@
 import type { MonthlyReportDetail, MonthlyReportLine } from "@canalcik/server/api-types";
-import { Alert, Anchor, Badge, Button, Fieldset, Group, Stack, Table, Text } from "@mantine/core";
+import { Anchor, Badge, Button, Fieldset, Group, Stack, Table, Text } from "@mantine/core";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
@@ -11,11 +11,7 @@ import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
 import { formatIsoDate, formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
 import { bonLabel } from "../../lib/labels.ts";
-import {
-  GenerateMonthlyReportButton,
-  INCONSISTENT_MESSAGE,
-  generateBlock,
-} from "./GenerateMonthlyReportButton.tsx";
+import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
 /**
  * One month's report: what the factura says against what our bonuri say, per
