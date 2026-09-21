@@ -8,6 +8,7 @@
     "upload:drive": "tsx scripts/uploadToDrive.ts",
     "fetch": "tsx scripts/fetchTemplates.ts",
     "seed:bonuri": "tsx scripts/seedBonuri.ts",
+    "seed:factura": "tsx scripts/seedFacturaExpeditie.ts",
     "dev": "pnpm -r --parallel run dev",
     "dev:server": "pnpm --filter @canalcik/server dev",
     "dev:web": "pnpm --filter @canalcik/frontend dev",
