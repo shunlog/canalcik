@@ -8,7 +8,7 @@ import {
 } from "../dto.ts";
 import { badRef, hasDependents, notFound } from "../http/errors.ts";
 import { parseIdParam, readJson } from "../http/read.ts";
-import { setSoferiBody, vehiculCreate, vehiculUpdate } from "../schemas/vehicul.ts";
+import { anvelopeUpdate, setSoferiBody, vehiculCreate, vehiculUpdate } from "../schemas/vehicul.ts";
 
 export const vehicule = new Hono();
 
@@ -55,6 +55,32 @@ vehicule.delete("/:id", async (c) => {
   }
   await db.vehicul.delete({ where: { id } });
   return c.body(null, 204);
+});
+
+vehicule.patch("/:id/anvelope", async (c) => {
+  const id = parseIdParam(c);
+  const { anvelopeLuni = [], anvelopeKm = [] } = await readJson(c, anvelopeUpdate);
+
+  // updateMany (rather than update, keyed only by the row's own id) also
+  // checks vehiculId, so a row cannot be edited through the wrong vehicul's page.
+  await db.$transaction([
+    ...anvelopeLuni.map((a) =>
+      db.anvelopaLuni.updateMany({
+        where: { id: a.id, vehiculId: id },
+        data: { dataInstalarii: a.dataInstalarii },
+      }),
+    ),
+    ...anvelopeKm.map((a) =>
+      db.anvelopaKm.updateMany({
+        where: { id: a.id, vehiculId: id },
+        data: { dataInstalarii: a.dataInstalarii },
+      }),
+    ),
+  ]);
+
+  const row = await db.vehicul.findUnique({ where: { id }, select: vehiculDetailSelect });
+  if (!row) throw notFound("Vehiculul");
+  return c.json(toVehiculDetail(row));
 });
 
 vehicule.put("/:id/soferi", async (c) => {

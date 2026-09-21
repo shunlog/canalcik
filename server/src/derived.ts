@@ -84,3 +84,30 @@ export const infoSofer = (
   numeSofer: sofer.nume,
   functiaSofer: functiaDupaTip[vehicul.tip] ?? FUNCTIA_SOFER,
 });
+
+// --------------------------------------------------------------- anvelope
+
+const ymAdd = (iso: string, months: number): { y: number; m: number } => {
+  const [y, m] = iso.split("-").map(Number);
+  const total = y * 12 + (m - 1) + months;
+  return { y: Math.floor(total / 12), m: (total % 12) + 1 };
+};
+
+/**
+ * Whole months left before a month-based tire's replacement is due; negative
+ * once it's overdue. Calendar-month granularity, matching `normaLuni`'s own
+ * unit — the day of the month is not weighed.
+ */
+export const luniRamase = (dataInstalarii: string, normaLuni: number, today: string): number => {
+  const target = ymAdd(dataInstalarii, normaLuni);
+  const [ty, tm] = today.split("-").map(Number);
+  return target.y * 12 + target.m - (ty * 12 + tm);
+};
+
+/** Km left before a distance-based tire's replacement is due; negative once overdue. */
+export const kmRamasi = (kmInstalare: number, normaKm: number, kmActuali: number): number =>
+  kmInstalare + normaKm - kmActuali;
+
+/** Wear, 0-100+ — how much of the tire's norm has been driven since install. */
+export const procenteUzura = (kmInstalare: number, normaKm: number, kmActuali: number): number =>
+  Math.round(((kmActuali - kmInstalare) / normaKm) * 100);

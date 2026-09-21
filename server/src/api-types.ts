@@ -170,12 +170,53 @@ export interface VehiculDetail extends VehiculScalars {
   updatedAt: string;
   soferi: SoferRef[];
   bonuri: BonRef[];
+  anvelopeLuni: AnvelopaLuni[];
+  anvelopeKm: AnvelopaKm[];
 }
 
 export type VehiculCreateBody = VehiculScalars;
 export type VehiculUpdateBody = Partial<VehiculScalars>;
 export interface SetSoferiBody {
   soferIds: number[];
+}
+
+// ---------------------------------------------------------------- anvelope
+
+/** One physical tire replaced on a fixed calendar schedule ("anvelope_part1.csv"). */
+export interface AnvelopaLuniScalars {
+  model: string | null;
+  dataInstalarii: IsoDate;
+  normaLuni: number;
+}
+
+export interface AnvelopaLuni extends AnvelopaLuniScalars {
+  id: number;
+  updatedAt: string;
+  /** Whole months left before replacement is due; negative once overdue. */
+  luniRamase: number;
+}
+
+/** One physical tire replaced on a distance schedule ("anvelope_part2.csv"). */
+export interface AnvelopaKmScalars {
+  model: string | null;
+  dataInstalarii: IsoDate;
+  kmInstalare: number;
+  normaKm: number;
+}
+
+export interface AnvelopaKm extends AnvelopaKmScalars {
+  id: number;
+  updatedAt: string;
+  /** Km left before replacement is due; negative once overdue. null without a kmActuali reading. */
+  kmRamasi: number | null;
+  /** Wear, 0-100+; null without a kmActuali reading. */
+  procenteUzura: number | null;
+}
+
+/** Only `dataInstalarii` is editable — everything else about a tire row comes from the source data. */
+export interface AnvelopeUpdateBody {
+  anvelopeLuni?: Array<{ id: number; dataInstalarii: IsoDate }>;
+  anvelopeKm?: Array<{ id: number; dataInstalarii: IsoDate }>;
 }
 
 // --------------------------------------------------------------- bonEliberare

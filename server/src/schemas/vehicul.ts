@@ -1,6 +1,11 @@
 import { z } from "zod";
-import type { SetSoferiBody, VehiculCreateBody, VehiculUpdateBody } from "../api-types.ts";
-import { idList, nullableInt, nullableText, requiredText, type Same } from "./common.ts";
+import type {
+  AnvelopeUpdateBody,
+  SetSoferiBody,
+  VehiculCreateBody,
+  VehiculUpdateBody,
+} from "../api-types.ts";
+import { idList, isoDate, nullableInt, nullableText, requiredText, type Same } from "./common.ts";
 
 export const vehiculCreate = z.object({
   nrInmatriculare: requiredText("Nr. înmatriculare"),
@@ -19,7 +24,15 @@ export const vehiculUpdate = vehiculCreate.partial();
 
 export const setSoferiBody = z.object({ soferIds: idList });
 
+const anvelopaRow = z.object({ id: z.number().int().positive(), dataInstalarii: isoDate });
+
+export const anvelopeUpdate = z.object({
+  anvelopeLuni: z.array(anvelopaRow).optional(),
+  anvelopeKm: z.array(anvelopaRow).optional(),
+});
+
 const _createMatches: Same<z.infer<typeof vehiculCreate>, VehiculCreateBody> = true;
 const _updateMatches: Same<z.infer<typeof vehiculUpdate>, VehiculUpdateBody> = true;
 const _setMatches: Same<z.infer<typeof setSoferiBody>, SetSoferiBody> = true;
-void _createMatches, _updateMatches, _setMatches;
+const _anvelopeMatches: Same<z.infer<typeof anvelopeUpdate>, AnvelopeUpdateBody> = true;
+void _createMatches, _updateMatches, _setMatches, _anvelopeMatches;

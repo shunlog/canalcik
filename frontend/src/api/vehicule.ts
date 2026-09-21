@@ -1,4 +1,5 @@
 import type {
+  AnvelopeUpdateBody,
   SetSoferiBody,
   VehiculCreateBody,
   VehiculDetail,
@@ -44,6 +45,14 @@ export function useDeleteVehicul(id: number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api.del(`/vehicule/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: vehiculKeys.all }),
+  });
+}
+
+export function useUpdateAnvelope(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AnvelopeUpdateBody) => api.patch<VehiculDetail>(`/vehicule/${id}/anvelope`, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: vehiculKeys.all }),
   });
 }

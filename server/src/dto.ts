@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import type {
   ActDefectiuneDetail,
   ActDefectiuneListItem,
+  AnvelopaKm,
+  AnvelopaLuni,
   BonDetail,
   BonRef,
   ComandaMaterialeDetail,
@@ -19,7 +21,11 @@ import type {
   VehiculDetail,
   VehiculListItem,
 } from "./api-types.ts";
-import { infoSofer, infoVehicul } from "./derived.ts";
+import { infoSofer, infoVehicul, kmRamasi, luniRamase, procenteUzura } from "./derived.ts";
+
+// Today as "YYYY-MM-DD" — used to resolve how much of a tire's schedule is
+// left, the same way monthlyReportData resolves the current month.
+const todayIso = () => new Date().toLocaleDateString("sv-SE");
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -140,10 +146,45 @@ export const vehiculListSelect = {
   _count: { select: { soferi: true, bonuri: true } },
 } satisfies Prisma.VehiculSelect;
 
+const anvelopaLuniSelect = {
+  id: true,
+  updatedAt: true,
+  model: true,
+  dataInstalarii: true,
+  normaLuni: true,
+} satisfies Prisma.AnvelopaLuniSelect;
+
+const anvelopaKmSelect = {
+  id: true,
+  updatedAt: true,
+  model: true,
+  dataInstalarii: true,
+  kmInstalare: true,
+  normaKm: true,
+} satisfies Prisma.AnvelopaKmSelect;
+
+type AnvelopaLuniRow = Prisma.AnvelopaLuniGetPayload<{ select: typeof anvelopaLuniSelect }>;
+type AnvelopaKmRow = Prisma.AnvelopaKmGetPayload<{ select: typeof anvelopaKmSelect }>;
+
+const toAnvelopaLuni = ({ updatedAt, ...a }: AnvelopaLuniRow, today: string): AnvelopaLuni => ({
+  ...a,
+  updatedAt: updatedAt.toISOString(),
+  luniRamase: luniRamase(a.dataInstalarii, a.normaLuni, today),
+});
+
+const toAnvelopaKm = ({ updatedAt, ...a }: AnvelopaKmRow, kmActuali: number | null): AnvelopaKm => ({
+  ...a,
+  updatedAt: updatedAt.toISOString(),
+  kmRamasi: kmActuali === null ? null : kmRamasi(a.kmInstalare, a.normaKm, kmActuali),
+  procenteUzura: kmActuali === null ? null : procenteUzura(a.kmInstalare, a.normaKm, kmActuali),
+});
+
 export const vehiculDetailSelect = {
   ...vehiculScalarSelect,
   soferi: { select: soferRefSelect, orderBy: { nume: "asc" } },
   bonuri: { select: bonRefSelect, orderBy: [{ data: "desc" }, { id: "desc" }] },
+  anvelopeLuni: { select: anvelopaLuniSelect, orderBy: { dataInstalarii: "desc" } },
+  anvelopeKm: { select: anvelopaKmSelect, orderBy: { dataInstalarii: "desc" } },
 } satisfies Prisma.VehiculSelect;
 
 type VehiculListRow = Prisma.VehiculGetPayload<{ select: typeof vehiculListSelect }>;
@@ -163,14 +204,21 @@ export const toVehiculListItem = ({
 export const toVehiculDetail = ({
   soferi,
   bonuri,
+  anvelopeLuni,
+  anvelopeKm,
   updatedAt,
   ...v
-}: VehiculDetailRow): VehiculDetail => ({
-  ...v,
-  updatedAt: updatedAt.toISOString(),
-  soferi,
-  bonuri: bonuri.map(toBonRef),
-});
+}: VehiculDetailRow): VehiculDetail => {
+  const today = todayIso();
+  return {
+    ...v,
+    updatedAt: updatedAt.toISOString(),
+    soferi,
+    bonuri: bonuri.map(toBonRef),
+    anvelopeLuni: anvelopeLuni.map((a) => toAnvelopaLuni(a, today)),
+    anvelopeKm: anvelopeKm.map((a) => toAnvelopaKm(a, v.kmActuali)),
+  };
+};
 
 // --------------------------------------------------------------- bonEliberare
 
