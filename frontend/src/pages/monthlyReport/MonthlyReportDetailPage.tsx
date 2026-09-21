@@ -3,14 +3,13 @@ import { Anchor, Badge, Button, Fieldset, Group, Stack, Table, Text } from "@man
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
-import { FacturaLink } from "../../components/FacturaLink.tsx";
 import { MaterialLink } from "../../components/MaterialLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
-import { bonLabel } from "../../lib/labels.ts";
+import { formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
+import { bonLabel, facturaLabel } from "../../lib/labels.ts";
 import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
 /**
@@ -98,11 +97,14 @@ export function MonthlyReportDetailPage() {
                 <Text size="sm" c="dimmed">
                   Factură
                 </Text>
-                {m.factura ? (
-                  <FacturaLink factura={m.factura} size="sm" />
-                ) : (
-                  <Text size="sm">{formatIsoDate(null)}</Text>
-                )}
+                <RefLinkList
+                  items={m.facturi.map((f) => ({
+                    id: f.id,
+                    label: facturaLabel(f),
+                    to: `/facturi/${f.id}`,
+                  }))}
+                  empty="—"
+                />
               </Group>
             </Group>
           </Fieldset>

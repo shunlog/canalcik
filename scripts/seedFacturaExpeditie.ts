@@ -7,10 +7,11 @@ import type { FacturaExpeditie } from "./facturaExpeditieTypes.ts";
 // Seeds the database with a "factura de expeditie" from a data file, e.g.:
 //   pnpm run seed:factura -- scripts/facturi/2026-09.ts
 //
-// Re-running replaces the factura for the same month rather than duplicating
-// it — FacturaExpeditie.month is unique, one factura per month. The
-// MaterialeIntretinere rows the lines point at are reused when they already
-// exist and are never deleted — the catalogue outlives the facturi.
+// A month can hold more than one factura, so re-running this script — even
+// for the same month, even with the same file — adds a new factura rather
+// than replacing one. The MaterialeIntretinere rows the lines point at are
+// reused when they already exist and are never deleted — the catalogue
+// outlives the facturi.
 
 const prisma = new PrismaClient();
 
@@ -37,7 +38,6 @@ async function main() {
     );
   }
 
-  await prisma.facturaExpeditie.deleteMany({ where: { month } });
   const factura = await prisma.facturaExpeditie.create({
     data: {
       data,

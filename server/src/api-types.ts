@@ -357,7 +357,8 @@ export interface GeneratedDocRef {
 export interface MonthlyReport {
   month: IsoMonth;
   nrBonuri: number;
-  factura: { id: number; data: IsoDate } | null;
+  /** A month can hold more than one factura de expeditie; empty when it has none. */
+  facturi: Array<{ id: number; data: IsoDate }>;
   document: GeneratedDocRef | null;
   /**
    * How many reconciliation rows disagree with the factura. null when there is

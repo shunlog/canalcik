@@ -6,29 +6,11 @@ import {
   toFacturaDetail,
   toFacturaRef,
 } from "../dto.ts";
-import { ApiError, notFound } from "../http/errors.ts";
+import { notFound } from "../http/errors.ts";
 import { parseIdParam, readJson } from "../http/read.ts";
 import { facturaCreate, facturaUpdate, type FacturaLineInput } from "../schemas/factura.ts";
 
 export const facturi = new Hono();
-
-/**
- * Pre-checked here for a message the operator can act on; `month`'s `@unique`
- * in the schema is the race backstop, not the primary guard.
- */
-async function checkMonthUnique(month: string, excludeId?: number) {
-  const existing = await db.facturaExpeditie.findFirst({
-    where: { month, ...(excludeId !== undefined ? { id: { not: excludeId } } : {}) },
-  });
-  if (existing) {
-    throw new ApiError(
-      409,
-      "DUPLICATE",
-      `Există deja o factură de expediție pentru luna ${month}`,
-      { data: "Există deja o factură pentru această lună" },
-    );
-  }
-}
 
 /**
  * Lines arrive carrying the material's *name*, so a delivery of something the
@@ -53,7 +35,6 @@ facturi.get("/", async (c) => {
 facturi.post("/", async (c) => {
   const { materiale, ...scalars } = await readJson(c, facturaCreate);
   const month = scalars.data.slice(0, 7);
-  await checkMonthUnique(month);
 
   const row = await db.facturaExpeditie.create({
     data: { ...scalars, month, materiale: { create: toLineCreate(materiale) } },
@@ -75,7 +56,6 @@ facturi.patch("/:id", async (c) => {
   const id = parseIdParam(c);
   const { materiale, ...scalars } = await readJson(c, facturaUpdate);
   const month = scalars.data !== undefined ? scalars.data.slice(0, 7) : undefined;
-  if (month !== undefined) await checkMonthUnique(month, id);
 
   const row = await db.facturaExpeditie.update({
     where: { id },

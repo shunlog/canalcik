@@ -83,13 +83,17 @@ async function loadMonthsData() {
     bonuriByMonth.set(month, list);
   }
 
-  const facturaByMonth = new Map<string, (typeof facturi)[number]>();
-  for (const f of facturi) facturaByMonth.set(f.month, f);
+  const facturiByMonth = new Map<string, typeof facturi>();
+  for (const f of facturi) {
+    const list = facturiByMonth.get(f.month) ?? [];
+    list.push(f);
+    facturiByMonth.set(f.month, list);
+  }
 
   const docByMonth = new Map<string, GeneratedDocRef>();
   for (const d of docs) docByMonth.set(d.month, toGeneratedDocRef(d.document));
 
-  return { bonuriByMonth, facturaByMonth, docByMonth };
+  return { bonuriByMonth, facturiByMonth, docByMonth };
 }
 
 type MonthsData = Awaited<ReturnType<typeof loadMonthsData>>;
@@ -97,8 +101,8 @@ type MonthsData = Awaited<ReturnType<typeof loadMonthsData>>;
 /** Maps the loaded rows onto the shape buildReconciliere takes. */
 function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
   const bonuri = data.bonuriByMonth.get(month) ?? [];
-  const factura = data.facturaByMonth.get(month);
-  if (bonuri.length === 0 || !factura) return [];
+  const facturi = data.facturiByMonth.get(month) ?? [];
+  if (bonuri.length === 0 || facturi.length === 0) return [];
 
   return buildReconciliere({
     bonuri: bonuri.map((b) => ({
@@ -112,28 +116,30 @@ function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
         cantitate: m.cantitate,
       })),
     })),
-    facturaLinii: factura.materiale.map((m) => ({
-      materialId: m.materialId,
-      materialNume: m.material.nume,
-      nrCart: m.nrCart,
-      um: m.um,
-      cantitate: m.cantitate,
-    })),
+    facturaLinii: facturi.flatMap((f) =>
+      f.materiale.map((m) => ({
+        materialId: m.materialId,
+        materialNume: m.material.nume,
+        nrCart: m.nrCart,
+        um: m.um,
+        cantitate: m.cantitate,
+      })),
+    ),
   });
 }
 
 function monthlyReportRow(month: string, data: MonthsData): MonthlyReport {
   const bonuri = data.bonuriByMonth.get(month) ?? [];
-  const factura = data.facturaByMonth.get(month);
+  const facturi = data.facturiByMonth.get(month) ?? [];
   return {
     month,
     nrBonuri: bonuri.length,
-    factura: factura ? { id: factura.id, data: factura.data } : null,
+    facturi: facturi.map((f) => ({ id: f.id, data: f.data })),
     document: data.docByMonth.get(month) ?? null,
     // null, not 0, when there is nothing to compare: the client shows "no
     // bonuri" / "no factura" rather than "inconsistent" for those months.
     nrDiferente:
-      bonuri.length === 0 || !factura
+      bonuri.length === 0 || facturi.length === 0
         ? null
         : liniiCuDiferente(reconciliereFor(month, data)).length,
   };
@@ -143,7 +149,7 @@ monthlyReport.get("/", async (c) => {
   const data = await loadMonthsData();
   const months = intervalMonths([
     ...data.bonuriByMonth.keys(),
-    ...data.facturaByMonth.keys(),
+    ...data.facturiByMonth.keys(),
     ...data.docByMonth.keys(),
   ]);
   const rows = months.map((month) => monthlyReportRow(month, data)).reverse(); // newest first
@@ -168,7 +174,7 @@ monthlyReport.get("/:month", async (c) => {
 monthlyReport.post("/:month/generate", async (c) => {
   const month = parseMonthParam(c);
 
-  const [bonuri, factura] = await Promise.all([
+  const [bonuri, facturi] = await Promise.all([
     db.bonEliberare.findMany({
       // `data` is a "YYYY-MM-DD" string, chronological because the column is
       // a string — a string range is enough to select one calendar month.
@@ -183,7 +189,7 @@ monthlyReport.post("/:month/generate", async (c) => {
         materiale: bonuriLinesSelect,
       },
     }),
-    db.facturaExpeditie.findFirst({
+    db.facturaExpeditie.findMany({
       where: { month },
       select: {
         materiale: {
@@ -203,9 +209,10 @@ monthlyReport.post("/:month/generate", async (c) => {
   if (bonuri.length === 0) {
     throw new ApiError(400, "VALIDATION", `Luna ${month} nu are niciun bon de eliberare`);
   }
-  if (!factura) {
+  if (facturi.length === 0) {
     throw new ApiError(400, "VALIDATION", `Luna ${month} nu are o factură de expediție`);
   }
+  const facturaLinii = facturi.flatMap((f) => f.materiale);
 
   const bonuriPentruLuna = bonuri.map((b) => ({
     id: b.id,
@@ -230,7 +237,7 @@ monthlyReport.post("/:month/generate", async (c) => {
   const diferente = liniiCuDiferente(
     buildReconciliere({
       bonuri: bonuriPentruLuna,
-      facturaLinii: factura.materiale.map((m) => ({
+      facturaLinii: facturaLinii.map((m) => ({
         materialId: m.materialId,
         materialNume: m.material.nume,
         nrCart: m.nrCart,
@@ -254,7 +261,7 @@ monthlyReport.post("/:month/generate", async (c) => {
     sheets = buildMonthlyReport({
       month,
       bonuri: bonuriPentruLuna,
-      facturaLinii: factura.materiale,
+      facturaLinii,
     });
   } catch (err) {
     if (err instanceof UnmatchedMaterialeError) {

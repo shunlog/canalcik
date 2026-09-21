@@ -12,7 +12,8 @@ export const INCONSISTENT_MESSAGE =
  */
 export function generateBlock(m: MonthlyReport): { reason: string | null; inconsistent: boolean } {
   if (m.nrBonuri === 0) return { reason: "Luna nu are bonuri", inconsistent: false };
-  if (!m.factura) return { reason: "Luna nu are factură de expediție", inconsistent: false };
+  if (m.facturi.length === 0)
+    return { reason: "Luna nu are factură de expediție", inconsistent: false };
   if (m.nrDiferente) return { reason: INCONSISTENT_MESSAGE, inconsistent: true };
   return { reason: null, inconsistent: false };
 }

@@ -108,10 +108,11 @@ export class UnmatchedMaterialeError extends Error {
 
 /**
  * Resolves the factura line — and therefore the price and the printed
- * nr_cart — for one bon line, by materialId: the unique (facturaId,
- * materialId) constraint on FacturaExpeditieMaterial guarantees at most one
- * factura line per material, so a bon line (which only ever names the
- * material, never the code) always has at most one line to resolve to.
+ * nr_cart — for one bon line, by materialId. A month's facturi are expected
+ * to between them carry at most one line per material (the (facturaId,
+ * materialId) constraint on FacturaExpeditieMaterial only enforces this
+ * within a single factura); if two facturi in the same month both name the
+ * material, the later one in `facturaLinii` silently wins.
  */
 function resolveFacturaLine(
   line: MonthlyReportBonLine,
@@ -126,7 +127,7 @@ function resolveFacturaLine(
 
 /**
  * Builds the per-vehicle-and-driver sheets for one month's monthly report from
- * that month's bonuri and the month's factura. Throws UnmatchedMaterialeError,
+ * that month's bonuri and the month's facturi. Throws UnmatchedMaterialeError,
  * naming every offending material at once, if any bon line cannot be priced.
  */
 export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimita {
@@ -300,7 +301,7 @@ export type ReconcilereLinie = {
 };
 
 /**
- * Compares one month's bonuri against that month's factura, one row per
+ * Compares one month's bonuri against that month's facturi, one row per
  * material.
  *
  * A bon line whose material has no factura line at all becomes its own row

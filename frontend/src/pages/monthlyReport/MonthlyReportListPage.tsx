@@ -3,12 +3,13 @@ import type { MonthlyReport } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { useMonthlyReports, useGenerateMonthlyReport } from "../../api/monthlyReport.ts";
-import { FacturaLink } from "../../components/FacturaLink.tsx";
 import { MonthlyReportLink } from "../../components/MonthlyReportLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
+import { RefLinkList } from "../../components/RefLinkList.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, formatTimestamp } from "../../lib/forms.ts";
+import { formatTimestamp } from "../../lib/forms.ts";
+import { facturaLabel } from "../../lib/labels.ts";
 import { sortRecords } from "../../lib/sort.ts";
 import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
@@ -63,10 +64,19 @@ export function MonthlyReportListPage() {
                 render: (m) => m.nrBonuri,
               },
               {
-                accessor: "factura",
+                accessor: "facturi",
                 title: "Factură",
                 width: 130,
-                render: (m) => (m.factura ? <FacturaLink factura={m.factura} /> : formatIsoDate(null)),
+                render: (m) => (
+                  <RefLinkList
+                    items={m.facturi.map((f) => ({
+                      id: f.id,
+                      label: facturaLabel(f),
+                      to: `/facturi/${f.id}`,
+                    }))}
+                    empty="—"
+                  />
+                ),
               },
               {
                 accessor: "document",

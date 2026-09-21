@@ -126,11 +126,12 @@ model FacturaExpeditie {
   // Calendar date (ISO "YYYY-MM-DD")
   data String
 
-  // "YYYY-MM", derived from `data`. Enforces one factura per month at the DB
-  // level and makes "the factura for month X" an index hit.
-  month String @unique
+  // "YYYY-MM", derived from `data`
+  month String
 
   materiale FacturaExpeditieMaterial[]
+
+  @@index([month])
 }
 
 // One line on a factura de expeditie.
