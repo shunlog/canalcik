@@ -1,4 +1,5 @@
 import type { AnvelopaKmRef, AnvelopaLuniRef, IsoDate } from "@canalcik/server/api-types";
+import { anvelopaLuniExpiryDate } from "@canalcik/server/derived";
 import { ActionIcon, Button, Group, Popover, SegmentedControl, Stack, Text } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPencil } from "@tabler/icons-react";
@@ -21,6 +22,8 @@ type Kind = "luni" | "km";
 interface LuniRecord extends AnvelopaLuniRef {
   vehiculLabel: string;
   expired: boolean;
+  dataExpirarii: IsoDate;
+  expiredDate: boolean;
 }
 
 interface KmRecord extends AnvelopaKmRef {
@@ -42,19 +45,25 @@ export function AnvelopeListPage() {
   });
 
   const query = useAnvelope();
+  const today = todayLocalIso();
 
   const luniRecords = useMemo(() => {
-    let records: LuniRecord[] = (query.data?.luni ?? []).map((a) => ({
-      ...a,
-      vehiculLabel: vehiculLabel(a.vehicul),
-      expired: a.luniRamase < 0,
-    }));
+    let records: LuniRecord[] = (query.data?.luni ?? []).map((a) => {
+      const dataExpirarii = anvelopaLuniExpiryDate(a.dataInstalarii, a.normaLuni);
+      return {
+        ...a,
+        vehiculLabel: vehiculLabel(a.vehicul),
+        expired: a.luniRamase < 0,
+        dataExpirarii,
+        expiredDate: dataExpirarii <= today,
+      };
+    });
 
     if (vehiculFilter.trim()) records = fuzzySearch(records, vehiculFilter, [(r) => r.vehiculLabel]);
     if (modelFilter.trim()) records = fuzzySearch(records, modelFilter, [(r) => r.model]);
 
     return sortRecords(records, luniSort);
-  }, [query.data, vehiculFilter, modelFilter, luniSort]);
+  }, [query.data, vehiculFilter, modelFilter, luniSort, today]);
 
   const kmRecords = useMemo(() => {
     let records: KmRecord[] = (query.data?.km ?? []).map((a) => ({
@@ -134,6 +143,19 @@ export function AnvelopeListPage() {
                     />
                   ),
                 },
+                {
+                  accessor: "dataExpirarii",
+                  title: "Data expirării",
+                  sortable: true,
+                  render: (r) =>
+                    r.expiredDate ? (
+                      <Text c="red" span>
+                        ⚠️ {formatIsoDate(r.dataExpirarii)}
+                      </Text>
+                    ) : (
+                      formatIsoDate(r.dataExpirarii)
+                    ),
+                },
                 { accessor: "normaLuni", title: "Normă (luni)", sortable: true },
                 {
                   accessor: "luniRamase",
@@ -200,6 +222,12 @@ export function AnvelopeListPage() {
                   ),
                 },
                 { accessor: "kmInstalare", title: "Km la instalare", sortable: true },
+                {
+                  accessor: "kmActuali",
+                  title: "Km actuali",
+                  sortable: true,
+                  render: (r) => r.kmActuali ?? "—",
+                },
                 { accessor: "normaKm", title: "Normă (km)", sortable: true },
                 {
                   accessor: "kmRamasi",

@@ -20,18 +20,12 @@ export type EipEquipmentField = keyof typeof EIP_EXPIRY_MONTHS;
 export const EIP_EQUIPMENT_FIELDS = Object.keys(EIP_EXPIRY_MONTHS) as EipEquipmentField[];
 
 /**
- * Adds the equipment's calendar-month validity to an ISO calendar date.
- * The day is capped at the end of the target month (e.g. 29 February + 12
- * months is 28 February the following year), rather than overflowing into it.
+ * Adds a number of calendar months to an ISO calendar date. The day is capped
+ * at the end of the target month (e.g. 29 February + 12 months is 28 February
+ * the following year), rather than overflowing into it.
  */
-export const eipExpiryDate = (
-  issueDate: string | null | undefined,
-  equipment: EipEquipmentField,
-): string | null => {
-  const months = EIP_EXPIRY_MONTHS[equipment];
-  if (!issueDate || months === null) return null;
-
-  const [year, month, day] = issueDate.split("-").map(Number);
+export const addCalendarMonths = (isoDate: string, months: number): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
   const target = new Date(Date.UTC(year, month - 1 + months, 1));
   const targetYear = target.getUTCFullYear();
   const targetMonth = target.getUTCMonth();
@@ -40,6 +34,17 @@ export const eipExpiryDate = (
   return `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(
     Math.min(day, lastDay),
   ).padStart(2, "0")}`;
+};
+
+/** Adds the equipment's calendar-month validity to an ISO issue date. */
+export const eipExpiryDate = (
+  issueDate: string | null | undefined,
+  equipment: EipEquipmentField,
+): string | null => {
+  const months = EIP_EXPIRY_MONTHS[equipment];
+  if (!issueDate || months === null) return null;
+
+  return addCalendarMonths(issueDate, months);
 };
 
 type VehiculInfoSursa = Pick<
@@ -92,6 +97,10 @@ const ymAdd = (iso: string, months: number): { y: number; m: number } => {
   const total = y * 12 + (m - 1) + months;
   return { y: Math.floor(total / 12), m: (total % 12) + 1 };
 };
+
+/** The calendar date a month-based tire's replacement is due. */
+export const anvelopaLuniExpiryDate = (dataInstalarii: string, normaLuni: number): string =>
+  addCalendarMonths(dataInstalarii, normaLuni);
 
 /**
  * Whole months left before a month-based tire's replacement is due; negative

@@ -188,8 +188,8 @@ export const anvelopaLuniListSelect = {
   vehicul: { select: vehiculRefSelect },
 } satisfies Prisma.AnvelopaLuniSelect;
 
-// kmActuali rides along only to resolve kmRamasi/procenteUzura per row; it is
-// stripped back off below, same as anProducere on actDefectiuneDetailSelect.
+// kmActuali rides along to resolve kmRamasi/procenteUzura per row, and is
+// also surfaced as its own field on AnvelopaKmRef (not nested under vehicul).
 export const anvelopaKmListSelect = {
   ...anvelopaKmSelect,
   vehicul: { select: { ...vehiculRefSelect, kmActuali: true } },
@@ -208,7 +208,7 @@ export const toAnvelopaLuniRef = (
 
 export const toAnvelopaKmRef = ({ vehicul, ...a }: AnvelopaKmListRow): AnvelopaKmRef => {
   const { kmActuali, ...vehiculRef } = vehicul;
-  return { ...toAnvelopaKm(a, kmActuali), vehicul: vehiculRef };
+  return { ...toAnvelopaKm(a, kmActuali), vehicul: vehiculRef, kmActuali };
 };
 
 export const vehiculDetailSelect = {

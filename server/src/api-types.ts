@@ -226,6 +226,7 @@ export interface AnvelopaLuniRef extends AnvelopaLuni {
 
 export interface AnvelopaKmRef extends AnvelopaKm {
   vehicul: VehiculRef;
+  kmActuali: number | null;
 }
 
 export interface AnvelopeList {

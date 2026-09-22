@@ -1,9 +1,11 @@
 import type { AnvelopaLuni } from "@canalcik/server/api-types";
+import { anvelopaLuniExpiryDate } from "@canalcik/server/derived";
 import { Button, Group, Stack, Table, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useUpdateAnvelope } from "../../api/vehicule.ts";
 import { EditableDataInstalarii } from "../../components/EditableDataInstalarii.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
+import { formatIsoDate, todayLocalIso } from "../../lib/forms.ts";
 
 /** The vehicul's month-based tires — one row per physical tire. */
 export function AnvelopeLuniTable({
@@ -17,6 +19,8 @@ export function AnvelopeLuniTable({
   const update = useUpdateAnvelope();
 
   useEffect(() => setEdits({}), [anvelope]);
+
+  const today = todayLocalIso();
 
   if (anvelope.length === 0) {
     return (
@@ -52,6 +56,7 @@ export function AnvelopeLuniTable({
             <Table.Tr>
               <Table.Th>Model</Table.Th>
               <Table.Th>Data instalării</Table.Th>
+              <Table.Th>Data expirării</Table.Th>
               <Table.Th>Normă (luni)</Table.Th>
               <Table.Th>Luni rămase</Table.Th>
             </Table.Tr>
@@ -59,6 +64,8 @@ export function AnvelopeLuniTable({
           <Table.Tbody>
             {anvelope.map((a) => {
               const value = edits[a.id] ?? a.dataInstalarii;
+              const dataExpirarii = anvelopaLuniExpiryDate(value, a.normaLuni);
+              const expired = dataExpirarii <= today;
               return (
                 <Table.Tr key={a.id}>
                   <Table.Td>{a.model ?? "—"}</Table.Td>
@@ -68,6 +75,15 @@ export function AnvelopeLuniTable({
                       dirty={value !== a.dataInstalarii}
                       onChange={(v) => setEdits((e) => ({ ...e, [a.id]: v }))}
                     />
+                  </Table.Td>
+                  <Table.Td>
+                    {expired ? (
+                      <Text c="red" span>
+                        ⚠️ {formatIsoDate(dataExpirarii)}
+                      </Text>
+                    ) : (
+                      formatIsoDate(dataExpirarii)
+                    )}
                   </Table.Td>
                   <Table.Td>{a.normaLuni}</Table.Td>
                   <Table.Td c={a.luniRamase < 0 ? "red" : undefined}>{a.luniRamase}</Table.Td>
