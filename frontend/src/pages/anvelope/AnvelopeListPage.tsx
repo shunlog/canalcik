@@ -1,6 +1,15 @@
 import type { AnvelopaKmRef, AnvelopaLuniRef, IsoDate } from "@canalcik/server/api-types";
 import { anvelopaLuniExpiryDate } from "@canalcik/server/derived";
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Checkbox,
+  Group,
+  Popover,
+  SegmentedControl,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPencil } from "@tabler/icons-react";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
@@ -35,6 +44,7 @@ export function AnvelopeListPage() {
   const [kind, setKind] = useState<Kind>("luni");
   const [vehiculFilter, setVehiculFilter] = useState("");
   const [modelFilter, setModelFilter] = useState("");
+  const [onlyExpired, setOnlyExpired] = useState(false);
   const [luniSort, setLuniSort] = useState<DataTableSortStatus<LuniRecord>>({
     columnAccessor: "vehiculLabel",
     direction: "asc",
@@ -61,9 +71,10 @@ export function AnvelopeListPage() {
 
     if (vehiculFilter.trim()) records = fuzzySearch(records, vehiculFilter, [(r) => r.vehiculLabel]);
     if (modelFilter.trim()) records = fuzzySearch(records, modelFilter, [(r) => r.model]);
+    if (onlyExpired) records = records.filter((r) => r.expired);
 
     return sortRecords(records, luniSort);
-  }, [query.data, vehiculFilter, modelFilter, luniSort, today]);
+  }, [query.data, vehiculFilter, modelFilter, onlyExpired, luniSort, today]);
 
   const kmRecords = useMemo(() => {
     let records: KmRecord[] = (query.data?.km ?? []).map((a) => ({
@@ -74,9 +85,10 @@ export function AnvelopeListPage() {
 
     if (vehiculFilter.trim()) records = fuzzySearch(records, vehiculFilter, [(r) => r.vehiculLabel]);
     if (modelFilter.trim()) records = fuzzySearch(records, modelFilter, [(r) => r.model]);
+    if (onlyExpired) records = records.filter((r) => r.expired);
 
     return sortRecords(records, kmSort);
-  }, [query.data, vehiculFilter, modelFilter, kmSort]);
+  }, [query.data, vehiculFilter, modelFilter, onlyExpired, kmSort]);
 
   return (
     <>
@@ -90,6 +102,14 @@ export function AnvelopeListPage() {
           { label: "Normă în km", value: "km" },
         ]}
         mb="md"
+      />
+
+      <Checkbox
+        mt="sm"
+        mb="md"
+        label="Arată numai expirate"
+        checked={onlyExpired}
+        onChange={(event) => setOnlyExpired(event.currentTarget.checked)}
       />
 
       <QueryBoundary query={query}>
