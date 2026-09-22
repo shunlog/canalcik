@@ -1,6 +1,7 @@
 import { Divider, NavLink } from "@mantine/core";
 import {
   IconAlertTriangle,
+  IconBatteryAutomotive,
   IconBoxSeam,
   IconClipboardList,
   IconFileInvoice,
@@ -23,6 +24,7 @@ const SECTIONS = [
       { to: "/soferi", label: "Șoferi", icon: IconUsers },
       { to: "/vehicule", label: "Vehicule", icon: IconTruck },
       { to: "/anvelope", label: "Anvelope", icon: IconWheel },
+      { to: "/acumulatoare", label: "Acumulatoare", icon: IconBatteryAutomotive },
       { to: "/produse", label: "Produse", icon: IconBoxSeam },
       { to: "/materiale", label: "Materiale de întreținere", icon: IconPackages },
       { to: "/echipament", label: "Echipament", icon: IconShirt },

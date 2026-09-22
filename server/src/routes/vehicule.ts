@@ -8,7 +8,13 @@ import {
 } from "../dto.ts";
 import { badRef, hasDependents, notFound } from "../http/errors.ts";
 import { parseIdParam, readJson } from "../http/read.ts";
-import { anvelopeUpdate, setSoferiBody, vehiculCreate, vehiculUpdate } from "../schemas/vehicul.ts";
+import {
+  acumulatoareUpdate,
+  anvelopeUpdate,
+  setSoferiBody,
+  vehiculCreate,
+  vehiculUpdate,
+} from "../schemas/vehicul.ts";
 
 export const vehicule = new Hono();
 
@@ -77,6 +83,26 @@ vehicule.patch("/:id/anvelope", async (c) => {
       }),
     ),
   ]);
+
+  const row = await db.vehicul.findUnique({ where: { id }, select: vehiculDetailSelect });
+  if (!row) throw notFound("Vehiculul");
+  return c.json(toVehiculDetail(row));
+});
+
+vehicule.patch("/:id/acumulatoare", async (c) => {
+  const id = parseIdParam(c);
+  const { acumulatoare } = await readJson(c, acumulatoareUpdate);
+
+  // updateMany (rather than update, keyed only by the row's own id) also
+  // checks vehiculId, so a row cannot be edited through the wrong vehicul's page.
+  await db.$transaction(
+    acumulatoare.map((a) =>
+      db.acumulator.updateMany({
+        where: { id: a.id, vehiculId: id },
+        data: { dataInstalarii: a.dataInstalarii },
+      }),
+    ),
+  );
 
   const row = await db.vehicul.findUnique({ where: { id }, select: vehiculDetailSelect });
   if (!row) throw notFound("Vehiculul");

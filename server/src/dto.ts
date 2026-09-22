@@ -1,5 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type {
+  Acumulator,
+  AcumulatorRef,
   ActDefectiuneDetail,
   ActDefectiuneListItem,
   AnvelopaKm,
@@ -211,12 +213,47 @@ export const toAnvelopaKmRef = ({ vehicul, ...a }: AnvelopaKmListRow): AnvelopaK
   return { ...toAnvelopaKm(a, kmActuali), vehicul: vehiculRef, kmActuali };
 };
 
+const acumulatorSelect = {
+  id: true,
+  updatedAt: true,
+  model: true,
+  dataInstalarii: true,
+  normaLuni: true,
+} satisfies Prisma.AcumulatorSelect;
+
+type AcumulatorRow = Prisma.AcumulatorGetPayload<{ select: typeof acumulatorSelect }>;
+
+const toAcumulator = ({ updatedAt, ...a }: AcumulatorRow, today: string): Acumulator => ({
+  ...a,
+  updatedAt: updatedAt.toISOString(),
+  luniRamase: luniRamase(a.dataInstalarii, a.normaLuni, today),
+});
+
+// The fleet-wide "Acumulatoare" page reads every accumulator across every
+// vehicul, so each row carries its own vehicul ref rather than being nested
+// under one.
+export const acumulatorListSelect = {
+  ...acumulatorSelect,
+  vehicul: { select: vehiculRefSelect },
+} satisfies Prisma.AcumulatorSelect;
+
+type AcumulatorListRow = Prisma.AcumulatorGetPayload<{ select: typeof acumulatorListSelect }>;
+
+export const toAcumulatorRef = (
+  { vehicul, ...a }: AcumulatorListRow,
+  today: string,
+): AcumulatorRef => ({
+  ...toAcumulator(a, today),
+  vehicul,
+});
+
 export const vehiculDetailSelect = {
   ...vehiculScalarSelect,
   soferi: { select: soferRefSelect, orderBy: { nume: "asc" } },
   bonuri: { select: bonRefSelect, orderBy: [{ data: "desc" }, { id: "desc" }] },
   anvelopeLuni: { select: anvelopaLuniSelect, orderBy: { dataInstalarii: "desc" } },
   anvelopeKm: { select: anvelopaKmSelect, orderBy: { dataInstalarii: "desc" } },
+  acumulatoare: { select: acumulatorSelect, orderBy: { dataInstalarii: "desc" } },
 } satisfies Prisma.VehiculSelect;
 
 type VehiculListRow = Prisma.VehiculGetPayload<{ select: typeof vehiculListSelect }>;
@@ -238,6 +275,7 @@ export const toVehiculDetail = ({
   bonuri,
   anvelopeLuni,
   anvelopeKm,
+  acumulatoare,
   updatedAt,
   ...v
 }: VehiculDetailRow): VehiculDetail => {
@@ -249,6 +287,7 @@ export const toVehiculDetail = ({
     bonuri: bonuri.map(toBonRef),
     anvelopeLuni: anvelopeLuni.map((a) => toAnvelopaLuni(a, today)),
     anvelopeKm: anvelopeKm.map((a) => toAnvelopaKm(a, v.kmActuali)),
+    acumulatoare: acumulatoare.map((a) => toAcumulator(a, today)),
   };
 };
 

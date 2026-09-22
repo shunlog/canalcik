@@ -120,3 +120,9 @@ export const kmRamasi = (kmInstalare: number, normaKm: number, kmActuali: number
 /** Wear, 0-100+ — how much of the tire's norm has been driven since install. */
 export const procenteUzura = (kmInstalare: number, normaKm: number, kmActuali: number): number =>
   Math.round(((kmActuali - kmInstalare) / normaKm) * 100);
+
+// ------------------------------------------------------------ acumulatoare
+
+/** The calendar date an accumulator's replacement is due. */
+export const acumulatorExpiryDate = (dataInstalarii: string, normaLuni: number): string =>
+  addCalendarMonths(dataInstalarii, normaLuni);

@@ -3,6 +3,7 @@ import { AppLayout } from "./layout/AppLayout.tsx";
 import { ActDefectiuneCreatePage } from "./pages/actDefectiune/ActDefectiuneCreatePage.tsx";
 import { ActDefectiuneDetailPage } from "./pages/actDefectiune/ActDefectiuneDetailPage.tsx";
 import { ActDefectiuneListPage } from "./pages/actDefectiune/ActDefectiuneListPage.tsx";
+import { AcumulatoareListPage } from "./pages/acumulatoare/AcumulatoareListPage.tsx";
 import { AnvelopeListPage } from "./pages/anvelope/AnvelopeListPage.tsx";
 import { BonCreatePage } from "./pages/bonuri/BonCreatePage.tsx";
 import { BonDetailPage } from "./pages/bonuri/BonDetailPage.tsx";
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
       { path: "/vehicule/nou", element: <VehiculCreatePage /> },
       { path: "/vehicule/:id", element: <VehiculDetailPage /> },
       { path: "/anvelope", element: <AnvelopeListPage /> },
+      { path: "/acumulatoare", element: <AcumulatoareListPage /> },
       { path: "/bonuri", element: <BonuriListPage /> },
       { path: "/bonuri/nou", element: <BonCreatePage /> },
       { path: "/bonuri/:id", element: <BonDetailPage /> },

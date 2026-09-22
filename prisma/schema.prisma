@@ -39,6 +39,7 @@ model Vehicul {
   comenzi        ComandaMaterialeMaterial[]
   anvelopeLuni   AnvelopaLuni[]
   anvelopeKm     AnvelopaKm[]
+  acumulatoare   Acumulator[]
 
 }
 
@@ -316,6 +317,22 @@ model AnvelopaKm {
   dataInstalarii String  // "data instalarii" (ISO "YYYY-MM-DD")
   kmInstalare    Int     // "Km la instalare"
   normaKm        Int     // "norma de uzura" — replace after `normaKm` km since kmInstalare
+}
+
+// One physical accumulator currently installed on a vehicul, replaced on a
+// fixed calendar schedule ("acumulatoare.csv"). Mirrors AnvelopaLuni; a
+// vehicul can have several accumulators, so this is one row per accumulator,
+// not per vehicul.
+model Acumulator {
+  id        Int      @id @default(autoincrement())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  vehiculId Int
+  vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
+
+  model          String? // "model acum" — blank for a couple vehicles in the source data
+  dataInstalarii String  // "data instalarii" (ISO "YYYY-MM-DD")
+  normaLuni      Int     // "luni nominal" — replace `normaLuni` months after dataInstalarii
 }
 
 // One comanda's generated document — at most one per comanda, re-generation

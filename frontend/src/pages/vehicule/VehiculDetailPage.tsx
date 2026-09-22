@@ -14,6 +14,7 @@ import { ApiError } from "../../lib/api.ts";
 import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredNum, requiredText } from "../../lib/forms.ts";
 import { soferLabel } from "../../lib/labels.ts";
+import { AcumulatoareTable } from "./AcumulatoareTable.tsx";
 import { AnvelopeKmTable } from "./AnvelopeKmTable.tsx";
 import { AnvelopeLuniTable } from "./AnvelopeLuniTable.tsx";
 import { VehiculFields } from "./VehiculFields.tsx";
@@ -150,6 +151,10 @@ export function VehiculDetailPage() {
 
           <Fieldset legend="Anvelope — normă în km" mt="md">
             <AnvelopeKmTable vehiculId={v.id} anvelope={v.anvelopeKm} />
+          </Fieldset>
+
+          <Fieldset legend="Acumulatoare" mt="md">
+            <AcumulatoareTable vehiculId={v.id} acumulatoare={v.acumulatoare} />
           </Fieldset>
         </>
       )}

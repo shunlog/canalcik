@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type {
+  AcumulatoareUpdateBody,
   AnvelopeUpdateBody,
   SetSoferiBody,
   VehiculCreateBody,
@@ -31,8 +32,15 @@ export const anvelopeUpdate = z.object({
   anvelopeKm: z.array(anvelopaRow).optional(),
 });
 
+const acumulatorRow = z.object({ id: z.number().int().positive(), dataInstalarii: isoDate });
+
+export const acumulatoareUpdate = z.object({
+  acumulatoare: z.array(acumulatorRow),
+});
+
 const _createMatches: Same<z.infer<typeof vehiculCreate>, VehiculCreateBody> = true;
 const _updateMatches: Same<z.infer<typeof vehiculUpdate>, VehiculUpdateBody> = true;
 const _setMatches: Same<z.infer<typeof setSoferiBody>, SetSoferiBody> = true;
 const _anvelopeMatches: Same<z.infer<typeof anvelopeUpdate>, AnvelopeUpdateBody> = true;
-void _createMatches, _updateMatches, _setMatches, _anvelopeMatches;
+const _acumulatoareMatches: Same<z.infer<typeof acumulatoareUpdate>, AcumulatoareUpdateBody> = true;
+void _createMatches, _updateMatches, _setMatches, _anvelopeMatches, _acumulatoareMatches;

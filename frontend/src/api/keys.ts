@@ -63,6 +63,11 @@ export const anvelopeKeys = {
   list: ["anvelope", "list"] as const,
 };
 
+export const acumulatoareKeys = {
+  all: ["acumulatoare"] as const,
+  list: ["acumulatoare", "list"] as const,
+};
+
 export const templateKeys = {
   all: ["templates"] as const,
   list: ["templates", "list"] as const,

@@ -172,6 +172,7 @@ export interface VehiculDetail extends VehiculScalars {
   bonuri: BonRef[];
   anvelopeLuni: AnvelopaLuni[];
   anvelopeKm: AnvelopaKm[];
+  acumulatoare: Acumulator[];
 }
 
 export type VehiculCreateBody = VehiculScalars;
@@ -232,6 +233,32 @@ export interface AnvelopaKmRef extends AnvelopaKm {
 export interface AnvelopeList {
   luni: AnvelopaLuniRef[];
   km: AnvelopaKmRef[];
+}
+
+// -------------------------------------------------------------- acumulator
+
+/** One physical accumulator replaced on a fixed calendar schedule ("acumulatoare.csv"). */
+export interface AcumulatorScalars {
+  model: string | null;
+  dataInstalarii: IsoDate;
+  normaLuni: number;
+}
+
+export interface Acumulator extends AcumulatorScalars {
+  id: number;
+  updatedAt: string;
+  /** Whole months left before replacement is due; negative once overdue. */
+  luniRamase: number;
+}
+
+/** Only `dataInstalarii` is editable — everything else about an accumulator row comes from the source data. */
+export interface AcumulatoareUpdateBody {
+  acumulatoare: Array<{ id: number; dataInstalarii: IsoDate }>;
+}
+
+/** An accumulator row as it appears on the fleet-wide "Acumulatoare" page, with the vehicul it is on. */
+export interface AcumulatorRef extends Acumulator {
+  vehicul: VehiculRef;
 }
 
 // --------------------------------------------------------------- bonEliberare
