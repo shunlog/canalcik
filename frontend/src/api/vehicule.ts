@@ -8,7 +8,7 @@ import type {
 } from "@canalcik/server/api-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api.ts";
-import { soferKeys, vehiculKeys } from "./keys.ts";
+import { anvelopeKeys, soferKeys, vehiculKeys } from "./keys.ts";
 
 export function useVehicule() {
   return useQuery({
@@ -49,11 +49,20 @@ export function useDeleteVehicul(id: number) {
   });
 }
 
-export function useUpdateAnvelope(id: number) {
+/**
+ * Not bound to one vehicul — the fleet-wide "Anvelope" page edits rows across
+ * many vehicule from a single hook instance, so `vehiculId` travels with each
+ * call instead of being fixed at hook creation like `useUpdateVehicul`.
+ */
+export function useUpdateAnvelope() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: AnvelopeUpdateBody) => api.patch<VehiculDetail>(`/vehicule/${id}/anvelope`, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: vehiculKeys.all }),
+    mutationFn: ({ vehiculId, ...body }: AnvelopeUpdateBody & { vehiculId: number }) =>
+      api.patch<VehiculDetail>(`/vehicule/${vehiculId}/anvelope`, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: vehiculKeys.all });
+      void qc.invalidateQueries({ queryKey: anvelopeKeys.all });
+    },
   });
 }
 

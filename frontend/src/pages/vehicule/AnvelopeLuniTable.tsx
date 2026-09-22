@@ -14,7 +14,7 @@ export function AnvelopeLuniTable({
   anvelope: AnvelopaLuni[];
 }) {
   const [edits, setEdits] = useState<Record<number, string>>({});
-  const update = useUpdateAnvelope(vehiculId);
+  const update = useUpdateAnvelope();
 
   useEffect(() => setEdits({}), [anvelope]);
 
@@ -31,6 +31,7 @@ export function AnvelopeLuniTable({
   const save = () => {
     update.mutate(
       {
+        vehiculId,
         anvelopeLuni: Object.entries(edits).map(([id, dataInstalarii]) => ({
           id: Number(id),
           dataInstalarii,

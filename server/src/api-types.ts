@@ -219,6 +219,20 @@ export interface AnvelopeUpdateBody {
   anvelopeKm?: Array<{ id: number; dataInstalarii: IsoDate }>;
 }
 
+/** A tire row as it appears on the fleet-wide "Anvelope" page, with the vehicul it is on. */
+export interface AnvelopaLuniRef extends AnvelopaLuni {
+  vehicul: VehiculRef;
+}
+
+export interface AnvelopaKmRef extends AnvelopaKm {
+  vehicul: VehiculRef;
+}
+
+export interface AnvelopeList {
+  luni: AnvelopaLuniRef[];
+  km: AnvelopaKmRef[];
+}
+
 // --------------------------------------------------------------- bonEliberare
 
 /** One line on a bon, as sent by the client. Lines are owned by the bon. */

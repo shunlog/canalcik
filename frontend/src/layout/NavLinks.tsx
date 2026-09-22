@@ -11,6 +11,7 @@ import {
   IconShirt,
   IconTruck,
   IconUsers,
+  IconWheel,
 } from "@tabler/icons-react";
 import { Fragment } from "react";
 import { Link, useLocation } from "react-router";
@@ -21,6 +22,7 @@ const SECTIONS = [
     items: [
       { to: "/soferi", label: "Șoferi", icon: IconUsers },
       { to: "/vehicule", label: "Vehicule", icon: IconTruck },
+      { to: "/anvelope", label: "Anvelope", icon: IconWheel },
       { to: "/produse", label: "Produse", icon: IconBoxSeam },
       { to: "/materiale", label: "Materiale de întreținere", icon: IconPackages },
       { to: "/echipament", label: "Echipament", icon: IconShirt },

@@ -3,7 +3,9 @@ import type {
   ActDefectiuneDetail,
   ActDefectiuneListItem,
   AnvelopaKm,
+  AnvelopaKmRef,
   AnvelopaLuni,
+  AnvelopaLuniRef,
   BonDetail,
   BonRef,
   ComandaMaterialeDetail,
@@ -25,7 +27,7 @@ import { infoSofer, infoVehicul, kmRamasi, luniRamase, procenteUzura } from "./d
 
 // Today as "YYYY-MM-DD" — used to resolve how much of a tire's schedule is
 // left, the same way monthlyReportData resolves the current month.
-const todayIso = () => new Date().toLocaleDateString("sv-SE");
+export const todayIso = () => new Date().toLocaleDateString("sv-SE");
 
 // Every query below uses an explicit `select`, so adding a column to
 // schema.prisma never silently starts leaking it over the wire — the DTO and
@@ -178,6 +180,36 @@ const toAnvelopaKm = ({ updatedAt, ...a }: AnvelopaKmRow, kmActuali: number | nu
   kmRamasi: kmActuali === null ? null : kmRamasi(a.kmInstalare, a.normaKm, kmActuali),
   procenteUzura: kmActuali === null ? null : procenteUzura(a.kmInstalare, a.normaKm, kmActuali),
 });
+
+// The fleet-wide "Anvelope" page reads every tire across every vehicul, so
+// each row carries its own vehicul ref rather than being nested under one.
+export const anvelopaLuniListSelect = {
+  ...anvelopaLuniSelect,
+  vehicul: { select: vehiculRefSelect },
+} satisfies Prisma.AnvelopaLuniSelect;
+
+// kmActuali rides along only to resolve kmRamasi/procenteUzura per row; it is
+// stripped back off below, same as anProducere on actDefectiuneDetailSelect.
+export const anvelopaKmListSelect = {
+  ...anvelopaKmSelect,
+  vehicul: { select: { ...vehiculRefSelect, kmActuali: true } },
+} satisfies Prisma.AnvelopaKmSelect;
+
+type AnvelopaLuniListRow = Prisma.AnvelopaLuniGetPayload<{ select: typeof anvelopaLuniListSelect }>;
+type AnvelopaKmListRow = Prisma.AnvelopaKmGetPayload<{ select: typeof anvelopaKmListSelect }>;
+
+export const toAnvelopaLuniRef = (
+  { vehicul, ...a }: AnvelopaLuniListRow,
+  today: string,
+): AnvelopaLuniRef => ({
+  ...toAnvelopaLuni(a, today),
+  vehicul,
+});
+
+export const toAnvelopaKmRef = ({ vehicul, ...a }: AnvelopaKmListRow): AnvelopaKmRef => {
+  const { kmActuali, ...vehiculRef } = vehicul;
+  return { ...toAnvelopaKm(a, kmActuali), vehicul: vehiculRef };
+};
 
 export const vehiculDetailSelect = {
   ...vehiculScalarSelect,

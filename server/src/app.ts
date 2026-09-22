@@ -3,6 +3,7 @@ import type { ApiErrorBody, HealthBody } from "./api-types.ts";
 import { db } from "./db.ts";
 import { onError } from "./http/onError.ts";
 import { acteDefectiune } from "./routes/actDefectiune.ts";
+import { anvelope } from "./routes/anvelope.ts";
 import { bonuri } from "./routes/bonuri.ts";
 import { comenziMateriale } from "./routes/comandaMateriale.ts";
 import { drive } from "./routes/drive.ts";
@@ -31,6 +32,7 @@ app.get("/api/health", async (c) => {
 
 app.route("/api/soferi", soferi);
 app.route("/api/vehicule", vehicule);
+app.route("/api/anvelope", anvelope);
 app.route("/api/bonuri", bonuri);
 app.route("/api/materiale", materiale);
 app.route("/api/produse", produse);

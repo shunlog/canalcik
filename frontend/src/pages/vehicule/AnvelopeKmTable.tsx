@@ -16,7 +16,7 @@ export function AnvelopeKmTable({
   anvelope: AnvelopaKm[];
 }) {
   const [edits, setEdits] = useState<Record<number, string>>({});
-  const update = useUpdateAnvelope(vehiculId);
+  const update = useUpdateAnvelope();
 
   useEffect(() => setEdits({}), [anvelope]);
 
@@ -33,6 +33,7 @@ export function AnvelopeKmTable({
   const save = () => {
     update.mutate(
       {
+        vehiculId,
         anvelopeKm: Object.entries(edits).map(([id, dataInstalarii]) => ({
           id: Number(id),
           dataInstalarii,
