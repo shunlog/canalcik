@@ -88,6 +88,7 @@ async function seedKm() {
     number,
     { model: string | null; dataInstalarii: string; kmInstalare: number; normaKm: number }[]
   >();
+  const kmActualiByVehicul = new Map<number, number>();
 
   for (const row of readCsv(PART2_PATH)) {
     const nrGaraj = Number(row["Nr. Garaj"]);
@@ -103,10 +104,17 @@ async function seedKm() {
       dataInstalarii: toIsoDate(row["data instalarii"], where),
       kmInstalare: Number(row["Km la instalare"]),
       normaKm: Number(row["norma de uzura"]),
-      // "kilometraj actual schimb" is not stored — it repeats Vehicul.kmActuali
-      // on every row and is resolved on read instead, see server/src/derived.ts.
     });
     byVehicul.set(vehiculId, list);
+
+    // "kilometraj actual schimb" repeats Vehicul.kmActuali on every row for
+    // the same vehicle; take it from here to keep kmActuali up to date.
+    const kmActuali = Number(row["kilometraj actual schimb"]);
+    const prev = kmActualiByVehicul.get(vehiculId);
+    if (prev !== undefined && prev !== kmActuali) {
+      warn(`${where}: conflicting "kilometraj actual schimb" values ${prev} and ${kmActuali}`);
+    }
+    kmActualiByVehicul.set(vehiculId, kmActuali);
   }
 
   await prisma.anvelopaKm.deleteMany({ where: { vehiculId: { in: [...byVehicul.keys()] } } });
@@ -114,6 +122,9 @@ async function seedKm() {
   for (const [vehiculId, anvelope] of byVehicul) {
     await prisma.anvelopaKm.createMany({ data: anvelope.map((a) => ({ ...a, vehiculId })) });
     n += anvelope.length;
+  }
+  for (const [vehiculId, kmActuali] of kmActualiByVehicul) {
+    await prisma.vehicul.update({ where: { id: vehiculId }, data: { kmActuali } });
   }
   console.log(`Seeded ${n} AnvelopaKm rows for ${byVehicul.size} vehicule.`);
 }
