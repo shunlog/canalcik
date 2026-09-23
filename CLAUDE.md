@@ -3,6 +3,14 @@
 - Prefer consistency throughout the codebase to quick hacks that "just work"
 - Prefer simple solutions, ask before attempting a complex solution
 
+# Stopping the dev server
+
+After running `pnpm dev` / `pnpm dev:server`
+stop the server by killing by port:
+```sh
+lsof -ti:8787 | xargs kill
+```
+
 # Frontend
 
 ## Extract entity labels and links
