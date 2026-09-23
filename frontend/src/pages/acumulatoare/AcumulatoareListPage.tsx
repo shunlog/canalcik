@@ -175,7 +175,7 @@ function DataInstalariiCell({
   const save = () => {
     if (!draft) return;
     update.mutate(
-      { vehiculId, acumulatoare: [{ id, dataInstalarii: draft }] },
+      { vehiculId, acumulatoare: { update: [{ id, dataInstalarii: draft }] } },
       {
         onSuccess: () => {
           showSaved("Dată actualizată");

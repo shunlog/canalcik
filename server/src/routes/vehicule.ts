@@ -63,25 +63,44 @@ vehicule.delete("/:id", async (c) => {
   return c.body(null, 204);
 });
 
+// Only the fields actually present on an `update` entry are written — an
+// omitted key means "leave this field alone" (see AnvelopeUpdateBody's doc
+// comment), so `id` aside, undefined values are dropped rather than applied.
+export const pickDefined = <T extends object>(obj: T): Partial<T> =>
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+
 vehicule.patch("/:id/anvelope", async (c) => {
   const id = parseIdParam(c);
-  const { anvelopeLuni = [], anvelopeKm = [] } = await readJson(c, anvelopeUpdate);
+  const { anvelopeLuni, anvelopeKm } = await readJson(c, anvelopeUpdate);
 
-  // updateMany (rather than update, keyed only by the row's own id) also
-  // checks vehiculId, so a row cannot be edited through the wrong vehicul's page.
+  // updateMany/deleteMany (rather than update/delete, keyed only by the row's
+  // own id) also check vehiculId, so a row cannot be edited, created under, or
+  // deleted through the wrong vehicul's page.
   await db.$transaction([
-    ...anvelopeLuni.map((a) =>
+    ...(anvelopeLuni?.update ?? []).map(({ id: rowId, ...fields }) =>
       db.anvelopaLuni.updateMany({
-        where: { id: a.id, vehiculId: id },
-        data: { dataInstalarii: a.dataInstalarii },
+        where: { id: rowId, vehiculId: id },
+        data: pickDefined(fields),
       }),
     ),
-    ...anvelopeKm.map((a) =>
+    ...(anvelopeLuni?.create ?? []).map((data) =>
+      db.anvelopaLuni.create({ data: { ...data, vehiculId: id } }),
+    ),
+    ...(anvelopeLuni?.delete?.length
+      ? [db.anvelopaLuni.deleteMany({ where: { id: { in: anvelopeLuni.delete }, vehiculId: id } })]
+      : []),
+    ...(anvelopeKm?.update ?? []).map(({ id: rowId, ...fields }) =>
       db.anvelopaKm.updateMany({
-        where: { id: a.id, vehiculId: id },
-        data: { dataInstalarii: a.dataInstalarii },
+        where: { id: rowId, vehiculId: id },
+        data: pickDefined(fields),
       }),
     ),
+    ...(anvelopeKm?.create ?? []).map((data) =>
+      db.anvelopaKm.create({ data: { ...data, vehiculId: id } }),
+    ),
+    ...(anvelopeKm?.delete?.length
+      ? [db.anvelopaKm.deleteMany({ where: { id: { in: anvelopeKm.delete }, vehiculId: id } })]
+      : []),
   ]);
 
   const row = await db.vehicul.findUnique({ where: { id }, select: vehiculDetailSelect });
@@ -93,16 +112,21 @@ vehicule.patch("/:id/acumulatoare", async (c) => {
   const id = parseIdParam(c);
   const { acumulatoare } = await readJson(c, acumulatoareUpdate);
 
-  // updateMany (rather than update, keyed only by the row's own id) also
-  // checks vehiculId, so a row cannot be edited through the wrong vehicul's page.
-  await db.$transaction(
-    acumulatoare.map((a) =>
+  // Same reasoning as PATCH /:id/anvelope above.
+  await db.$transaction([
+    ...(acumulatoare?.update ?? []).map(({ id: rowId, ...fields }) =>
       db.acumulator.updateMany({
-        where: { id: a.id, vehiculId: id },
-        data: { dataInstalarii: a.dataInstalarii },
+        where: { id: rowId, vehiculId: id },
+        data: pickDefined(fields),
       }),
     ),
-  );
+    ...(acumulatoare?.create ?? []).map((data) =>
+      db.acumulator.create({ data: { ...data, vehiculId: id } }),
+    ),
+    ...(acumulatoare?.delete?.length
+      ? [db.acumulator.deleteMany({ where: { id: { in: acumulatoare.delete }, vehiculId: id } })]
+      : []),
+  ]);
 
   const row = await db.vehicul.findUnique({ where: { id }, select: vehiculDetailSelect });
   if (!row) throw notFound("Vehiculul");

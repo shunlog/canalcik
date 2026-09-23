@@ -312,8 +312,8 @@ function DataInstalariiCell({
       {
         vehiculId,
         ...(kind === "luni"
-          ? { anvelopeLuni: [{ id, dataInstalarii: draft }] }
-          : { anvelopeKm: [{ id, dataInstalarii: draft }] }),
+          ? { anvelopeLuni: { update: [{ id, dataInstalarii: draft }] } }
+          : { anvelopeKm: { update: [{ id, dataInstalarii: draft }] } }),
       },
       {
         onSuccess: () => {

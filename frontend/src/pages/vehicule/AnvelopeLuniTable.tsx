@@ -1,13 +1,57 @@
-import type { AnvelopaLuni } from "@canalcik/server/api-types";
-import { anvelopaLuniExpiryDate } from "@canalcik/server/derived";
-import { Button, Group, Stack, Table, Text } from "@mantine/core";
+import type { AnvelopaLuni, AnvelopaLuniWrite } from "@canalcik/server/api-types";
+import { anvelopaLuniExpiryDate, luniRamase } from "@canalcik/server/derived";
+import { ActionIcon, Button, Group, NumberInput, Stack, Table, Text, TextInput } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
+import { useForm } from "@mantine/form";
+import { randomId } from "@mantine/hooks";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useUpdateAnvelope } from "../../api/vehicule.ts";
-import { EditableDataInstalarii } from "../../components/EditableDataInstalarii.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
-import { formatIsoDate, todayLocalIso } from "../../lib/forms.ts";
+import { formatIsoDate, numOrZero, todayLocalIso } from "../../lib/forms.ts";
 
-/** The vehicul's month-based tires — one row per physical tire. */
+interface Row {
+  /**
+   * Client-side only, for React/form list identity. Unlike a bon's or a
+   * factura's lines, a saved row also keeps its own server `id` — this
+   * endpoint edits rows by id rather than replacing the whole list, so a
+   * deleted row's id has to be remembered separately (see `deletedIds` below).
+   */
+  key: string;
+  id: number | null;
+  model: string;
+  dataInstalarii: string;
+  normaLuni: number | string;
+}
+
+interface FormValues {
+  rows: Row[];
+}
+
+const newRow = (): Row => ({
+  key: randomId(),
+  id: null,
+  model: "",
+  dataInstalarii: todayLocalIso(),
+  normaLuni: 12,
+});
+
+const toRows = (anvelope: AnvelopaLuni[]): Row[] =>
+  anvelope.map((a) => ({
+    key: randomId(),
+    id: a.id,
+    model: a.model ?? "",
+    dataInstalarii: a.dataInstalarii,
+    normaLuni: a.normaLuni,
+  }));
+
+const toWrite = (r: Row): AnvelopaLuniWrite => ({
+  model: r.model.trim() === "" ? null : r.model.trim(),
+  dataInstalarii: r.dataInstalarii,
+  normaLuni: numOrZero(r.normaLuni),
+});
+
+/** The vehicul's month-based tires — one row per physical tire, fully editable. */
 export function AnvelopeLuniTable({
   vehiculId,
   anvelope,
@@ -15,31 +59,37 @@ export function AnvelopeLuniTable({
   vehiculId: number;
   anvelope: AnvelopaLuni[];
 }) {
-  const [edits, setEdits] = useState<Record<number, string>>({});
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const update = useUpdateAnvelope();
 
-  useEffect(() => setEdits({}), [anvelope]);
+  const form = useForm<FormValues>({ initialValues: { rows: toRows(anvelope) } });
 
-  const today = todayLocalIso();
+  useEffect(() => {
+    const rows = toRows(anvelope);
+    form.setValues({ rows });
+    form.resetDirty({ rows });
+    setDeletedIds([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anvelope]);
 
-  if (anvelope.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        Nicio anvelopă cu normă în luni pentru acest vehicul.
-      </Text>
-    );
-  }
+  const removeRow = (i: number) => {
+    const row = form.getValues().rows[i];
+    if (row.id !== null) setDeletedIds((ids) => [...ids, row.id!]);
+    form.removeListItem("rows", i);
+  };
 
-  const dirty = Object.keys(edits).length > 0;
+  const dirty = form.isDirty() || deletedIds.length > 0;
 
   const save = () => {
+    const rows = form.getValues().rows;
     update.mutate(
       {
         vehiculId,
-        anvelopeLuni: Object.entries(edits).map(([id, dataInstalarii]) => ({
-          id: Number(id),
-          dataInstalarii,
-        })),
+        anvelopeLuni: {
+          update: rows.filter((r) => r.id !== null).map((r) => ({ id: r.id!, ...toWrite(r) })),
+          create: rows.filter((r) => r.id === null).map(toWrite),
+          delete: deletedIds,
+        },
       },
       {
         onSuccess: () => showSaved("Anvelope salvate"),
@@ -48,32 +98,40 @@ export function AnvelopeLuniTable({
     );
   };
 
+  const today = todayLocalIso();
+  const rows = form.getValues().rows;
+
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={560}>
-        <Table striped highlightOnHover verticalSpacing="xs">
+      <Table.ScrollContainer minWidth={780}>
+        <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Model</Table.Th>
-              <Table.Th>Data instalării</Table.Th>
+              <Table.Th w={170}>Data instalării</Table.Th>
               <Table.Th>Data expirării</Table.Th>
-              <Table.Th>Normă (luni)</Table.Th>
+              <Table.Th w={140}>Normă (luni)</Table.Th>
               <Table.Th>Luni rămase</Table.Th>
+              <Table.Th w={50} />
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {anvelope.map((a) => {
-              const value = edits[a.id] ?? a.dataInstalarii;
-              const dataExpirarii = anvelopaLuniExpiryDate(value, a.normaLuni);
+            {rows.map((row, i) => {
+              const normaLuni = numOrZero(row.normaLuni);
+              const dataExpirarii = anvelopaLuniExpiryDate(row.dataInstalarii, normaLuni);
               const expired = dataExpirarii <= today;
+              const ramase = luniRamase(row.dataInstalarii, normaLuni, today);
               return (
-                <Table.Tr key={a.id}>
-                  <Table.Td>{a.model ?? "—"}</Table.Td>
+                <Table.Tr key={row.key}>
                   <Table.Td>
-                    <EditableDataInstalarii
-                      value={value}
-                      dirty={value !== a.dataInstalarii}
-                      onChange={(v) => setEdits((e) => ({ ...e, [a.id]: v }))}
+                    <TextInput placeholder="Model" {...form.getInputProps(`rows.${i}.model`)} />
+                  </Table.Td>
+                  <Table.Td>
+                    <DateInput
+                      valueFormat="DD.MM.YYYY"
+                      placeholder="ZZ.LL.AAAA"
+                      popoverProps={{ withinPortal: false }}
+                      {...form.getInputProps(`rows.${i}.dataInstalarii`)}
                     />
                   </Table.Td>
                   <Table.Td>
@@ -85,15 +143,41 @@ export function AnvelopeLuniTable({
                       formatIsoDate(dataExpirarii)
                     )}
                   </Table.Td>
-                  <Table.Td>{a.normaLuni}</Table.Td>
-                  <Table.Td c={a.luniRamase < 0 ? "red" : undefined}>{a.luniRamase}</Table.Td>
+                  <Table.Td>
+                    <NumberInput min={1} {...form.getInputProps(`rows.${i}.normaLuni`)} />
+                  </Table.Td>
+                  <Table.Td c={ramase < 0 ? "red" : undefined}>{ramase}</Table.Td>
+                  <Table.Td>
+                    <ActionIcon
+                      color="red"
+                      variant="subtle"
+                      aria-label="Șterge anvelopa"
+                      onClick={() => removeRow(i)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Table.Td>
                 </Table.Tr>
               );
             })}
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
+
+      {rows.length === 0 && (
+        <Text size="sm" c="dimmed">
+          Nicio anvelopă cu normă în luni pentru acest vehicul.
+        </Text>
+      )}
+
       <Group>
+        <Button
+          variant="light"
+          leftSection={<IconPlus size={16} />}
+          onClick={() => form.insertListItem("rows", newRow())}
+        >
+          Adaugă anvelopă
+        </Button>
         <Button onClick={save} loading={update.isPending} disabled={!dirty}>
           Salvează anvelope
         </Button>

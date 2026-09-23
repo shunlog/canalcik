@@ -1,43 +1,98 @@
-import type { AnvelopaKm } from "@canalcik/server/api-types";
-import { Button, Group, Stack, Table, Text } from "@mantine/core";
+import type { AnvelopaKm, AnvelopaKmWrite } from "@canalcik/server/api-types";
+import { kmRamasi, procenteUzura } from "@canalcik/server/derived";
+import { ActionIcon, Button, Group, NumberInput, Stack, Table, Text, TextInput } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
+import { useForm } from "@mantine/form";
+import { randomId } from "@mantine/hooks";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useUpdateAnvelope } from "../../api/vehicule.ts";
-import { EditableDataInstalarii } from "../../components/EditableDataInstalarii.tsx";
 import { showError, showSaved } from "../../lib/feedback.ts";
+import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
 
 const formatKm = (n: number) => n.toLocaleString("ro-RO");
 
-/** The vehicul's distance-based tires — one row per physical tire. */
+interface Row {
+  /** Client-side only — see the same comment in AnvelopeLuniTable's Row. */
+  key: string;
+  id: number | null;
+  model: string;
+  dataInstalarii: string;
+  kmInstalare: number | string;
+  normaKm: number | string;
+}
+
+interface FormValues {
+  rows: Row[];
+}
+
+const newRow = (kmActuali: number | null): Row => ({
+  key: randomId(),
+  id: null,
+  model: "",
+  dataInstalarii: todayLocalIso(),
+  kmInstalare: kmActuali ?? 0,
+  normaKm: 40000,
+});
+
+const toRows = (anvelope: AnvelopaKm[]): Row[] =>
+  anvelope.map((a) => ({
+    key: randomId(),
+    id: a.id,
+    model: a.model ?? "",
+    dataInstalarii: a.dataInstalarii,
+    kmInstalare: a.kmInstalare,
+    normaKm: a.normaKm,
+  }));
+
+const toWrite = (r: Row): AnvelopaKmWrite => ({
+  model: r.model.trim() === "" ? null : r.model.trim(),
+  dataInstalarii: r.dataInstalarii,
+  kmInstalare: numOrZero(r.kmInstalare),
+  normaKm: numOrZero(r.normaKm),
+});
+
+/** The vehicul's distance-based tires — one row per physical tire, fully editable. */
 export function AnvelopeKmTable({
   vehiculId,
+  kmActuali,
   anvelope,
 }: {
   vehiculId: number;
+  kmActuali: number | null;
   anvelope: AnvelopaKm[];
 }) {
-  const [edits, setEdits] = useState<Record<number, string>>({});
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const update = useUpdateAnvelope();
 
-  useEffect(() => setEdits({}), [anvelope]);
+  const form = useForm<FormValues>({ initialValues: { rows: toRows(anvelope) } });
 
-  if (anvelope.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        Nicio anvelopă cu normă în km pentru acest vehicul.
-      </Text>
-    );
-  }
+  useEffect(() => {
+    const rows = toRows(anvelope);
+    form.setValues({ rows });
+    form.resetDirty({ rows });
+    setDeletedIds([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anvelope]);
 
-  const dirty = Object.keys(edits).length > 0;
+  const removeRow = (i: number) => {
+    const row = form.getValues().rows[i];
+    if (row.id !== null) setDeletedIds((ids) => [...ids, row.id!]);
+    form.removeListItem("rows", i);
+  };
+
+  const dirty = form.isDirty() || deletedIds.length > 0;
 
   const save = () => {
+    const rows = form.getValues().rows;
     update.mutate(
       {
         vehiculId,
-        anvelopeKm: Object.entries(edits).map(([id, dataInstalarii]) => ({
-          id: Number(id),
-          dataInstalarii,
-        })),
+        anvelopeKm: {
+          update: rows.filter((r) => r.id !== null).map((r) => ({ id: r.id!, ...toWrite(r) })),
+          create: rows.filter((r) => r.id === null).map(toWrite),
+          delete: deletedIds,
+        },
       },
       {
         onSuccess: () => showSaved("Anvelope salvate"),
@@ -46,40 +101,63 @@ export function AnvelopeKmTable({
     );
   };
 
+  const rows = form.getValues().rows;
+
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={720}>
-        <Table striped highlightOnHover verticalSpacing="xs">
+      <Table.ScrollContainer minWidth={860}>
+        <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Model</Table.Th>
-              <Table.Th>Data instalării</Table.Th>
-              <Table.Th>Km la instalare</Table.Th>
-              <Table.Th>Normă (km)</Table.Th>
+              <Table.Th w={170}>Data instalării</Table.Th>
+              <Table.Th w={140}>Km la instalare</Table.Th>
+              <Table.Th w={140}>Normă (km)</Table.Th>
               <Table.Th>Km rămași</Table.Th>
               <Table.Th>Uzură</Table.Th>
+              <Table.Th w={50} />
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {anvelope.map((a) => {
-              const value = edits[a.id] ?? a.dataInstalarii;
+            {rows.map((row, i) => {
+              const kmInstalare = numOrZero(row.kmInstalare);
+              const normaKm = numOrZero(row.normaKm);
+              const ramasi = kmActuali === null ? null : kmRamasi(kmInstalare, normaKm, kmActuali);
+              const uzura = kmActuali === null ? null : procenteUzura(kmInstalare, normaKm, kmActuali);
               return (
-                <Table.Tr key={a.id}>
-                  <Table.Td>{a.model ?? "—"}</Table.Td>
+                <Table.Tr key={row.key}>
                   <Table.Td>
-                    <EditableDataInstalarii
-                      value={value}
-                      dirty={value !== a.dataInstalarii}
-                      onChange={(v) => setEdits((e) => ({ ...e, [a.id]: v }))}
+                    <TextInput placeholder="Model" {...form.getInputProps(`rows.${i}.model`)} />
+                  </Table.Td>
+                  <Table.Td>
+                    <DateInput
+                      valueFormat="DD.MM.YYYY"
+                      placeholder="ZZ.LL.AAAA"
+                      popoverProps={{ withinPortal: false }}
+                      {...form.getInputProps(`rows.${i}.dataInstalarii`)}
                     />
                   </Table.Td>
-                  <Table.Td>{formatKm(a.kmInstalare)}</Table.Td>
-                  <Table.Td>{formatKm(a.normaKm)}</Table.Td>
-                  <Table.Td c={a.kmRamasi !== null && a.kmRamasi < 0 ? "red" : undefined}>
-                    {a.kmRamasi === null ? "—" : formatKm(a.kmRamasi)}
+                  <Table.Td>
+                    <NumberInput min={0} {...form.getInputProps(`rows.${i}.kmInstalare`)} />
                   </Table.Td>
-                  <Table.Td c={a.procenteUzura !== null && a.procenteUzura >= 100 ? "red" : undefined}>
-                    {a.procenteUzura === null ? "—" : `${a.procenteUzura}%`}
+                  <Table.Td>
+                    <NumberInput min={1} {...form.getInputProps(`rows.${i}.normaKm`)} />
+                  </Table.Td>
+                  <Table.Td c={ramasi !== null && ramasi < 0 ? "red" : undefined}>
+                    {ramasi === null ? "—" : formatKm(ramasi)}
+                  </Table.Td>
+                  <Table.Td c={uzura !== null && uzura >= 100 ? "red" : undefined}>
+                    {uzura === null ? "—" : `${uzura}%`}
+                  </Table.Td>
+                  <Table.Td>
+                    <ActionIcon
+                      color="red"
+                      variant="subtle"
+                      aria-label="Șterge anvelopa"
+                      onClick={() => removeRow(i)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
                   </Table.Td>
                 </Table.Tr>
               );
@@ -87,7 +165,21 @@ export function AnvelopeKmTable({
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
+
+      {rows.length === 0 && (
+        <Text size="sm" c="dimmed">
+          Nicio anvelopă cu normă în km pentru acest vehicul.
+        </Text>
+      )}
+
       <Group>
+        <Button
+          variant="light"
+          leftSection={<IconPlus size={16} />}
+          onClick={() => form.insertListItem("rows", newRow(kmActuali))}
+        >
+          Adaugă anvelopă
+        </Button>
         <Button onClick={save} loading={update.isPending} disabled={!dirty}>
           Salvează anvelope
         </Button>

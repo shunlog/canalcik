@@ -150,7 +150,7 @@ export function VehiculDetailPage() {
           </Fieldset>
 
           <Fieldset legend="Anvelope — normă în km" mt="md">
-            <AnvelopeKmTable vehiculId={v.id} anvelope={v.anvelopeKm} />
+            <AnvelopeKmTable vehiculId={v.id} kmActuali={v.kmActuali} anvelope={v.anvelopeKm} />
           </Fieldset>
 
           <Fieldset legend="Acumulatoare" mt="md">

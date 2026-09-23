@@ -6,7 +6,15 @@ import type {
   VehiculCreateBody,
   VehiculUpdateBody,
 } from "../api-types.ts";
-import { idList, isoDate, nullableInt, nullableText, requiredText, type Same } from "./common.ts";
+import {
+  idList,
+  isoDate,
+  nullableInt,
+  nullableText,
+  optionalNullableText,
+  requiredText,
+  type Same,
+} from "./common.ts";
 
 export const vehiculCreate = z.object({
   nrInmatriculare: requiredText("Nr. înmatriculare"),
@@ -25,17 +33,72 @@ export const vehiculUpdate = vehiculCreate.partial();
 
 export const setSoferiBody = z.object({ soferIds: idList });
 
-const anvelopaRow = z.object({ id: z.number().int().positive(), dataInstalarii: isoDate });
-
-export const anvelopeUpdate = z.object({
-  anvelopeLuni: z.array(anvelopaRow).optional(),
-  anvelopeKm: z.array(anvelopaRow).optional(),
+const anvelopaLuniWrite = z.object({
+  model: nullableText,
+  dataInstalarii: isoDate,
+  normaLuni: z.number().int().positive("Norma (luni) trebuie să fie un număr pozitiv"),
 });
 
-const acumulatorRow = z.object({ id: z.number().int().positive(), dataInstalarii: isoDate });
+const anvelopaLuniUpdate = z.object({
+  id: z.number().int().positive(),
+  model: optionalNullableText,
+  dataInstalarii: isoDate.optional(),
+  normaLuni: z.number().int().positive("Norma (luni) trebuie să fie un număr pozitiv").optional(),
+});
+
+const anvelopaKmWrite = z.object({
+  model: nullableText,
+  dataInstalarii: isoDate,
+  kmInstalare: z.number().int().nonnegative("Km la instalare nu poate fi negativ"),
+  normaKm: z.number().int().positive("Norma (km) trebuie să fie un număr pozitiv"),
+});
+
+const anvelopaKmUpdate = z.object({
+  id: z.number().int().positive(),
+  model: optionalNullableText,
+  dataInstalarii: isoDate.optional(),
+  kmInstalare: z.number().int().nonnegative("Km la instalare nu poate fi negativ").optional(),
+  normaKm: z.number().int().positive("Norma (km) trebuie să fie un număr pozitiv").optional(),
+});
+
+export const anvelopeUpdate = z.object({
+  anvelopeLuni: z
+    .object({
+      update: z.array(anvelopaLuniUpdate).optional(),
+      create: z.array(anvelopaLuniWrite).optional(),
+      delete: idList.optional(),
+    })
+    .optional(),
+  anvelopeKm: z
+    .object({
+      update: z.array(anvelopaKmUpdate).optional(),
+      create: z.array(anvelopaKmWrite).optional(),
+      delete: idList.optional(),
+    })
+    .optional(),
+});
+
+const acumulatorWrite = z.object({
+  model: nullableText,
+  dataInstalarii: isoDate,
+  normaLuni: z.number().int().positive("Norma (luni) trebuie să fie un număr pozitiv"),
+});
+
+const acumulatorUpdate = z.object({
+  id: z.number().int().positive(),
+  model: optionalNullableText,
+  dataInstalarii: isoDate.optional(),
+  normaLuni: z.number().int().positive("Norma (luni) trebuie să fie un număr pozitiv").optional(),
+});
 
 export const acumulatoareUpdate = z.object({
-  acumulatoare: z.array(acumulatorRow),
+  acumulatoare: z
+    .object({
+      update: z.array(acumulatorUpdate).optional(),
+      create: z.array(acumulatorWrite).optional(),
+      delete: idList.optional(),
+    })
+    .optional(),
 });
 
 const _createMatches: Same<z.infer<typeof vehiculCreate>, VehiculCreateBody> = true;

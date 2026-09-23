@@ -214,10 +214,38 @@ export interface AnvelopaKm extends AnvelopaKmScalars {
   procenteUzura: number | null;
 }
 
-/** Only `dataInstalarii` is editable — everything else about a tire row comes from the source data. */
+export interface AnvelopaLuniWrite {
+  model: string | null;
+  dataInstalarii: IsoDate;
+  normaLuni: number;
+}
+
+export interface AnvelopaLuniUpdate extends Partial<AnvelopaLuniWrite> {
+  id: number;
+}
+
+export interface AnvelopaKmWrite {
+  model: string | null;
+  dataInstalarii: IsoDate;
+  kmInstalare: number;
+  normaKm: number;
+}
+
+export interface AnvelopaKmUpdate extends Partial<AnvelopaKmWrite> {
+  id: number;
+}
+
+/**
+ * Per kind: `update` edits existing rows by id (any field may be omitted to
+ * leave it as-is), `create` adds new physical tires, `delete` removes rows by
+ * id. A key left out entirely means "no changes of that kind" — unlike a
+ * bon's or a factura's lines, a tire row is also edited one field at a time
+ * from the fleet-wide list page, so this endpoint takes targeted operations
+ * rather than replacing the whole list on every save.
+ */
 export interface AnvelopeUpdateBody {
-  anvelopeLuni?: Array<{ id: number; dataInstalarii: IsoDate }>;
-  anvelopeKm?: Array<{ id: number; dataInstalarii: IsoDate }>;
+  anvelopeLuni?: { update?: AnvelopaLuniUpdate[]; create?: AnvelopaLuniWrite[]; delete?: number[] };
+  anvelopeKm?: { update?: AnvelopaKmUpdate[]; create?: AnvelopaKmWrite[]; delete?: number[] };
 }
 
 /** A tire row as it appears on the fleet-wide "Anvelope" page, with the vehicul it is on. */
@@ -251,9 +279,19 @@ export interface Acumulator extends AcumulatorScalars {
   luniRamase: number;
 }
 
-/** Only `dataInstalarii` is editable — everything else about an accumulator row comes from the source data. */
+export interface AcumulatorWrite {
+  model: string | null;
+  dataInstalarii: IsoDate;
+  normaLuni: number;
+}
+
+export interface AcumulatorUpdate extends Partial<AcumulatorWrite> {
+  id: number;
+}
+
+/** Same shape and reasoning as AnvelopeUpdateBody — see its comment. */
 export interface AcumulatoareUpdateBody {
-  acumulatoare: Array<{ id: number; dataInstalarii: IsoDate }>;
+  acumulatoare?: { update?: AcumulatorUpdate[]; create?: AcumulatorWrite[]; delete?: number[] };
 }
 
 /** An accumulator row as it appears on the fleet-wide "Acumulatoare" page, with the vehicul it is on. */

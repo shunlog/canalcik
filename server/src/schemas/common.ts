@@ -47,6 +47,15 @@ export const nullableInt = z
   .optional()
   .transform((v) => (typeof v === "number" ? v : null));
 
+// Like nullableText, but a genuinely absent key stays absent (`undefined`)
+// instead of becoming `null` — for partial-update bodies where "not sent"
+// means "leave this field alone", not "clear it".
+export const optionalNullableText = z
+  .union([z.string(), z.null()])
+  .optional()
+  .transform((v) => (v === undefined ? undefined : typeof v === "string" ? v.trim() || null : v))
+  .optional();
+
 export const requiredText = (label: string) => z.string().trim().min(1, `${label} este obligatoriu`);
 
 /**
