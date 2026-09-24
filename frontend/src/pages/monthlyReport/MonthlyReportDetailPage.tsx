@@ -46,7 +46,7 @@ export function MonthlyReportDetailPage() {
             }
           />
 
-          <Fieldset legend="Document generat" mb="md">
+          <Fieldset legend="Document generat" mb="md" maw={560}>
             <Stack gap="sm" align="flex-start">
               <Group gap="xl">
                 {m.document ? (
@@ -85,7 +85,7 @@ export function MonthlyReportDetailPage() {
             </Stack>
           </Fieldset>
 
-          <Fieldset legend="Date lunare" mb="md">
+          <Fieldset legend="Date lunare" mb="md" maw={560}>
             <Group gap="xl">
               <Group gap="xs">
                 <Text size="sm" c="dimmed">
@@ -126,7 +126,7 @@ export function MonthlyReportDetailPage() {
 
 function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
   return (
-    <Table.ScrollContainer minWidth={860}>
+    <Table.ScrollContainer minWidth={860} maw={1000}>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>

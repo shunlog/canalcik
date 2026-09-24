@@ -75,7 +75,7 @@ export function FacturaDetailPage() {
             }
           />
 
-          <Fieldset legend="Materiale din catalog" mb="md">
+          <Fieldset legend="Materiale din catalog" mb="md" maw={500}>
             <RefLinkList
               items={distinctMateriale(f.materiale)}
               empty="Factura nu are nicio linie."

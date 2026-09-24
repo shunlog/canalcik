@@ -39,6 +39,7 @@ export function LinkEditor({
       <MultiSelect
         label={label}
         placeholder={placeholder}
+        maw={500}
         data={options}
         value={selected}
         onChange={setSelected}

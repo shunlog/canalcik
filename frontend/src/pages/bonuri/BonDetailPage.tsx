@@ -67,7 +67,7 @@ export function BonDetailPage() {
             }
           />
 
-          <Fieldset legend="Legături" mb="md">
+          <Fieldset legend="Legături" mb="md" maw={560}>
             <Group gap="xl">
               <Text size="sm">
                 Șofer: <SoferLink sofer={b.sofer} />

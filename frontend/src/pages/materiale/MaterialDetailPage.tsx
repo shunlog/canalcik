@@ -74,7 +74,7 @@ export function MaterialDetailPage() {
           />
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
-            <Fieldset legend="Material">
+            <Fieldset legend="Material" maw={480}>
               <TextInput
                 label="Denumire"
                 description="Redenumirea se vede pe toate bonurile care folosesc materialul."
@@ -97,7 +97,7 @@ export function MaterialDetailPage() {
             </Group>
           </form>
 
-          <Fieldset legend="Bonuri de eliberare" mt="xl">
+          <Fieldset legend="Bonuri de eliberare" mt="xl" maw={850}>
             {m.utilizari.length === 0 ? (
               <Text size="sm" c="dimmed">
                 Acest material nu apare pe niciun bon.
@@ -114,7 +114,7 @@ export function MaterialDetailPage() {
 
 function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
   return (
-    <Table.ScrollContainer minWidth={720}>
+    <Table.ScrollContainer minWidth={720} maw={850}>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>

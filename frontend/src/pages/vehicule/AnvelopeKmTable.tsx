@@ -105,7 +105,7 @@ export function AnvelopeKmTable({
 
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={860}>
+      <Table.ScrollContainer minWidth={860} maw={940}>
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>

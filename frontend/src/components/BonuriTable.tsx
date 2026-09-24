@@ -15,7 +15,7 @@ export function BonuriTable({
   hideVehicul?: boolean;
 }) {
   return (
-    <Table.ScrollContainer minWidth={520}>
+    <Table.ScrollContainer minWidth={520} maw={650}>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>

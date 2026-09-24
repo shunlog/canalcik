@@ -14,7 +14,7 @@ export function SetariPage() {
     <>
       <PageHeader title="Setări" />
 
-      <Paper withBorder p="md">
+      <Paper withBorder p="md" maw={650}>
         <Group justify="space-between" align="center" mb="md" wrap="nowrap">
           <Title order={3}>Șabloane</Title>
           <Button
@@ -38,7 +38,7 @@ export function SetariPage() {
 
         <QueryBoundary query={query}>
           {(templates) => (
-            <Table.ScrollContainer minWidth={520}>
+            <Table.ScrollContainer minWidth={520} maw={650}>
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>

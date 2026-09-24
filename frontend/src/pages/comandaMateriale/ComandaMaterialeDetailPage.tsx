@@ -82,7 +82,7 @@ export function ComandaMaterialeDetailPage() {
             }
           />
 
-          <Fieldset legend="Document generat" mb="md">
+          <Fieldset legend="Document generat" mb="md" maw={560}>
             <Stack gap="sm" align="flex-start">
               <Group gap="xl">
                 {c.document ? (

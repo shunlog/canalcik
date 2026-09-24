@@ -90,7 +90,7 @@ export function SoferDetailPage() {
 
           <Divider my="xl" />
 
-          <Fieldset legend="Vehicule atribuite">
+          <Fieldset legend="Vehicule atribuite" maw={500}>
             <Stack gap="md">
               <RefLinkList
                 items={s.vehicule.map((v) => ({
@@ -123,7 +123,7 @@ export function SoferDetailPage() {
             </Stack>
           </Fieldset>
 
-          <Fieldset legend="Bonuri de eliberare" mt="md">
+          <Fieldset legend="Bonuri de eliberare" mt="md" maw={650}>
             {s.bonuri.length === 0 ? (
               <Text size="sm" c="dimmed">
                 Niciun bon pentru acest șofer.

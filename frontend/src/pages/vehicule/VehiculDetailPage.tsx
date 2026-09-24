@@ -102,7 +102,7 @@ export function VehiculDetailPage() {
 
           <Divider my="xl" />
 
-          <Fieldset legend="Șoferi atribuiți">
+          <Fieldset legend="Șoferi atribuiți" maw={500}>
             <Stack gap="md">
               <RefLinkList
                 items={v.soferi.map((s) => ({
@@ -135,7 +135,7 @@ export function VehiculDetailPage() {
             </Stack>
           </Fieldset>
 
-          <Fieldset legend="Bonuri de eliberare" mt="md">
+          <Fieldset legend="Bonuri de eliberare" mt="md" maw={650}>
             {v.bonuri.length === 0 ? (
               <Text size="sm" c="dimmed">
                 Niciun bon pentru acest vehicul.
@@ -145,15 +145,15 @@ export function VehiculDetailPage() {
             )}
           </Fieldset>
 
-          <Fieldset legend="Anvelope — normă în luni" mt="md">
+          <Fieldset legend="Anvelope — normă în luni" mt="md" maw={860}>
             <AnvelopeLuniTable vehiculId={v.id} anvelope={v.anvelopeLuni} />
           </Fieldset>
 
-          <Fieldset legend="Anvelope — normă în km" mt="md">
+          <Fieldset legend="Anvelope — normă în km" mt="md" maw={940}>
             <AnvelopeKmTable vehiculId={v.id} kmActuali={v.kmActuali} anvelope={v.anvelopeKm} />
           </Fieldset>
 
-          <Fieldset legend="Acumulatoare" mt="md">
+          <Fieldset legend="Acumulatoare" mt="md" maw={860}>
             <AcumulatoareTable vehiculId={v.id} acumulatoare={v.acumulatoare} />
           </Fieldset>
         </>

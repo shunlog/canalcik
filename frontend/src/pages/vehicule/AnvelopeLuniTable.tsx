@@ -103,7 +103,7 @@ export function AnvelopeLuniTable({
 
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={780}>
+      <Table.ScrollContainer minWidth={780} maw={860}>
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
