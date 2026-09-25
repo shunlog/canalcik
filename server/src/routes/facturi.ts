@@ -13,15 +13,19 @@ import { facturaCreate, facturaUpdate, type FacturaLineInput } from "../schemas/
 export const facturi = new Hono();
 
 /**
- * Lines arrive carrying the material's *name*, so a delivery of something the
- * catalogue has never seen can still be recorded. connectOrCreate resolves the
- * name to a MaterialeIntretinere row inside the same transaction as the
- * factura — see the longer note on the identical helper in routes/bonuri.ts.
+ * Lines arrive carrying the material's `nrCart` — the invoice's nomenclature
+ * code, which is the material's identity — so a delivery of something the
+ * catalogue has never seen can still be recorded. connectOrCreate resolves
+ * the code to a MaterialeIntretinere row inside the same transaction as the
+ * factura. Matching by `nrCart` rather than `nume` is what lets two lines
+ * that print the same name under different codes (different price, different
+ * physical item) become two distinct materials instead of merging into one.
  */
 const toLineCreate = (lines: FacturaLineInput[]) =>
-  lines.map(({ nume, ...line }) => ({
+  lines.map(({ nrCart, nume, ...line }) => ({
     ...line,
-    material: { connectOrCreate: { where: { nume }, create: { nume } } },
+    nrCart,
+    material: { connectOrCreate: { where: { nrCart }, create: { nrCart, nume } } },
   }));
 
 facturi.get("/", async (c) => {

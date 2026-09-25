@@ -138,11 +138,19 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
+          {/* materialId is null for a scratchpad-note row (nrCart is then
+              always null too — see buildReconciliere), so nume disambiguates
+              those; a real materialId already disambiguates everything else,
+              even between two rows that happen to share the same nume. */}
           {linii.map((l) => (
-            <Table.Tr key={`${l.materialId}|${l.nrCart ?? ""}`}>
+            <Table.Tr key={`${l.materialId ?? "note"}|${l.nrCart ?? ""}|${l.nume}`}>
               <Table.Td>{l.nrCart ?? "—"}</Table.Td>
               <Table.Td>
-                <MaterialLink material={{ id: l.materialId, nume: l.nume }} />
+                {l.materialId === null ? (
+                  l.nume
+                ) : (
+                  <MaterialLink material={{ id: l.materialId, nume: l.nume, nrCart: l.nrCart ?? "" }} />
+                )}
               </Table.Td>
               <Table.Td>
                 {l.cantitateFactura === null

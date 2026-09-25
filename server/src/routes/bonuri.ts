@@ -8,16 +8,17 @@ import { bonCreate, bonUpdate, type MaterialLineInput } from "../schemas/bon.ts"
 export const bonuri = new Hono();
 
 /**
- * Lines arrive carrying the material's *name*, so the client can write a bon
- * for something the catalogue has never seen. connectOrCreate turns that name
- * into a MaterialeIntretinere row — reusing the existing one when there is a
- * match, adding it when there isn't — inside the same transaction as the bon,
- * so a failed write leaves no half-built catalogue behind.
+ * A line either links an existing material by id, or is a scratchpad note
+ * (free-typed text, no catalogue row) — a bon line never creates a
+ * MaterialeIntretinere row itself; only a factura does that (see
+ * routes/facturi.ts). schemas/bon.ts's refine guarantees exactly one of
+ * `materialId`/`nota` is set.
  */
 const toLineCreate = (lines: MaterialLineInput[]) =>
-  lines.map(({ nume, ...line }) => ({
+  lines.map(({ materialId, nota, ...line }) => ({
     ...line,
-    material: { connectOrCreate: { where: { nume }, create: { nume } } },
+    materialId: materialId ?? null,
+    nota: materialId ? null : (nota ?? "").trim(),
   }));
 
 /** Both FKs are required, so a bad id must be caught before the write. */

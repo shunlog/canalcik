@@ -96,24 +96,34 @@ model BonEliberareMaterial {
   // The material is a reference, not free text, so the same thing is spelled
   // the same way on every bon and the monthly roll-up can group by it. Lines
   // pin the material (no onDelete), so a material in use cannot be deleted.
-  materialId Int
-  material   MaterialeIntretinere @relation(fields: [materialId], references: [id])
+  // Nullable: a bon can be written before the material's nrCart is known at
+  // all (no factura has named it yet) — see `nota`.
+  materialId Int?
+  material   MaterialeIntretinere? @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  // A scratchpad note, set only when `materialId` is null: free text typed
+  // for a material the catalogue doesn't have yet. The user replaces it with
+  // a real link once the factura naming it arrives.
+  nota String?
 
   um        String // "l", "buc"
   cantitate Float
 
-  // A material can appear at most once per bon
+  // A real material can appear at most once per bon. Several null-materialId
+  // notes on the same bon are fine — SQLite treats each NULL as distinct.
   @@unique([bonId, materialId])
 }
 
 // The catalogue of maintenance materials — the distinct things that can appear
-// on a bon. Names are unique, and the app creates a row on the fly the first
-// time a bon names something new, so the catalogue never blocks writing a bon.
+// on a bon, always sourced from a factura. `nrCart` ("cod nomenclator") is the
+// identity: two deliveries can print the same `nume` under different codes
+// (different price, different physical item), so `nume` is not unique.
 model MaterialeIntretinere {
   id        Int      @id @default(autoincrement())
   updatedAt DateTime @default(now()) @updatedAt
 
-  nume String @unique // "ULEI MOTOR 10W40"
+  nume   String // "ULEI MOTOR 10W40"
+  nrCart String @unique // "cod nomenclator", e.g. "2111121795"
 
   bonuri  BonEliberareMaterial[]
   facturi FacturaExpeditieMaterial[]

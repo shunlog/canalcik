@@ -28,19 +28,22 @@ export function MaterialDetailPage() {
   const remove = useDeleteMaterial(id);
 
   const form = useForm({
-    initialValues: { nume: "" },
-    validate: { nume: requiredText("Denumirea materialului") },
+    initialValues: { nume: "", nrCart: "" },
+    validate: {
+      nume: requiredText("Denumirea materialului"),
+      nrCart: requiredText("Codul nomenclator"),
+    },
   });
 
   const material = query.data;
   useEffect(() => {
-    if (material) form.setValues({ nume: material.nume });
+    if (material) form.setValues({ nume: material.nume, nrCart: material.nrCart });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [material]);
 
-  const submit = ({ nume }: { nume: string }) => {
+  const submit = ({ nume, nrCart }: { nume: string; nrCart: string }) => {
     update.mutate(
-      { nume: nume.trim() },
+      { nume: nume.trim(), nrCart: nrCart.trim() },
       {
         onSuccess: () => showSaved("Modificări salvate"),
         onError: (err) => {
@@ -75,6 +78,14 @@ export function MaterialDetailPage() {
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <TextInput
+              label="Cod nomenclator"
+              description="Codul e ceea ce leagă materialul de bonuri și facturi."
+              withAsterisk
+              maw={280}
+              {...form.getInputProps("nrCart")}
+            />
+            <TextInput
+              mt="sm"
               label="Denumire"
               description="Redenumirea se vede pe toate bonurile care folosesc materialul."
               withAsterisk
@@ -87,7 +98,7 @@ export function MaterialDetailPage() {
               </Button>
               <Button
                 variant="subtle"
-                onClick={() => form.setValues({ nume: m.nume })}
+                onClick={() => form.setValues({ nume: m.nume, nrCart: m.nrCart })}
                 disabled={update.isPending}
               >
                 Resetează

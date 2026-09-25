@@ -32,10 +32,15 @@ const bonuriLinesSelect = {
     id: true,
     materialId: true,
     material: { select: { nume: true } },
+    nota: true,
     um: true,
     cantitate: true,
   },
 } satisfies { select: Record<string, unknown> };
+
+/** A linked line's name, or (materialId null) its scratchpad note text. */
+const bonLineMaterialNume = (line: { material: { nume: string } | null; nota: string | null }) =>
+  line.material?.nume ?? line.nota ?? "";
 
 const facturaLinesSelect = {
   select: {
@@ -111,7 +116,7 @@ function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
       linii: b.materiale.map((m) => ({
         id: m.id,
         materialId: m.materialId,
-        materialNume: m.material.nume,
+        materialNume: bonLineMaterialNume(m),
         um: m.um,
         cantitate: m.cantitate,
       })),
@@ -224,7 +229,7 @@ monthlyReport.post("/:month/generate", async (c) => {
     linii: b.materiale.map((m) => ({
       id: m.id,
       materialId: m.materialId,
-      materialNume: m.material.nume,
+      materialNume: bonLineMaterialNume(m),
       um: m.um,
       cantitate: m.cantitate,
     })),

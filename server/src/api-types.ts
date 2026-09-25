@@ -94,6 +94,7 @@ export interface SoferRef {
 export interface MaterialRef {
   id: number;
   nume: string;
+  nrCart: string;
 }
 
 /** A bon as it appears in a list, or on a sofer/vehicul detail page. */
@@ -301,14 +302,16 @@ export interface AcumulatorRef extends Acumulator {
 
 // --------------------------------------------------------------- bonEliberare
 
-/** One line on a bon, as sent by the client. Lines are owned by the bon. */
+/**
+ * One line on a bon, as sent by the client. Lines are owned by the bon.
+ * Exactly one of `materialId`/`nota` is set: `materialId` links an existing,
+ * invoiced material (picked from the catalogue); `nota` is a scratchpad
+ * note — free-typed text for a material the catalogue doesn't have yet. A
+ * bon line never creates a catalogue row itself; only a factura does that.
+ */
 export interface MaterialLine {
-  /**
-   * The material's name, not its id. The server resolves it against
-   * MaterialeIntretinere and creates the row when no material carries that
-   * name yet — so a bon can always be written, even for something new.
-   */
-  nume: string;
+  materialId?: number;
+  nota?: string;
   um: string;
   cantitate: number;
 }
@@ -316,11 +319,17 @@ export interface MaterialLine {
 /**
  * A line as stored. `id` is informational only: PATCH replaces the whole set,
  * so line ids are NOT stable across saves — never key React rows by them.
- * `materialId` is stable: it identifies the catalogue row `nume` resolved to.
+ * `materialId`/`nrCart`/`nume` are null together on a scratchpad note line;
+ * `nota` is null on a linked line.
  */
-export interface MaterialLineOut extends MaterialLine {
+export interface MaterialLineOut {
   id: number;
-  materialId: number;
+  materialId: number | null;
+  nrCart: string | null;
+  nume: string | null;
+  nota: string | null;
+  um: string;
+  cantitate: number;
 }
 
 export type BonListItem = BonRef;
@@ -379,6 +388,7 @@ export interface MaterialDetail extends MaterialRef {
 
 export interface MaterialCreateBody {
   nume: string;
+  nrCart: string;
 }
 
 export type MaterialUpdateBody = Partial<MaterialCreateBody>;
@@ -495,7 +505,8 @@ export interface MonthlyReport {
  * means the month's bonuri need correcting.
  */
 export interface MonthlyReportLine {
-  materialId: number;
+  /** null for a row built entirely from scratchpad notes — no real material. */
+  materialId: number | null;
   nume: string;
   /** null only on an orphan row — a bon group that matched no factura line. */
   nrCart: string | null;

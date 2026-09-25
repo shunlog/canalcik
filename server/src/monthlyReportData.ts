@@ -69,7 +69,9 @@ export const roundQty = (n: number): number => Math.round(n * 1000) / 1000;
 
 export type MonthlyReportBonLine = {
   id: number;
-  materialId: number;
+  /** null for a scratchpad note — a line the user hasn't linked to a real material yet. */
+  materialId: number | null;
+  /** The linked material's name, or (when `materialId` is null) the note text. */
   materialNume: string;
   um: string;
   cantitate: number;
@@ -113,11 +115,17 @@ export class UnmatchedMaterialeError extends Error {
  * materialId) constraint on FacturaExpeditieMaterial only enforces this
  * within a single factura); if two facturi in the same month both name the
  * material, the later one in `facturaLinii` silently wins.
+ *
+ * A line with no `materialId` is a scratchpad note — it was never linked to a
+ * catalogue material, so it can never be priced and is always unmatched.
  */
 function resolveFacturaLine(
   line: MonthlyReportBonLine,
   facturaByMaterial: Map<number, MonthlyReportFacturaLine>,
 ): { ok: true; line: MonthlyReportFacturaLine } | { ok: false; message: string } {
+  if (line.materialId === null) {
+    return { ok: false, message: line.materialNume };
+  }
   const match = facturaByMaterial.get(line.materialId);
   if (!match) {
     return { ok: false, message: line.materialNume };
@@ -287,7 +295,8 @@ export type ReconcilereFacturaLine = {
  * non-zero difference means the month's bonuri need correcting.
  */
 export type ReconcilereLinie = {
-  materialId: number;
+  /** null for a row built entirely from scratchpad notes — no real material. */
+  materialId: number | null;
   nume: string;
   /** null only on an orphan row — a bon group that matched no factura line. */
   nrCart: string | null;
@@ -307,19 +316,27 @@ export type ReconcilereLinie = {
  * A bon line whose material has no factura line at all becomes its own row
  * with `cantitateFactura: null`, which is how the UnmatchedMaterialeError
  * cases become visible and fixable rather than only surfacing as an error on
- * generate.
+ * generate. A scratchpad note (no `materialId` at all) is always such a row —
+ * grouped by its exact note text, the same way a real orphan material groups
+ * by id, so the same note typed on several bonuri still merges into one row.
  */
 export function buildReconciliere(input: {
   bonuri: ReconcilereBon[];
   facturaLinii: ReconcilereFacturaLine[];
 }): ReconcilereLinie[] {
-  const rows = new Map<number, ReconcilereLinie>();
+  // Keyed by String(materialId) for a real material, or `note:<text>` for a
+  // scratchpad note — never both, so the two key spaces can't collide.
+  const rows = new Map<string, ReconcilereLinie>();
   // Which bonuri are already listed on a row, so a bon carrying two lines for
   // one material is linked once.
-  const bonuriSeen = new Map<number, Set<number>>();
+  const bonuriSeen = new Map<string, Set<number>>();
+
+  const rowKey = (materialId: number | null, materialNume: string) =>
+    materialId === null ? `note:${materialNume.trim()}` : String(materialId);
 
   for (const f of input.facturaLinii) {
-    rows.set(f.materialId, {
+    const key = rowKey(f.materialId, f.materialNume);
+    rows.set(key, {
       materialId: f.materialId,
       nume: f.materialNume,
       nrCart: f.nrCart,
@@ -329,12 +346,13 @@ export function buildReconciliere(input: {
       diferenta: 0,
       bonuri: [],
     });
-    bonuriSeen.set(f.materialId, new Set());
+    bonuriSeen.set(key, new Set());
   }
 
   for (const bon of input.bonuri) {
     for (const line of bon.linii) {
-      let row = rows.get(line.materialId);
+      const key = rowKey(line.materialId, line.materialNume);
+      let row = rows.get(key);
       if (!row) {
         row = {
           materialId: line.materialId,
@@ -346,12 +364,12 @@ export function buildReconciliere(input: {
           diferenta: 0,
           bonuri: [],
         };
-        rows.set(line.materialId, row);
-        bonuriSeen.set(line.materialId, new Set());
+        rows.set(key, row);
+        bonuriSeen.set(key, new Set());
       }
 
       row.cantitateBonuri = roundQty(row.cantitateBonuri + line.cantitate);
-      const seen = bonuriSeen.get(line.materialId)!;
+      const seen = bonuriSeen.get(key)!;
       if (!seen.has(bon.id)) {
         seen.add(bon.id);
         row.bonuri.push({ id: bon.id, data: bon.data });

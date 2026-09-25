@@ -33,11 +33,17 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
   const rows = form.getValues().materiale;
   const materiale = useMateriale();
 
-  const known = useMemo(
+  // "New" means an unknown *code* now — nume alone no longer identifies a
+  // material, so two lines can legitimately share a name under two codes.
+  const knownCodes = useMemo(
+    () => new Set((materiale.data ?? []).map((m) => m.nrCart)),
+    [materiale.data],
+  );
+  const knownNames = useMemo(
     () => new Set((materiale.data ?? []).map((m) => m.nume)),
     [materiale.data],
   );
-  const options = useMemo(() => [...known], [known]);
+  const options = useMemo(() => [...knownNames], [knownNames]);
 
   return (
     <Stack gap="xs">
@@ -56,10 +62,10 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
           </Table.Thead>
           <Table.Tbody>
             {rows.map((row, i) => {
-              const nume = row.nume.trim();
+              const nrCart = row.nrCart.trim();
               // Only warn once the catalogue has actually loaded, so a slow
               // request doesn't flag every existing material as new.
-              const isNew = nume !== "" && !materiale.isPending && !known.has(nume);
+              const isNew = nrCart !== "" && !materiale.isPending && !knownCodes.has(nrCart);
 
               return (
                 <Table.Tr key={row.key}>

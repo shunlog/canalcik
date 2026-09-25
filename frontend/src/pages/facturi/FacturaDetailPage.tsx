@@ -110,10 +110,10 @@ export function FacturaDetailPage() {
  * one factura under two codes, and two identical links would only repeat itself.
  */
 function distinctMateriale(lines: FacturaLineOut[]) {
-  const byId = new Map(lines.map((m) => [m.materialId, m.nume]));
-  return [...byId].map(([materialId, nume]) => ({
+  const byId = new Map(lines.map((m) => [m.materialId, { nume: m.nume, nrCart: m.nrCart }]));
+  return [...byId].map(([materialId, ref]) => ({
     id: materialId,
-    label: materialLabel({ id: materialId, nume }),
+    label: materialLabel({ id: materialId, ...ref }),
     to: `/materiale/${materialId}`,
   }));
 }

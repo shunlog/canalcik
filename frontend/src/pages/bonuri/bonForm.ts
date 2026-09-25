@@ -2,13 +2,23 @@ import type { BonCreateBody, BonDetail } from "@canalcik/server/api-types";
 import { randomId } from "@mantine/hooks";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
 
+/** The picker's combobox format: code-first, so fuzzy search matches nrCart first. */
+export const materialPickerLabel = (m: { nume: string; nrCart: string }) => `${m.nrCart}, ${m.nume}`;
+
 export interface MaterialRow {
   /**
    * Client-side only. PATCH replaces every line, so the server's ids change on
    * each save — keying React rows by them makes inputs lose focus after a refetch.
    */
   key: string;
-  nume: string;
+  /** Links an existing, invoiced material. null means this row is a scratchpad note. */
+  materialId: number | null;
+  /**
+   * The combobox's current text. For a linked row this is only a fallback
+   * (the editor recomputes the label live from the catalogue); for an
+   * unlinked row it *is* the scratchpad note.
+   */
+  nota: string;
   um: string;
   cantitate: number | string;
 }
@@ -22,7 +32,8 @@ export interface BonFormValues {
 
 export const newMaterialRow = (): MaterialRow => ({
   key: randomId(),
-  nume: "",
+  materialId: null,
+  nota: "",
   um: "",
   cantitate: "",
 });
@@ -40,7 +51,11 @@ export const toBonForm = (b: BonDetail): BonFormValues => ({
   vehiculId: String(b.vehiculId),
   materiale: b.materiale.map((m) => ({
     key: randomId(),
-    nume: m.nume,
+    materialId: m.materialId,
+    // Seeded from the bon's own response so the field never shows blank
+    // before useMateriale() has loaded — the editor recomputes this live
+    // once it has.
+    nota: m.materialId !== null ? materialPickerLabel({ nume: m.nume ?? "", nrCart: m.nrCart ?? "" }) : (m.nota ?? ""),
     um: m.um,
     cantitate: m.cantitate,
   })),
@@ -51,7 +66,9 @@ export const fromBonForm = (v: BonFormValues): BonCreateBody => ({
   soferId: Number(v.soferId),
   vehiculId: Number(v.vehiculId),
   materiale: v.materiale.map((m) => ({
-    nume: m.nume.trim(),
+    ...(m.materialId !== null
+      ? { materialId: m.materialId }
+      : { nota: m.nota.trim() }),
     um: m.um.trim(),
     cantitate: numOrZero(m.cantitate),
   })),
@@ -62,7 +79,12 @@ export const bonValidation = {
   soferId: (v: string | null) => (v ? null : "Șoferul este obligatoriu"),
   vehiculId: (v: string | null) => (v ? null : "Vehiculul este obligatoriu"),
   materiale: {
-    nume: (v: string) => (v.trim() === "" ? "Obligatoriu" : null),
+    nota: (v: string, values: BonFormValues, path: string) => {
+      const idx = Number(path.split(".")[1]);
+      const row = values.materiale[idx];
+      if (row?.materialId !== null) return null;
+      return v.trim() === "" ? "Alegeți un material din listă sau introduceți o notă" : null;
+    },
     um: (v: string) => (v.trim() === "" ? "Obligatoriu" : null),
     cantitate: (v: number | string) =>
       v === "" || Number(v) <= 0 || Number.isNaN(Number(v)) ? "Cantitate invalidă" : null,

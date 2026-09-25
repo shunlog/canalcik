@@ -52,6 +52,7 @@ export const soferRefSelect = {
 export const materialRefSelect = {
   id: true,
   nume: true,
+  nrCart: true,
 } satisfies Prisma.MaterialeIntretinereSelect;
 
 export const bonRefSelect = {
@@ -305,7 +306,8 @@ export const bonDetailSelect = {
     select: {
       id: true,
       materialId: true,
-      material: { select: { nume: true } },
+      material: { select: { nume: true, nrCart: true } },
+      nota: true,
       um: true,
       cantitate: true,
     },
@@ -315,13 +317,17 @@ export const bonDetailSelect = {
 
 type BonDetailRow = Prisma.BonEliberareGetPayload<{ select: typeof bonDetailSelect }>;
 
-// A line's name lives on the material it points at, but the wire type keeps it
-// flat: the client edits lines by name and never has to hold an id it can't
-// have yet for a material that doesn't exist.
+// A linked line's name/code live on the material it points at; an unlinked
+// line (a scratchpad note) has neither, just its own `nota` text. The wire
+// type keeps both flattened so the client never has to join them itself.
 export const toBonDetail = ({ updatedAt, materiale, ...b }: BonDetailRow): BonDetail => ({
   ...b,
   updatedAt: updatedAt.toISOString(),
-  materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
+  materiale: materiale.map(({ material, ...m }) => ({
+    ...m,
+    nume: material?.nume ?? null,
+    nrCart: material?.nrCart ?? null,
+  })),
 });
 
 // ------------------------------------------------------ materialeIntretinere

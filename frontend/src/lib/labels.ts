@@ -20,7 +20,7 @@ export const soferLabel = (s: SoferRef) => `${s.nume}`;
 
 export const bonLabel = (b: Pick<BonRef, "data">) => formatIsoDate(b.data);
 
-export const materialLabel = (m: MaterialRef) => m.nume;
+export const materialLabel = (m: MaterialRef) => (m.nrCart ? `${m.nume} (${m.nrCart})` : m.nume);
 
 export const facturaLabel = (f: Pick<FacturaRef, "data">) => formatIsoDate(f.data);
 
