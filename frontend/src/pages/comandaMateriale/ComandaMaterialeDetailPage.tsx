@@ -1,4 +1,4 @@
-import { Anchor, Button, Fieldset, Group, Stack, Text } from "@mantine/core";
+import { Anchor, Button, Group, Stack, Text, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -82,41 +82,40 @@ export function ComandaMaterialeDetailPage() {
             }
           />
 
-          <Fieldset legend="Document generat" mb="md" maw={560}>
-            <Stack gap="sm" align="flex-start">
-              <Group gap="xl">
-                {c.document ? (
-                  <>
-                    <Group gap="xs">
-                      <Text size="sm" c="dimmed">
-                        Fișier
-                      </Text>
-                      <Anchor href={c.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
-                        {c.document.nume}
-                      </Anchor>
-                    </Group>
-                    <Group gap="xs">
-                      <Text size="sm" c="dimmed">
-                        Data
-                      </Text>
-                      <Text size="sm">{formatTimestamp(c.document.createdAt)}</Text>
-                    </Group>
-                  </>
-                ) : (
-                  <Text size="sm">{formatTimestamp(null)}</Text>
-                )}
-              </Group>
+          <Stack gap="sm" align="flex-start" mb="md" maw={560}>
+            <Title order={3}>Document generat</Title>
+            <Group gap="xl">
+              {c.document ? (
+                <>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Fișier
+                    </Text>
+                    <Anchor href={c.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
+                      {c.document.nume}
+                    </Anchor>
+                  </Group>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Data
+                    </Text>
+                    <Text size="sm">{formatTimestamp(c.document.createdAt)}</Text>
+                  </Group>
+                </>
+              ) : (
+                <Text size="sm">{formatTimestamp(null)}</Text>
+              )}
+            </Group>
 
-              <Group gap="md">
-                <Button size="sm" loading={gen.isPending} onClick={generate}>
-                  {c.document ? "Re-generează" : "Generează"}
-                </Button>
-                <Anchor component={Link} to="/setari" size="sm">
-                  Vezi șablonul
-                </Anchor>
-              </Group>
-            </Stack>
-          </Fieldset>
+            <Group gap="md">
+              <Button size="sm" loading={gen.isPending} onClick={generate}>
+                {c.document ? "Re-generează" : "Generează"}
+              </Button>
+              <Anchor component={Link} to="/setari" size="sm">
+                Vezi șablonul
+              </Anchor>
+            </Group>
+          </Stack>
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <ComandaFields form={form} />

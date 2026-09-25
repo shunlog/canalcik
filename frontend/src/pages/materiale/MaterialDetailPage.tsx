@@ -1,5 +1,5 @@
 import type { MaterialUsage } from "@canalcik/server/api-types";
-import { Anchor, Button, Fieldset, Group, Table, Text, TextInput } from "@mantine/core";
+import { Anchor, Button, Group, Stack, Table, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -74,15 +74,13 @@ export function MaterialDetailPage() {
           />
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
-            <Fieldset legend="Material" maw={480}>
-              <TextInput
-                label="Denumire"
-                description="Redenumirea se vede pe toate bonurile care folosesc materialul."
-                withAsterisk
-                maw={480}
-                {...form.getInputProps("nume")}
-              />
-            </Fieldset>
+            <TextInput
+              label="Denumire"
+              description="Redenumirea se vede pe toate bonurile care folosesc materialul."
+              withAsterisk
+              maw={480}
+              {...form.getInputProps("nume")}
+            />
             <Group mt="md">
               <Button type="submit" loading={update.isPending}>
                 Salvează
@@ -97,7 +95,8 @@ export function MaterialDetailPage() {
             </Group>
           </form>
 
-          <Fieldset legend="Bonuri de eliberare" mt="xl" maw={850}>
+          <Stack gap="sm" mt="xl" maw={850}>
+            <Title order={3}>Bonuri de eliberare</Title>
             {m.utilizari.length === 0 ? (
               <Text size="sm" c="dimmed">
                 Acest material nu apare pe niciun bon.
@@ -105,7 +104,7 @@ export function MaterialDetailPage() {
             ) : (
               <UtilizariTable utilizari={m.utilizari} />
             )}
-          </Fieldset>
+          </Stack>
         </>
       )}
     </QueryBoundary>

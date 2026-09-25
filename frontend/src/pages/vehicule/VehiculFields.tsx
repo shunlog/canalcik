@@ -1,4 +1,4 @@
-import { Fieldset, NumberInput, SimpleGrid, Stack, Textarea, TextInput } from "@mantine/core";
+import { Fieldset, NumberInput, SimpleGrid, Stack, Textarea, TextInput, Title } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import type { VehiculFormValues } from "./vehiculForm.ts";
 
@@ -18,9 +18,10 @@ export function VehiculFields({ form }: { form: UseFormReturnType<VehiculFormVal
           <TextInput label="Destinația" placeholder="Tractor" withAsterisk {...form.getInputProps("tip")} />
           <TextInput label="Marcă / Model" placeholder="MTZ-82" withAsterisk {...form.getInputProps("model")} />
         </SimpleGrid>
-      </Fieldset>
 
-      <Fieldset legend="Exploatare">
+        <Title order={4} size="h5" mt="md">
+          Exploatare
+        </Title>
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
           <NumberInput label="An fabricație" allowDecimal={false} {...form.getInputProps("anProducere")} />
           <NumberInput label="Km actuali" allowDecimal={false} thousandSeparator=" " {...form.getInputProps("kmActuali")} />

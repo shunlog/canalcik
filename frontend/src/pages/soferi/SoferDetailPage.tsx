@@ -1,4 +1,4 @@
-import { Button, Divider, Fieldset, Group, Stack, Text } from "@mantine/core";
+import { Button, Divider, Group, Stack, Text, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -90,40 +90,40 @@ export function SoferDetailPage() {
 
           <Divider my="xl" />
 
-          <Fieldset legend="Vehicule atribuite" maw={500}>
-            <Stack gap="md">
-              <RefLinkList
-                items={s.vehicule.map((v) => ({
-                  id: v.id,
-                  label: vehiculLabel(v),
-                  to: `/vehicule/${v.id}`,
-                }))}
-                empty="Niciun vehicul atribuit."
-              />
-              <LinkEditor
-                label="Modifică atribuirile"
-                placeholder="Alegeți vehicule"
-                options={(vehicule.data ?? []).map((v) => ({
-                  value: String(v.id),
-                  label: vehiculLabel(v),
-                }))}
-                value={s.vehicule.map((v) => v.id)}
-                loading={vehicule.isPending}
-                saving={setVehicule.isPending}
-                onSave={(ids) =>
-                  setVehicule.mutate(
-                    { vehiculIds: ids },
-                    {
-                      onSuccess: () => showSaved("Atribuiri salvate"),
-                      onError: (err) => showError(err, "Salvarea atribuirilor a eșuat"),
-                    },
-                  )
-                }
-              />
-            </Stack>
-          </Fieldset>
+          <Stack gap="md" maw={500}>
+            <Title order={3}>Vehicule atribuite</Title>
+            <RefLinkList
+              items={s.vehicule.map((v) => ({
+                id: v.id,
+                label: vehiculLabel(v),
+                to: `/vehicule/${v.id}`,
+              }))}
+              empty="Niciun vehicul atribuit."
+            />
+            <LinkEditor
+              label="Modifică atribuirile"
+              placeholder="Alegeți vehicule"
+              options={(vehicule.data ?? []).map((v) => ({
+                value: String(v.id),
+                label: vehiculLabel(v),
+              }))}
+              value={s.vehicule.map((v) => v.id)}
+              loading={vehicule.isPending}
+              saving={setVehicule.isPending}
+              onSave={(ids) =>
+                setVehicule.mutate(
+                  { vehiculIds: ids },
+                  {
+                    onSuccess: () => showSaved("Atribuiri salvate"),
+                    onError: (err) => showError(err, "Salvarea atribuirilor a eșuat"),
+                  },
+                )
+              }
+            />
+          </Stack>
 
-          <Fieldset legend="Bonuri de eliberare" mt="md" maw={650}>
+          <Stack gap="sm" mt="xl" maw={650}>
+            <Title order={3}>Bonuri de eliberare</Title>
             {s.bonuri.length === 0 ? (
               <Text size="sm" c="dimmed">
                 Niciun bon pentru acest șofer.
@@ -131,7 +131,7 @@ export function SoferDetailPage() {
             ) : (
               <BonuriTable bonuri={s.bonuri} hideSofer />
             )}
-          </Fieldset>
+          </Stack>
         </>
       )}
     </QueryBoundary>

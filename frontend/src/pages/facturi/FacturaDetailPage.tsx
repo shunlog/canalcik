@@ -1,5 +1,5 @@
 import type { FacturaLineOut } from "@canalcik/server/api-types";
-import { Button, Fieldset, Group } from "@mantine/core";
+import { Button, Group, Stack, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -75,12 +75,13 @@ export function FacturaDetailPage() {
             }
           />
 
-          <Fieldset legend="Materiale din catalog" mb="md" maw={500}>
+          <Stack gap="xs" mb="md" maw={500}>
+            <Title order={3}>Materiale din catalog</Title>
             <RefLinkList
               items={distinctMateriale(f.materiale)}
               empty="Factura nu are nicio linie."
             />
-          </Fieldset>
+          </Stack>
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <FacturaFields form={form} />

@@ -7,16 +7,14 @@ import type { FacturaFormValues } from "./facturaForm.ts";
 export function FacturaFields({ form }: { form: UseFormReturnType<FacturaFormValues> }) {
   return (
     <>
-      <Fieldset legend="Factură" maw={250}>
-        <DateInput
-          label="Data"
-          valueFormat="DD.MM.YYYY"
-          placeholder="ZZ.LL.AAAA"
-          withAsterisk
-          w={155}
-          {...form.getInputProps("data")}
-        />
-      </Fieldset>
+      <DateInput
+        label="Data"
+        valueFormat="DD.MM.YYYY"
+        placeholder="ZZ.LL.AAAA"
+        withAsterisk
+        w={155}
+        {...form.getInputProps("data")}
+      />
 
       <Fieldset legend="Materiale" mt="md" maw={960}>
         <MaterialeFacturaEditor form={form} />

@@ -1,4 +1,4 @@
-import { Button, Divider, Fieldset, Group, Stack, Text } from "@mantine/core";
+import { Button, Divider, Fieldset, Group, Stack, Text, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -100,51 +100,6 @@ export function VehiculDetailPage() {
             </Group>
           </form>
 
-          <Divider my="xl" />
-
-          <Fieldset legend="Șoferi atribuiți" maw={500}>
-            <Stack gap="md">
-              <RefLinkList
-                items={v.soferi.map((s) => ({
-                  id: s.id,
-                  label: soferLabel(s),
-                  to: `/soferi/${s.id}`,
-                }))}
-                empty="Niciun șofer atribuit."
-              />
-              <LinkEditor
-                label="Modifică atribuirile"
-                placeholder="Alegeți șoferi"
-                options={(soferi.data ?? []).map((s) => ({
-                  value: String(s.id),
-                  label: soferLabel(s),
-                }))}
-                value={v.soferi.map((s) => s.id)}
-                loading={soferi.isPending}
-                saving={setSoferi.isPending}
-                onSave={(ids) =>
-                  setSoferi.mutate(
-                    { soferIds: ids },
-                    {
-                      onSuccess: () => showSaved("Atribuiri salvate"),
-                      onError: (err) => showError(err, "Salvarea atribuirilor a eșuat"),
-                    },
-                  )
-                }
-              />
-            </Stack>
-          </Fieldset>
-
-          <Fieldset legend="Bonuri de eliberare" mt="md" maw={650}>
-            {v.bonuri.length === 0 ? (
-              <Text size="sm" c="dimmed">
-                Niciun bon pentru acest vehicul.
-              </Text>
-            ) : (
-              <BonuriTable bonuri={v.bonuri} hideVehicul />
-            )}
-          </Fieldset>
-
           <Fieldset legend="Anvelope — normă în luni" mt="md" maw={860}>
             <AnvelopeLuniTable vehiculId={v.id} anvelope={v.anvelopeLuni} />
           </Fieldset>
@@ -156,6 +111,51 @@ export function VehiculDetailPage() {
           <Fieldset legend="Acumulatoare" mt="md" maw={860}>
             <AcumulatoareTable vehiculId={v.id} acumulatoare={v.acumulatoare} />
           </Fieldset>
+
+          <Divider my="xl" />
+
+          <Stack gap="md" maw={500}>
+            <Title order={3}>Șoferi atribuiți</Title>
+            <RefLinkList
+              items={v.soferi.map((s) => ({
+                id: s.id,
+                label: soferLabel(s),
+                to: `/soferi/${s.id}`,
+              }))}
+              empty="Niciun șofer atribuit."
+            />
+            <LinkEditor
+              label="Modifică atribuirile"
+              placeholder="Alegeți șoferi"
+              options={(soferi.data ?? []).map((s) => ({
+                value: String(s.id),
+                label: soferLabel(s),
+              }))}
+              value={v.soferi.map((s) => s.id)}
+              loading={soferi.isPending}
+              saving={setSoferi.isPending}
+              onSave={(ids) =>
+                setSoferi.mutate(
+                  { soferIds: ids },
+                  {
+                    onSuccess: () => showSaved("Atribuiri salvate"),
+                    onError: (err) => showError(err, "Salvarea atribuirilor a eșuat"),
+                  },
+                )
+              }
+            />
+          </Stack>
+
+          <Stack gap="sm" mt="xl" maw={650}>
+            <Title order={3}>Bonuri de eliberare</Title>
+            {v.bonuri.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                Niciun bon pentru acest vehicul.
+              </Text>
+            ) : (
+              <BonuriTable bonuri={v.bonuri} hideVehicul />
+            )}
+          </Stack>
         </>
       )}
     </QueryBoundary>

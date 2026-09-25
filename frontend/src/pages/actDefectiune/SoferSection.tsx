@@ -1,4 +1,4 @@
-import { Fieldset, Select } from "@mantine/core";
+import { Select, Stack, Title } from "@mantine/core";
 import { infoSofer } from "@canalcik/server/derived";
 import type { UseFormReturnType } from "@mantine/form";
 import { useSoferi } from "../../api/soferi.ts";
@@ -21,7 +21,8 @@ export function SoferSection({ form }: { form: UseFormReturnType<ActFormValues> 
   const info = ales && vehicul && infoSofer(ales, vehicul);
 
   return (
-    <Fieldset legend="Șofer" maw={480}>
+    <Stack gap="xs" maw={480}>
+      <Title order={3}>Șofer</Title>
       <Select
         placeholder="Caută un șofer după nume sau nr. de pontaj"
         searchable
@@ -43,6 +44,6 @@ export function SoferSection({ form }: { form: UseFormReturnType<ActFormValues> 
           ]}
         />
       )}
-    </Fieldset>
+    </Stack>
   );
 }

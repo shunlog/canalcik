@@ -1,4 +1,4 @@
-import { Fieldset, NumberInput, SimpleGrid, Stack, Table, Textarea, TextInput } from "@mantine/core";
+import { Fieldset, NumberInput, SimpleGrid, Stack, Table, Textarea, TextInput, Title } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import type { UseFormReturnType } from "@mantine/form";
 import { EIP_EQUIPMENT_FIELDS, eipExpiryDate } from "@canalcik/server/derived";
@@ -26,9 +26,10 @@ export function SoferFields({ form }: { form: UseFormReturnType<SoferFormValues>
           <TextInput label="Mărime încălțăminte" {...form.getInputProps("marimeIncaltaminte")} />
         </SimpleGrid>
         <Textarea label="Observații" mt="sm" autosize minRows={2} {...form.getInputProps("observatii")} />
-      </Fieldset>
 
-      <Fieldset legend="Date eliberare EIP">
+        <Title order={4} size="h5" mt="md">
+          Date eliberare EIP
+        </Title>
         <Table.ScrollContainer minWidth={480} maw={620}>
           <Table withTableBorder verticalSpacing="sm" w="auto">
             <Table.Thead>

@@ -1,4 +1,4 @@
-import { Fieldset, Select } from "@mantine/core";
+import { Select, Stack, Title } from "@mantine/core";
 import type { InfoVehicul } from "@canalcik/server/api-types";
 import { infoVehicul } from "@canalcik/server/derived";
 import type { UseFormReturnType } from "@mantine/form";
@@ -23,7 +23,8 @@ export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues
   const info = ales && infoVehicul(ales);
 
   return (
-    <Fieldset legend="Vehicul" maw={480}>
+    <Stack gap="xs" maw={480}>
+      <Title order={3}>Vehicul</Title>
       <Select
         placeholder="Caută un vehicul după număr, model sau nr. inventar"
         searchable
@@ -42,6 +43,6 @@ export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues
           campuri={CAMPURI_VEHICUL.map((c) => ({ label: c.label, value: info[c.key] }))}
         />
       )}
-    </Fieldset>
+    </Stack>
   );
 }

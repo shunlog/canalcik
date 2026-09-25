@@ -1,4 +1,4 @@
-import { Button, Fieldset, Group, Text } from "@mantine/core";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -67,7 +67,8 @@ export function BonDetailPage() {
             }
           />
 
-          <Fieldset legend="Legături" mb="md" maw={560}>
+          <Stack gap="xs" mb="md" maw={560}>
+            <Title order={3}>Legături</Title>
             <Group gap="xl">
               <Text size="sm">
                 Șofer: <SoferLink sofer={b.sofer} />
@@ -76,7 +77,7 @@ export function BonDetailPage() {
                 Vehicul: <VehiculLink vehicul={b.vehicul} />
               </Text>
             </Group>
-          </Fieldset>
+          </Stack>
 
           <form onSubmit={form.onSubmit(submit, notifyIncomplete)}>
             <BonFields form={form} />

@@ -1,5 +1,5 @@
 import type { MonthlyReportDetail, MonthlyReportLine } from "@canalcik/server/api-types";
-import { Anchor, Badge, Button, Fieldset, Group, Stack, Table, Text } from "@mantine/core";
+import { Anchor, Badge, Button, Group, Stack, Table, Text, Title } from "@mantine/core";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
@@ -46,46 +46,46 @@ export function MonthlyReportDetailPage() {
             }
           />
 
-          <Fieldset legend="Document generat" mb="md" maw={560}>
-            <Stack gap="sm" align="flex-start">
-              <Group gap="xl">
-                {m.document ? (
-                  <>
-                    <Group gap="xs">
-                      <Text size="sm" c="dimmed">
-                        Fișier
-                      </Text>
-                      <Anchor href={m.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
-                        {m.document.nume}
-                      </Anchor>
-                    </Group>
-                    <Group gap="xs">
-                      <Text size="sm" c="dimmed">
-                        Data
-                      </Text>
-                      <Text size="sm">{formatTimestamp(m.document.createdAt)}</Text>
-                    </Group>
-                  </>
-                ) : (
-                  <Text size="sm">{formatTimestamp(null)}</Text>
-                )}
-              </Group>
+          <Stack gap="sm" align="flex-start" mb="md" maw={560}>
+            <Title order={3}>Document generat</Title>
+            <Group gap="xl">
+              {m.document ? (
+                <>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Fișier
+                    </Text>
+                    <Anchor href={m.document.driveUrl} target="_blank" rel="noreferrer" size="sm">
+                      {m.document.nume}
+                    </Anchor>
+                  </Group>
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Data
+                    </Text>
+                    <Text size="sm">{formatTimestamp(m.document.createdAt)}</Text>
+                  </Group>
+                </>
+              ) : (
+                <Text size="sm">{formatTimestamp(null)}</Text>
+              )}
+            </Group>
 
-              <Group gap="md">
-                <GenerateMonthlyReportButton
-                  report={m}
-                  loading={gen.isPending}
-                  onGenerate={generate}
-                  size="sm"
-                />
-                <Anchor component={Link} to="/setari" size="sm">
-                  Vezi șablonul
-                </Anchor>
-              </Group>
-            </Stack>
-          </Fieldset>
+            <Group gap="md">
+              <GenerateMonthlyReportButton
+                report={m}
+                loading={gen.isPending}
+                onGenerate={generate}
+                size="sm"
+              />
+              <Anchor component={Link} to="/setari" size="sm">
+                Vezi șablonul
+              </Anchor>
+            </Group>
+          </Stack>
 
-          <Fieldset legend="Date lunare" mb="md" maw={560}>
+          <Stack gap="sm" mb="md" maw={560}>
+            <Title order={3}>Date lunare</Title>
             <Group gap="xl">
               <Group gap="xs">
                 <Text size="sm" c="dimmed">
@@ -107,7 +107,7 @@ export function MonthlyReportDetailPage() {
                 />
               </Group>
             </Group>
-          </Fieldset>
+          </Stack>
 
           {m.linii.length === 0 ? (
             <Text size="sm" c="dimmed">
