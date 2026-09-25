@@ -71,6 +71,7 @@ async function loadMonthsData() {
         id: true,
         data: true,
         month: true,
+        ramas: true,
         materiale: facturaLinesSelect,
       },
     }),
@@ -128,6 +129,7 @@ function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
         nrCart: m.nrCart,
         um: m.um,
         cantitate: m.cantitate,
+        ramas: f.ramas,
       })),
     ),
   });
@@ -197,6 +199,7 @@ monthlyReport.post("/:month/generate", async (c) => {
     db.facturaExpeditie.findMany({
       where: { month },
       select: {
+        ramas: true,
         materiale: {
           select: {
             materialId: true,
@@ -217,7 +220,7 @@ monthlyReport.post("/:month/generate", async (c) => {
   if (facturi.length === 0) {
     throw new ApiError(400, "VALIDATION", `Luna ${month} nu are o factură de expediție`);
   }
-  const facturaLinii = facturi.flatMap((f) => f.materiale);
+  const facturaLinii = facturi.flatMap((f) => f.materiale.map((m) => ({ ...m, ramas: f.ramas })));
 
   const bonuriPentruLuna = bonuri.map((b) => ({
     id: b.id,
@@ -248,6 +251,7 @@ monthlyReport.post("/:month/generate", async (c) => {
         nrCart: m.nrCart,
         um: m.um,
         cantitate: m.cantitate,
+        ramas: m.ramas,
       })),
     }),
   );

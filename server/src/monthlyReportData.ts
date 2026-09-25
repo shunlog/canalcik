@@ -287,6 +287,8 @@ export type ReconcilereFacturaLine = {
   nrCart: string;
   um: string;
   cantitate: number;
+  /** The line's factura's `ramas`. */
+  ramas: boolean;
 };
 
 /**
@@ -303,6 +305,8 @@ export type ReconcilereLinie = {
   um: string;
   /** null when no factura line matches at all — an orphan bon group. */
   cantitateFactura: number | null;
+  /** The matched factura's `ramas`; false on an orphan row. */
+  ramas: boolean;
   cantitateBonuri: number;
   /** cantitateBonuri − (cantitateFactura ?? 0). */
   diferenta: number;
@@ -342,6 +346,7 @@ export function buildReconciliere(input: {
       nrCart: f.nrCart,
       um: f.um,
       cantitateFactura: roundQty(f.cantitate),
+      ramas: f.ramas,
       cantitateBonuri: 0,
       diferenta: 0,
       bonuri: [],
@@ -360,6 +365,7 @@ export function buildReconciliere(input: {
           nrCart: null,
           um: line.um,
           cantitateFactura: null,
+          ramas: false,
           cantitateBonuri: 0,
           diferenta: 0,
           bonuri: [],

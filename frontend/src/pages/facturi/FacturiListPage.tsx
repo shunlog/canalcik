@@ -1,12 +1,13 @@
 import { Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import { IconPlus } from "@tabler/icons-react";
+import { IconCheck, IconPlus } from "@tabler/icons-react";
 import type { FacturaListItem } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useFacturi } from "../../api/facturi.ts";
 import { FacturaLink } from "../../components/FacturaLink.tsx";
+import { HelpTooltip } from "../../components/HelpTooltip.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { formatMoney } from "../../lib/forms.ts";
@@ -68,8 +69,20 @@ export function FacturiListPage() {
               {
                 accessor: "data",
                 title: "Data",
+                width: 140,
                 sortable: true,
                 render: (f) => <FacturaLink factura={f} />,
+              },
+              {
+                accessor: "ramas",
+                title: (
+                  <HelpTooltip label="Lista de piese ramase la depozit de lunile precedente">
+                    Nu din luna asta
+                  </HelpTooltip>
+                ),
+                width: 150,
+                sortable: true,
+                render: (f) => (f.ramas ? <IconCheck size={16} aria-label="Da" /> : null),
               },
               {
                 accessor: "nrLinii",

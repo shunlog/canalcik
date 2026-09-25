@@ -347,6 +347,7 @@ describe("buildReconciliere", () => {
     nrCart: "2111017178",
     um: "L",
     cantitate: 6,
+    ramas: false,
     ...over,
   });
 
@@ -462,5 +463,22 @@ describe("buildReconciliere", () => {
 
   it("returns nothing for a month with neither bonuri nor a factura", () => {
     expect(buildReconciliere({ bonuri: [], facturaLinii: [] })).toEqual([]);
+  });
+
+  it("carries the matched factura line's ramas onto the row", () => {
+    const [row] = buildReconciliere({
+      bonuri: [bon({ linii: [bLine({ cantitate: 6 })] })],
+      facturaLinii: [fLine({ cantitate: 6, ramas: true })],
+    });
+    expect(row.ramas).toBe(true);
+  });
+
+  it("defaults ramas to false on an orphan row with no factura line", () => {
+    const rows = buildReconciliere({
+      bonuri: [bon({ linii: [bLine({ materialId: 9, materialNume: "MOTORINA" })] })],
+      facturaLinii: [fLine()],
+    });
+    const orphan = rows.find((r) => r.nume === "MOTORINA");
+    expect(orphan?.ramas).toBe(false);
   });
 });

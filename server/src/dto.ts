@@ -385,6 +385,7 @@ export const toMaterialDetail = ({
 export const facturaRefSelect = {
   id: true,
   data: true,
+  ramas: true,
   _count: { select: { materiale: true } },
   materiale: { select: { cantitate: true, pretUnitar: true } },
 } satisfies Prisma.FacturaExpeditieSelect;
@@ -397,6 +398,7 @@ const toBani = (n: number) => Math.round(n * 100) / 100;
 export const toFacturaRef = (r: FacturaRefRow): FacturaRef => ({
   id: r.id,
   data: r.data,
+  ramas: r.ramas,
   nrLinii: r._count.materiale,
   total: toBani(r.materiale.reduce((sum, m) => sum + m.cantitate * m.pretUnitar, 0)),
 });
@@ -405,6 +407,7 @@ export const facturaDetailSelect = {
   id: true,
   updatedAt: true,
   data: true,
+  ramas: true,
   materiale: {
     select: {
       id: true,

@@ -20,6 +20,7 @@ export type FacturaLineInput = z.infer<typeof facturaLine>;
 
 export const facturaCreate = z.object({
   data: isoDate,
+  ramas: z.boolean(),
   materiale: z.array(facturaLine),
 });
 
@@ -27,6 +28,7 @@ export const facturaCreate = z.object({
 // lines alone", present means "these are now all the lines".
 export const facturaUpdate = z.object({
   data: isoDate.optional(),
+  ramas: z.boolean().optional(),
   materiale: z.array(facturaLine).optional(),
 });
 

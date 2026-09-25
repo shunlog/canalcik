@@ -142,6 +142,9 @@ model FacturaExpeditie {
   // "YYYY-MM", derived from `data`
   month String
 
+  // ramas la depozit de lunile precedente
+  ramas Boolean @default(false)
+
   materiale FacturaExpeditieMaterial[]
 
   @@index([month])

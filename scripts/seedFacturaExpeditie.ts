@@ -28,7 +28,7 @@ async function main() {
     return;
   }
 
-  const { data, totalTiparit, linii } = await loadFactura(filePath);
+  const { data, totalTiparit, ramas, linii } = await loadFactura(filePath);
   const month = data.slice(0, 7);
 
   const total = linii.reduce((sum, l) => sum + l.cantitate * l.pretUnitar, 0);
@@ -42,6 +42,7 @@ async function main() {
     data: {
       data,
       month,
+      ramas: ramas ?? false,
       materiale: {
         create: linii.map(({ nrCart, nume, ...line }) => ({
           ...line,

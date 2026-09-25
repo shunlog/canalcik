@@ -18,6 +18,7 @@ export interface FacturaMaterialRow {
 
 export interface FacturaFormValues {
   data: string | null;
+  ramas: boolean;
   materiale: FacturaMaterialRow[];
 }
 
@@ -32,11 +33,13 @@ export const newFacturaRow = (): FacturaMaterialRow => ({
 
 export const emptyFacturaForm = (): FacturaFormValues => ({
   data: todayLocalIso(),
+  ramas: false,
   materiale: [newFacturaRow()],
 });
 
 export const toFacturaForm = (f: FacturaDetail): FacturaFormValues => ({
   data: f.data,
+  ramas: f.ramas,
   materiale: f.materiale.map((m) => ({
     key: randomId(),
     nrCart: m.nrCart,
@@ -49,6 +52,7 @@ export const toFacturaForm = (f: FacturaDetail): FacturaFormValues => ({
 
 export const fromFacturaForm = (v: FacturaFormValues): FacturaCreateBody => ({
   data: v.data ?? todayLocalIso(),
+  ramas: v.ramas,
   materiale: v.materiale.map((m) => ({
     nrCart: m.nrCart.trim(),
     nume: m.nume.trim(),

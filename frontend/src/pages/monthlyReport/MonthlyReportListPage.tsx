@@ -2,16 +2,14 @@ import { Anchor } from "@mantine/core";
 import type { MonthlyReport } from "@canalcik/server/api-types";
 import { DataTable, type DataTableSortStatus } from "mantine-datatable";
 import { useMemo, useState } from "react";
-import { useMonthlyReports, useGenerateMonthlyReport } from "../../api/monthlyReport.ts";
+import { useMonthlyReports } from "../../api/monthlyReport.ts";
 import { MonthlyReportLink } from "../../components/MonthlyReportLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
-import { showError, showSaved } from "../../lib/feedback.ts";
 import { formatTimestamp } from "../../lib/forms.ts";
 import { facturaLabel } from "../../lib/labels.ts";
 import { sortRecords } from "../../lib/sort.ts";
-import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 
 export function MonthlyReportListPage() {
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus<MonthlyReport>>({
@@ -19,19 +17,11 @@ export function MonthlyReportListPage() {
     direction: "desc",
   });
   const query = useMonthlyReports();
-  const gen = useGenerateMonthlyReport();
 
   const monthlyReports = useMemo(
     () => sortRecords([...(query.data ?? [])], sortStatus),
     [query.data, sortStatus],
   );
-
-  const generate = (month: string) => {
-    gen.mutate(month, {
-      onSuccess: () => showSaved("Fișă limită generată"),
-      onError: (err) => showError(err, "Generarea a eșuat"),
-    });
-  };
 
   return (
     <>
@@ -53,6 +43,7 @@ export function MonthlyReportListPage() {
               {
                 accessor: "month",
                 title: "Luna",
+                width: 170,
                 sortable: true,
                 render: (m) => <MonthlyReportLink report={m} />,
               },
@@ -66,7 +57,6 @@ export function MonthlyReportListPage() {
               {
                 accessor: "facturi",
                 title: "Factură",
-                width: 130,
                 render: (m) => (
                   <RefLinkList
                     items={m.facturi.map((f) => ({
@@ -90,21 +80,6 @@ export function MonthlyReportListPage() {
                   ) : (
                     formatTimestamp(null)
                   ),
-              },
-              {
-                accessor: "actions",
-                title: "",
-                width: 160,
-                render: (m) => {
-                  const isLoading = gen.isPending && gen.variables === m.month;
-                  return (
-                    <GenerateMonthlyReportButton
-                      report={m}
-                      loading={isLoading}
-                      onGenerate={() => generate(m.month)}
-                    />
-                  );
-                },
               },
             ]}
           />

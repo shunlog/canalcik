@@ -116,11 +116,39 @@ export function MonthlyReportDetailPage() {
                 : "Luna nu are factură de expediție, deci nu există cu ce compara bonurile."}
             </Text>
           ) : (
-            <LiniiTable linii={m.linii} />
+            <LiniiTables linii={m.linii} />
           )}
         </>
       )}
     </QueryBoundary>
+  );
+}
+
+/**
+ * Split in two: materiale livrate în luna curentă, and materiale rămase la
+ * depozit de lunile precedente (factura's `ramas` flag) — the two shouldn't
+ * be compared as one list, since a "ramas" row was never expected to arrive
+ * that month.
+ */
+function LiniiTables({ linii }: { linii: MonthlyReportLine[] }) {
+  const luaLunaAsta = linii.filter((l) => !l.ramas);
+  const ramase = linii.filter((l) => l.ramas);
+
+  return (
+    <Stack gap="lg">
+      {luaLunaAsta.length > 0 && (
+        <Stack gap="sm">
+          <Title order={3}>Luna asta</Title>
+          <LiniiTable linii={luaLunaAsta} />
+        </Stack>
+      )}
+      {ramase.length > 0 && (
+        <Stack gap="sm">
+          <Title order={3}>Rămase la depozit din lunile precedente</Title>
+          <LiniiTable linii={ramase} />
+        </Stack>
+      )}
+    </Stack>
   );
 }
 

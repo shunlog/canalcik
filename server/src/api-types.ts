@@ -446,6 +446,8 @@ export interface FacturaLineOut extends FacturaLine {
 export interface FacturaRef {
   id: number;
   data: IsoDate;
+  /** Ramas la depozit de lunile precedente, nu o livrare din luna curentă. */
+  ramas: boolean;
   nrLinii: number;
   total: number;
 }
@@ -456,16 +458,20 @@ export interface FacturaDetail {
   id: number;
   updatedAt: string;
   data: IsoDate;
+  /** Ramas la depozit de lunile precedente, nu o livrare din luna curentă. */
+  ramas: boolean;
   materiale: FacturaLineOut[];
 }
 
 export interface FacturaCreateBody {
   data: IsoDate;
+  ramas: boolean;
   materiale: FacturaLine[];
 }
 
 export interface FacturaUpdateBody {
   data?: IsoDate;
+  ramas?: boolean;
   /** If present, replaces every line on the factura. If absent, lines are untouched. */
   materiale?: FacturaLine[];
 }
@@ -513,6 +519,8 @@ export interface MonthlyReportLine {
   um: string;
   /** null when no factura line matches at all — an orphan bon group. */
   cantitateFactura: number | null;
+  /** The matched factura's `ramas`; false on an orphan row. */
+  ramas: boolean;
   cantitateBonuri: number;
   /** cantitateBonuri − (cantitateFactura ?? 0). */
   diferenta: number;
