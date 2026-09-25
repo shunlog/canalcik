@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM node:24-slim
 
-# openssl: required by the Prisma query engine.
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+# openssl: required by the Prisma query engine. 
+# sqlite3: needed for db backups in docker-entrypoint.sh
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 # PUPPETEER_SKIP_DOWNLOAD: @mermaid-js/mermaid-cli would otherwise pull a whole
