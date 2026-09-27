@@ -1,19 +1,19 @@
 import {
   ActionIcon,
-  Autocomplete,
   Button,
+  Group,
   NumberInput,
+  Select,
   Stack,
   Table,
   Text,
-  TextInput,
-  Tooltip,
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import { IconAlertTriangle, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useMemo } from "react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { useMemo, useState } from "react";
 import { useMateriale } from "../../api/materiale.ts";
 import { formatMoney } from "../../lib/forms.ts";
+import { materialLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import {
   facturaTotal,
@@ -21,39 +21,55 @@ import {
   newFacturaRow,
   type FacturaFormValues,
 } from "./facturaForm.ts";
+import { NouMaterialModal } from "./NouMaterialModal.tsx";
 
 /**
- * The factura's lines. Same shape as the bon's editor — the denumire is an
- * Autocomplete over MaterialeIntretinere that also accepts a free-typed name,
- * so a delivery of something new can be recorded and the material is created on
- * save — plus the two columns a delivery has and an issue slip doesn't: the
- * price it came at, and the resulting line value.
+ * The factura's lines. Unlike the bon's editor, a line here always points at
+ * a real MaterialeIntretinere row (matched by `materialId` in the database —
+ * see dto.ts's facturaDetailSelect), so the row is filled in by picking one
+ * from the catalogue, never by free-typing a name. A material the catalogue
+ * doesn't carry yet is added on the spot through the "+" button, which
+ * creates it right away (POST /materiale) rather than waiting for the
+ * factura's own save.
  */
 export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<FacturaFormValues> }) {
   const rows = form.getValues().materiale;
   const materiale = useMateriale();
+  const [randNou, setRandNou] = useState<number | null>(null);
 
-  // "New" means an unknown *code* now — nume alone no longer identifies a
-  // material, so two lines can legitimately share a name under two codes.
-  const knownCodes = useMemo(
-    () => new Set((materiale.data ?? []).map((m) => m.nrCart)),
+  const materialById = useMemo(
+    () => new Map((materiale.data ?? []).map((m) => [String(m.id), m])),
     [materiale.data],
   );
-  const knownNames = useMemo(
-    () => new Set((materiale.data ?? []).map((m) => m.nume)),
+  const materialByNrCart = useMemo(
+    () => new Map((materiale.data ?? []).map((m) => [m.nrCart, m])),
     [materiale.data],
   );
-  const options = useMemo(() => [...knownNames], [knownNames]);
+  const optiuniMateriale = useMemo(
+    () =>
+      (materiale.data ?? []).map((m) => ({
+        value: String(m.id),
+        label: `${materialLabel(m)} · ${m.um}`,
+      })),
+    [materiale.data],
+  );
+
+  const alege = (i: number, id: string | null) => {
+    const material = id ? materialById.get(id) : undefined;
+    form.setFieldValue(`materiale.${i}.nrCart`, material?.nrCart ?? "");
+    form.setFieldValue(`materiale.${i}.nume`, material?.nume ?? "");
+    form.setFieldValue(`materiale.${i}.um`, material?.um ?? "");
+  };
 
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={860} maw={960}>
+      <Table.ScrollContainer minWidth={1150} maw={1250}>
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w={170}>Cod nomenclator</Table.Th>
-              <Table.Th>Denumire</Table.Th>
-              <Table.Th w={100}>UM</Table.Th>
+              <Table.Th miw={390}>Material</Table.Th>
+              <Table.Th w={140}>Cod nomenclator</Table.Th>
+              <Table.Th w={80}>UM</Table.Th>
               <Table.Th w={140}>Cantitate</Table.Th>
               <Table.Th w={150}>Preț unitar (lei)</Table.Th>
               <Table.Th w={130}>Valoare (lei)</Table.Th>
@@ -62,46 +78,41 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
           </Table.Thead>
           <Table.Tbody>
             {rows.map((row, i) => {
-              const nrCart = row.nrCart.trim();
-              // Only warn once the catalogue has actually loaded, so a slow
-              // request doesn't flag every existing material as new.
-              const isNew = nrCart !== "" && !materiale.isPending && !knownCodes.has(nrCart);
+              const selectedId = materialByNrCart.get(row.nrCart.trim())?.id;
 
               return (
                 <Table.Tr key={row.key}>
                   <Table.Td>
-                    <TextInput
-                      placeholder="2111121795"
-                      {...form.getInputProps(`materiale.${i}.nrCart`)}
-                    />
+                    <Group gap={4} wrap="nowrap">
+                      <Select
+                        style={{ flex: 1 }}
+                        placeholder="Caută un material"
+                        searchable
+                        clearable
+                        filter={fuzzyOptionsFilter}
+                        nothingFoundMessage="Niciun rezultat"
+                        data={optiuniMateriale}
+                        value={selectedId ? String(selectedId) : null}
+                        onChange={(value) => alege(i, value)}
+                      />
+                      <ActionIcon
+                        variant="light"
+                        aria-label="Adaugă material nou"
+                        onClick={() => setRandNou(i)}
+                      >
+                        <IconPlus size={16} />
+                      </ActionIcon>
+                    </Group>
                   </Table.Td>
                   <Table.Td>
-                    <Autocomplete
-                      placeholder="Căutați sau scrieți un material"
-                      data={options}
-                      limit={20}
-                      filter={fuzzyOptionsFilter}
-                      {...form.getInputProps(`materiale.${i}.nume`)}
-                      rightSection={
-                        isNew ? (
-                          <Tooltip
-                            multiline
-                            w={220}
-                            label="Material nou — va fi adăugat în lista de materiale la salvarea facturii"
-                          >
-                            <IconAlertTriangle
-                              size={16}
-                              color="var(--mantine-color-yellow-6)"
-                              aria-label="Material inexistent"
-                            />
-                          </Tooltip>
-                        ) : null
-                      }
-                      rightSectionPointerEvents="auto"
-                    />
+                    <Text size="sm" c={row.nrCart ? undefined : "dimmed"}>
+                      {row.nrCart || "—"}
+                    </Text>
                   </Table.Td>
                   <Table.Td>
-                    <TextInput placeholder="L" {...form.getInputProps(`materiale.${i}.um`)} />
+                    <Text size="sm" c={row.um ? undefined : "dimmed"}>
+                      {row.um || "—"}
+                    </Text>
                   </Table.Td>
                   <Table.Td>
                     <NumberInput
@@ -166,6 +177,16 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
       >
         Adaugă linie
       </Button>
+
+      <NouMaterialModal
+        rand={randNou}
+        onInchide={() => setRandNou(null)}
+        onCreat={(material, i) => {
+          form.setFieldValue(`materiale.${i}.nrCart`, material.nrCart);
+          form.setFieldValue(`materiale.${i}.nume`, material.nume);
+          form.setFieldValue(`materiale.${i}.um`, material.um);
+        }}
+      />
     </Stack>
   );
 }

@@ -49,11 +49,12 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
 
   return (
     <Stack gap="xs">
-      <Table.ScrollContainer minWidth={680} maw={800}>
+      <Table.ScrollContainer minWidth={820} maw={900}>
         <Table withTableBorder verticalSpacing="xs">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Material (cod nomenclator, denumire)</Table.Th>
+              <Table.Th miw={280}>Material</Table.Th>
+              <Table.Th w={140}>Cod nomenclator</Table.Th>
               <Table.Th w={90}>UM</Table.Th>
               <Table.Th w={150}>Cantitate</Table.Th>
               <Table.Th w={50} />
@@ -100,6 +101,13 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
                       rightSectionPointerEvents="auto"
                       error={form.errors[`materiale.${i}.nota`]}
                     />
+                  </Table.Td>
+                  <Table.Td>
+                    {/* Derived from the linked material — a note isn't linked
+                        to one yet, so it has no code until it is. */}
+                    <Text size="sm" c={row.materialId === null ? "dimmed" : undefined}>
+                      {row.materialId === null ? "—" : (itemById.get(row.materialId)?.nrCart ?? "")}
+                    </Text>
                   </Table.Td>
                   <Table.Td>
                     {/* Derived from the linked material — a note isn't linked
