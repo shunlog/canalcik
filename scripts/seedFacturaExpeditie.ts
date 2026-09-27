@@ -20,6 +20,42 @@ async function loadFactura(filePath: string): Promise<FacturaExpeditie> {
   return module.default as FacturaExpeditie;
 }
 
+/**
+ * Guards the same identity rule the API enforces on POST /materiale
+ * (nrCart is a material's identity): a line naming a code that's already in
+ * the catalogue under a different nume/um points at a data-entry mistake —
+ * either in the file being seeded or in the catalogue — so it's rejected
+ * before anything is written, rather than silently connecting to the wrong
+ * material or overwriting its name. Matching nume/um for an existing code is
+ * fine and just reuses that material, same as connectOrCreate always did.
+ */
+async function checkForMismatches(linii: FacturaExpeditie["linii"]) {
+  const nrCarturi = [...new Set(linii.map((l) => l.nrCart))];
+  const existente = await prisma.materialeIntretinere.findMany({
+    where: { nrCart: { in: nrCarturi } },
+  });
+  const existentByNrCart = new Map(existente.map((m) => [m.nrCart, m]));
+
+  const mismatches = linii
+    .map((l) => ({ linie: l, existent: existentByNrCart.get(l.nrCart) }))
+    .filter(
+      ({ linie, existent }) =>
+        existent && (existent.nume !== linie.nume.trim() || existent.um !== linie.um.trim().toUpperCase()),
+    );
+
+  if (mismatches.length > 0) {
+    const detalii = mismatches
+      .map(
+        ({ linie, existent }) =>
+          `  ${linie.nrCart}: catalog are "${existent!.nume}" (${existent!.um}), factura dă "${linie.nume}" (${linie.um})`,
+      )
+      .join("\n");
+    throw new Error(
+      `Materiale cu nume/UM diferite de catalog pentru același cod nomenclator:\n${detalii}`,
+    );
+  }
+}
+
 async function main() {
   const filePath = process.argv[2];
   if (!filePath) {
@@ -37,6 +73,8 @@ async function main() {
       `Total calculat ${total.toFixed(2)} diferă de totalul tipărit pe factură ${totalTiparit.toFixed(2)}`,
     );
   }
+
+  await checkForMismatches(linii);
 
   const factura = await prisma.facturaExpeditie.create({
     data: {
