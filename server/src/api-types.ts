@@ -104,6 +104,7 @@ export interface BonRef {
   sofer: SoferRef;
   vehicul: VehiculRef;
   nrLinii: number;
+  nrLiniiFaraLegatura: number;
 }
 
 // ---------------------------------------------------------------------- sofer

@@ -1,4 +1,4 @@
-import { Button, Group } from "@mantine/core";
+import { Badge, Button, Group } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconPlus } from "@tabler/icons-react";
 import type { BonListItem } from "@canalcik/server/api-types";
@@ -8,6 +8,7 @@ import { Link } from "react-router";
 import { useBonuri } from "../../api/bonuri.ts";
 import { BonLink } from "../../components/BonLink.tsx";
 import { multiSelectFilterColumn } from "../../components/DataTableFilters.tsx";
+import { HelpTooltip } from "../../components/HelpTooltip.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { SoferLink } from "../../components/SoferLink.tsx";
@@ -138,6 +139,26 @@ export function BonuriListPage() {
                 title: "Materiale",
                 sortable: true,
                 render: (b) => b.nrLinii,
+              },
+              {
+                accessor: "nrLiniiFaraLegatura",
+                title: (
+                  <HelpTooltip label="Numarul de randuri care nu sunt legate de materiale, ci doar notate">
+                    Fara legatura
+                  </HelpTooltip>
+                ),
+                sortable: true,
+                render: (b) =>
+                  b.nrLiniiFaraLegatura === 0 ? (
+                    <Badge color="green" variant="light">
+                      0<span aria-label="Toate liniile sunt legate de materiale"> ✓</span>
+                    </Badge>
+                  ) : (
+                    <Badge color="yellow" variant="light">
+                      {b.nrLiniiFaraLegatura}
+                      <span aria-label="Randuri fara legatura la materiale"> ⚠️</span>
+                    </Badge>
+                  ),
               },
             ]}
           />

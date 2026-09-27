@@ -60,7 +60,7 @@ export const bonRefSelect = {
   data: true,
   sofer: { select: soferRefSelect },
   vehicul: { select: vehiculRefSelect },
-  _count: { select: { materiale: true } },
+  materiale: { select: { materialId: true } },
 } satisfies Prisma.BonEliberareSelect;
 
 type BonRefRow = Prisma.BonEliberareGetPayload<{ select: typeof bonRefSelect }>;
@@ -70,7 +70,8 @@ export const toBonRef = (r: BonRefRow): BonRef => ({
   data: r.data,
   sofer: r.sofer,
   vehicul: r.vehicul,
-  nrLinii: r._count.materiale,
+  nrLinii: r.materiale.length,
+  nrLiniiFaraLegatura: r.materiale.filter((m) => m.materialId === null).length,
 });
 
 // ---------------------------------------------------------------------- sofer
