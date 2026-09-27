@@ -28,22 +28,23 @@ export function MaterialDetailPage() {
   const remove = useDeleteMaterial(id);
 
   const form = useForm({
-    initialValues: { nume: "", nrCart: "" },
+    initialValues: { nume: "", nrCart: "", um: "" },
     validate: {
       nume: requiredText("Denumirea materialului"),
       nrCart: requiredText("Codul nomenclator"),
+      um: requiredText("Unitatea de măsură"),
     },
   });
 
   const material = query.data;
   useEffect(() => {
-    if (material) form.setValues({ nume: material.nume, nrCart: material.nrCart });
+    if (material) form.setValues({ nume: material.nume, nrCart: material.nrCart, um: material.um });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [material]);
 
-  const submit = ({ nume, nrCart }: { nume: string; nrCart: string }) => {
+  const submit = ({ nume, nrCart, um }: { nume: string; nrCart: string; um: string }) => {
     update.mutate(
-      { nume: nume.trim(), nrCart: nrCart.trim() },
+      { nume: nume.trim(), nrCart: nrCart.trim(), um: um.trim().toUpperCase() },
       {
         onSuccess: () => showSaved("Modificări salvate"),
         onError: (err) => {
@@ -60,7 +61,7 @@ export function MaterialDetailPage() {
         <>
           <PageHeader
             title={m.nume}
-            subtitle={`${describeUsage(m.utilizari)} · modificat ${new Date(m.updatedAt).toLocaleString("ro-RO")}`}
+            subtitle={`${describeUsage(m.utilizari, m.um)} · modificat ${new Date(m.updatedAt).toLocaleString("ro-RO")}`}
             actions={
               <>
                 <Button variant="default" onClick={() => void navigate("/materiale")}>
@@ -92,13 +93,21 @@ export function MaterialDetailPage() {
               maw={480}
               {...form.getInputProps("nume")}
             />
+            <TextInput
+              mt="sm"
+              label="Unitate de măsură"
+              description="Unitatea folosită de fiecare bon și factură care leagă acest material."
+              withAsterisk
+              maw={160}
+              {...form.getInputProps("um")}
+            />
             <Group mt="md">
               <Button type="submit" loading={update.isPending}>
                 Salvează
               </Button>
               <Button
                 variant="subtle"
-                onClick={() => form.setValues({ nume: m.nume, nrCart: m.nrCart })}
+                onClick={() => form.setValues({ nume: m.nume, nrCart: m.nrCart, um: m.um })}
                 disabled={update.isPending}
               >
                 Resetează
@@ -113,7 +122,7 @@ export function MaterialDetailPage() {
                 Acest material nu apare pe niciun bon.
               </Text>
             ) : (
-              <UtilizariTable utilizari={m.utilizari} />
+              <UtilizariTable utilizari={m.utilizari} um={m.um} />
             )}
           </Stack>
         </>
@@ -122,7 +131,7 @@ export function MaterialDetailPage() {
   );
 }
 
-function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
+function UtilizariTable({ utilizari, um }: { utilizari: MaterialUsage[]; um: string }) {
   return (
     <Table.ScrollContainer minWidth={720} maw={850}>
       <Table striped highlightOnHover>
@@ -148,7 +157,7 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
                 <VehiculShortLink vehicul={u.bon.vehicul} />
               </Table.Td>
               <Table.Td>
-                {u.cantitate} {u.um}
+                {u.cantitate} {um}
               </Table.Td>
               <Table.Td>
                 <Anchor component={Link} to={`/bonuri/${u.bon.id}`} size="sm">
@@ -164,23 +173,18 @@ function UtilizariTable({ utilizari }: { utilizari: MaterialUsage[] }) {
 }
 
 /**
- * "3 linii pe 3 bonuri · 43 L" — totals are per unit of measure, since a
- * material can be issued in more than one (litres on one bon, kilos on another)
- * and adding those together would be meaningless.
+ * "3 linii pe 3 bonuri · 43 L" — every usage is of this one material, so its
+ * quantities all share the material's own unit and can be summed directly.
  */
-function describeUsage(utilizari: MaterialUsage[]): string {
+function describeUsage(utilizari: MaterialUsage[], um: string): string {
   if (utilizari.length === 0) return "Nefolosit pe niciun bon";
 
   const bonuri = new Set(utilizari.map((u) => u.bon.id)).size;
-  const totals = new Map<string, number>();
-  for (const u of utilizari) totals.set(u.um, (totals.get(u.um) ?? 0) + u.cantitate);
+  // Sum of floats, so trim the noise a repeated 0.1 would leave behind.
+  const total = utilizari.reduce((sum, u) => sum + u.cantitate, 0);
 
   const linii = `${utilizari.length} ${utilizari.length === 1 ? "linie" : "linii"}`;
   const peBonuri = `${bonuri} ${bonuri === 1 ? "bon" : "bonuri"}`;
-  // Sums of floats, so trim the noise a repeated 0.1 would leave behind.
-  const cantitati = [...totals]
-    .map(([um, total]) => `${Number(total.toFixed(3))} ${um}`)
-    .join(", ");
 
-  return `${linii} pe ${peBonuri} · ${cantitati}`;
+  return `${linii} pe ${peBonuri} · ${Number(total.toFixed(3))} ${um}`;
 }

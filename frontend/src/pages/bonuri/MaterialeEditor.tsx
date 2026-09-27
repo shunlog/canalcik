@@ -6,7 +6,6 @@ import {
   Stack,
   Table,
   Text,
-  TextInput,
   Tooltip,
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
@@ -55,7 +54,7 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Material (cod nomenclator, denumire)</Table.Th>
-              <Table.Th w={110}>UM</Table.Th>
+              <Table.Th w={90}>UM</Table.Th>
               <Table.Th w={150}>Cantitate</Table.Th>
               <Table.Th w={50} />
             </Table.Tr>
@@ -103,7 +102,11 @@ export function MaterialeEditor({ form }: { form: UseFormReturnType<BonFormValue
                     />
                   </Table.Td>
                   <Table.Td>
-                    <TextInput placeholder="L" {...form.getInputProps(`materiale.${i}.um`)} />
+                    {/* Derived from the linked material — a note isn't linked
+                        to one yet, so it has no unit until it is. */}
+                    <Text size="sm" c={row.materialId === null ? "dimmed" : undefined}>
+                      {row.materialId === null ? "—" : (itemById.get(row.materialId)?.um ?? "")}
+                    </Text>
                   </Table.Td>
                   <Table.Td>
                     <NumberInput

@@ -31,9 +31,8 @@ const bonuriLinesSelect = {
   select: {
     id: true,
     materialId: true,
-    material: { select: { nume: true } },
+    material: { select: { nume: true, um: true } },
     nota: true,
-    um: true,
     cantitate: true,
   },
 } satisfies { select: Record<string, unknown> };
@@ -45,10 +44,9 @@ const bonLineMaterialNume = (line: { material: { nume: string } | null; nota: st
 const facturaLinesSelect = {
   select: {
     materialId: true,
-    material: { select: { nume: true } },
-    nrCart: true,
-    um: true,
+    material: { select: { nume: true, nrCart: true, um: true } },
     cantitate: true,
+    pretUnitar: true,
   },
 } satisfies { select: Record<string, unknown> };
 
@@ -118,7 +116,7 @@ function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
         id: m.id,
         materialId: m.materialId,
         materialNume: bonLineMaterialNume(m),
-        um: m.um,
+        um: m.material?.um ?? "",
         cantitate: m.cantitate,
       })),
     })),
@@ -126,8 +124,8 @@ function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
       f.materiale.map((m) => ({
         materialId: m.materialId,
         materialNume: m.material.nume,
-        nrCart: m.nrCart,
-        um: m.um,
+        nrCart: m.material.nrCart,
+        um: m.material.um,
         cantitate: m.cantitate,
         ramas: f.ramas,
       })),
@@ -200,16 +198,7 @@ monthlyReport.post("/:month/generate", async (c) => {
       where: { month },
       select: {
         ramas: true,
-        materiale: {
-          select: {
-            materialId: true,
-            material: { select: { nume: true } },
-            nrCart: true,
-            um: true,
-            cantitate: true,
-            pretUnitar: true,
-          },
-        },
+        materiale: facturaLinesSelect,
       },
     }),
   ]);
@@ -220,7 +209,20 @@ monthlyReport.post("/:month/generate", async (c) => {
   if (facturi.length === 0) {
     throw new ApiError(400, "VALIDATION", `Luna ${month} nu are o factură de expediție`);
   }
-  const facturaLinii = facturi.flatMap((f) => f.materiale.map((m) => ({ ...m, ramas: f.ramas })));
+  // Flattened here, once, so both buildMonthlyReport (which only wants
+  // materialId/nrCart/pretUnitar) and the reconciliere mapping below can read
+  // the material's nrCart/nume/um straight off each line.
+  const facturaLinii = facturi.flatMap((f) =>
+    f.materiale.map((m) => ({
+      materialId: m.materialId,
+      nrCart: m.material.nrCart,
+      nume: m.material.nume,
+      um: m.material.um,
+      cantitate: m.cantitate,
+      pretUnitar: m.pretUnitar,
+      ramas: f.ramas,
+    })),
+  );
 
   const bonuriPentruLuna = bonuri.map((b) => ({
     id: b.id,
@@ -233,7 +235,7 @@ monthlyReport.post("/:month/generate", async (c) => {
       id: m.id,
       materialId: m.materialId,
       materialNume: bonLineMaterialNume(m),
-      um: m.um,
+      um: m.material?.um ?? "",
       cantitate: m.cantitate,
     })),
   }));
@@ -247,7 +249,7 @@ monthlyReport.post("/:month/generate", async (c) => {
       bonuri: bonuriPentruLuna,
       facturaLinii: facturaLinii.map((m) => ({
         materialId: m.materialId,
-        materialNume: m.material.nume,
+        materialNume: m.nume,
         nrCart: m.nrCart,
         um: m.um,
         cantitate: m.cantitate,

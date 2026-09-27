@@ -306,9 +306,8 @@ export const bonDetailSelect = {
     select: {
       id: true,
       materialId: true,
-      material: { select: { nume: true, nrCart: true } },
+      material: { select: { nume: true, nrCart: true, um: true } },
       nota: true,
-      um: true,
       cantitate: true,
     },
     orderBy: { id: "asc" },
@@ -317,9 +316,10 @@ export const bonDetailSelect = {
 
 type BonDetailRow = Prisma.BonEliberareGetPayload<{ select: typeof bonDetailSelect }>;
 
-// A linked line's name/code live on the material it points at; an unlinked
-// line (a scratchpad note) has neither, just its own `nota` text. The wire
-// type keeps both flattened so the client never has to join them itself.
+// A linked line's name/code/unit live on the material it points at; an
+// unlinked line (a scratchpad note) has none of the three, just its own
+// `nota` text. The wire type keeps them all flattened so the client never has
+// to join them itself.
 export const toBonDetail = ({ updatedAt, materiale, ...b }: BonDetailRow): BonDetail => ({
   ...b,
   updatedAt: updatedAt.toISOString(),
@@ -327,6 +327,7 @@ export const toBonDetail = ({ updatedAt, materiale, ...b }: BonDetailRow): BonDe
     ...m,
     nume: material?.nume ?? null,
     nrCart: material?.nrCart ?? null,
+    um: material?.um ?? null,
   })),
 });
 
@@ -334,6 +335,7 @@ export const toBonDetail = ({ updatedAt, materiale, ...b }: BonDetailRow): BonDe
 
 export const materialListSelect = {
   ...materialRefSelect,
+  um: true,
   updatedAt: true,
   _count: { select: { bonuri: true } },
 } satisfies Prisma.MaterialeIntretinereSelect;
@@ -356,9 +358,10 @@ export const toMaterialListItem = ({
 // it sits on — a material can appear twice on one bon, so the page lists lines.
 export const materialDetailSelect = {
   ...materialRefSelect,
+  um: true,
   updatedAt: true,
   bonuri: {
-    select: { id: true, um: true, cantitate: true, bon: { select: bonRefSelect } },
+    select: { id: true, cantitate: true, bon: { select: bonRefSelect } },
     orderBy: [{ bon: { data: "desc" } }, { id: "desc" }],
   },
 } satisfies Prisma.MaterialeIntretinereSelect;
@@ -412,9 +415,7 @@ export const facturaDetailSelect = {
     select: {
       id: true,
       materialId: true,
-      material: { select: { nume: true } },
-      nrCart: true,
-      um: true,
+      material: { select: { nume: true, nrCart: true, um: true } },
       cantitate: true,
       pretUnitar: true,
     },
@@ -433,7 +434,12 @@ export const toFacturaDetail = ({
 }: FacturaDetailRow): FacturaDetail => ({
   ...f,
   updatedAt: updatedAt.toISOString(),
-  materiale: materiale.map(({ material, ...m }) => ({ ...m, nume: material.nume })),
+  materiale: materiale.map(({ material, ...m }) => ({
+    ...m,
+    nume: material.nume,
+    nrCart: material.nrCart,
+    um: material.um,
+  })),
 });
 
 // --------------------------------------------------------- generatedDocument

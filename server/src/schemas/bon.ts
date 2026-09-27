@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { BonCreateBody, BonUpdateBody } from "../api-types.ts";
-import { isoDate, requiredText, type Same, unitateMasura } from "./common.ts";
+import { isoDate, requiredText, type Same } from "./common.ts";
 
 // A line either links an existing, invoiced material (`materialId`, picked
 // from the catalogue) or is a scratchpad note (`nota`, free-typed text for
@@ -9,7 +9,6 @@ export const materialLine = z
   .object({
     materialId: z.number().int().positive().optional(),
     nota: z.string().optional(),
-    um: unitateMasura,
     cantitate: z.number().positive("Cantitatea trebuie să fie mai mare decât 0"),
   })
   .refine((v) => v.materialId !== undefined || (v.nota ?? "").trim() !== "", {

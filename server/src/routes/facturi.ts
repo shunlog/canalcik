@@ -20,12 +20,13 @@ export const facturi = new Hono();
  * factura. Matching by `nrCart` rather than `nume` is what lets two lines
  * that print the same name under different codes (different price, different
  * physical item) become two distinct materials instead of merging into one.
+ * `nume`/`um` are only used on the `create` branch — an existing material's
+ * name and unit are edited on its own page, not silently overwritten here.
  */
 const toLineCreate = (lines: FacturaLineInput[]) =>
-  lines.map(({ nrCart, nume, ...line }) => ({
+  lines.map(({ nrCart, nume, um, ...line }) => ({
     ...line,
-    nrCart,
-    material: { connectOrCreate: { where: { nrCart }, create: { nrCart, nume } } },
+    material: { connectOrCreate: { where: { nrCart }, create: { nrCart, nume, um } } },
   }));
 
 facturi.get("/", async (c) => {

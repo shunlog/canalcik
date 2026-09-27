@@ -40,7 +40,6 @@ model Vehicul {
   anvelopeLuni   AnvelopaLuni[]
   anvelopeKm     AnvelopaKm[]
   acumulatoare   Acumulator[]
-
 }
 
 model Sofer {
@@ -106,7 +105,6 @@ model BonEliberareMaterial {
   // a real link once the factura naming it arrives.
   nota String?
 
-  um        String // "l", "buc"
   cantitate Float
 
   // A real material can appear at most once per bon. Several null-materialId
@@ -124,6 +122,7 @@ model MaterialeIntretinere {
 
   nume   String // "ULEI MOTOR 10W40"
   nrCart String @unique // "cod nomenclator", e.g. "2111121795"
+  um     String // unit of measure, e.g. "L", "KG"
 
   bonuri  BonEliberareMaterial[]
   facturi FacturaExpeditieMaterial[]
@@ -161,11 +160,8 @@ model FacturaExpeditieMaterial {
   materialId Int
   material   MaterialeIntretinere @relation(fields: [materialId], references: [id])
 
-  // "cod nomenclator", e.g. "2111121795".
-  nrCart     String
-  um         String // "L", "KG"
   cantitate  Float
-  pretUnitar Float // price for one `um`
+  pretUnitar Float // price for one unit of the material's `um`
 
   // A material can appear at most once per factura
   @@unique([facturaId, materialId])
@@ -266,7 +262,7 @@ model ComandaMaterialeData {
   // The acts whose piese de schimb are prepended to the manually entered
   // materials when this comanda is generated.
   acteDefectiune ActDefectiuneData[]
-  materiale ComandaMaterialeMaterial[]
+  materiale      ComandaMaterialeMaterial[]
 
   doc ComandaMaterialeDoc?
 }
@@ -310,8 +306,8 @@ model AnvelopaLuni {
   vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
 
   model          String? // "model anvelopa" — blank for a few vehicles in the source data
-  dataInstalarii String  // "data instalarii" (ISO "YYYY-MM-DD")
-  normaLuni      Int     // "luni nominal" — replace `normaLuni` months after dataInstalarii
+  dataInstalarii String // "data instalarii" (ISO "YYYY-MM-DD")
+  normaLuni      Int // "luni nominal" — replace `normaLuni` months after dataInstalarii
 }
 
 // One physical tire currently mounted on a vehicul, replaced after a traveled
@@ -327,9 +323,9 @@ model AnvelopaKm {
   vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
 
   model          String? // "model anvelopa"
-  dataInstalarii String  // "data instalarii" (ISO "YYYY-MM-DD")
-  kmInstalare    Int     // "Km la instalare"
-  normaKm        Int     // "norma de uzura" — replace after `normaKm` km since kmInstalare
+  dataInstalarii String // "data instalarii" (ISO "YYYY-MM-DD")
+  kmInstalare    Int // "Km la instalare"
+  normaKm        Int // "norma de uzura" — replace after `normaKm` km since kmInstalare
 }
 
 // One physical accumulator currently installed on a vehicul, replaced on a
@@ -344,8 +340,8 @@ model Acumulator {
   vehicul   Vehicul @relation(fields: [vehiculId], references: [id])
 
   model          String? // "model acum" — blank for a couple vehicles in the source data
-  dataInstalarii String  // "data instalarii" (ISO "YYYY-MM-DD")
-  normaLuni      Int     // "luni nominal" — replace `normaLuni` months after dataInstalarii
+  dataInstalarii String // "data instalarii" (ISO "YYYY-MM-DD")
+  normaLuni      Int // "luni nominal" — replace `normaLuni` months after dataInstalarii
 }
 
 // One comanda's generated document — at most one per comanda, re-generation

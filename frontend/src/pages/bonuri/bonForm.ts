@@ -19,7 +19,6 @@ export interface MaterialRow {
    * unlinked row it *is* the scratchpad note.
    */
   nota: string;
-  um: string;
   cantitate: number | string;
 }
 
@@ -34,7 +33,6 @@ export const newMaterialRow = (): MaterialRow => ({
   key: randomId(),
   materialId: null,
   nota: "",
-  um: "",
   cantitate: "",
 });
 
@@ -56,7 +54,6 @@ export const toBonForm = (b: BonDetail): BonFormValues => ({
     // before useMateriale() has loaded — the editor recomputes this live
     // once it has.
     nota: m.materialId !== null ? materialPickerLabel({ nume: m.nume ?? "", nrCart: m.nrCart ?? "" }) : (m.nota ?? ""),
-    um: m.um,
     cantitate: m.cantitate,
   })),
 });
@@ -69,7 +66,6 @@ export const fromBonForm = (v: BonFormValues): BonCreateBody => ({
     ...(m.materialId !== null
       ? { materialId: m.materialId }
       : { nota: m.nota.trim() }),
-    um: m.um.trim(),
     cantitate: numOrZero(m.cantitate),
   })),
 });
@@ -85,7 +81,6 @@ export const bonValidation = {
       if (row?.materialId !== null) return null;
       return v.trim() === "" ? "Alegeți un material din listă sau introduceți o notă" : null;
     },
-    um: (v: string) => (v.trim() === "" ? "Obligatoriu" : null),
     cantitate: (v: number | string) =>
       v === "" || Number(v) <= 0 || Number.isNaN(Number(v)) ? "Cantitate invalidă" : null,
   },

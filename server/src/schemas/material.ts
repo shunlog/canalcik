@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { MaterialCreateBody, MaterialUpdateBody } from "../api-types.ts";
-import { requiredText, type Same } from "./common.ts";
+import { type Same, requiredText, unitateMasura } from "./common.ts";
 
 // `nrCart` ("cod nomenclator") is the material's identity — trimmed here and
 // unique in the database, since two lines can otherwise print the same name
@@ -8,6 +8,7 @@ import { requiredText, type Same } from "./common.ts";
 export const materialCreate = z.object({
   nume: requiredText("Denumirea materialului"),
   nrCart: requiredText("Codul nomenclator"),
+  um: unitateMasura,
 });
 
 export const materialUpdate = materialCreate.partial();

@@ -312,15 +312,15 @@ export interface AcumulatorRef extends Acumulator {
 export interface MaterialLine {
   materialId?: number;
   nota?: string;
-  um: string;
   cantitate: number;
 }
 
 /**
  * A line as stored. `id` is informational only: PATCH replaces the whole set,
  * so line ids are NOT stable across saves — never key React rows by them.
- * `materialId`/`nrCart`/`nume` are null together on a scratchpad note line;
- * `nota` is null on a linked line.
+ * `materialId`/`nrCart`/`nume`/`um` are null together on a scratchpad note
+ * line — the unit of measure lives on the material, so an unlinked line has
+ * none yet; `nota` is null on a linked line.
  */
 export interface MaterialLineOut {
   id: number;
@@ -328,7 +328,7 @@ export interface MaterialLineOut {
   nrCart: string | null;
   nume: string | null;
   nota: string | null;
-  um: string;
+  um: string | null;
   cantitate: number;
 }
 
@@ -364,6 +364,8 @@ export interface BonUpdateBody {
 
 /** A material in the catalogue, with how many bon lines point at it. */
 export interface MaterialListItem extends MaterialRef {
+  /** Unit of measure — the material's, and therefore every line's that links it. */
+  um: string;
   updatedAt: string;
   nrLinii: number;
 }
@@ -377,11 +379,11 @@ export interface MaterialListItem extends MaterialRef {
 export interface MaterialUsage {
   lineId: number;
   bon: BonRef;
-  um: string;
   cantitate: number;
 }
 
 export interface MaterialDetail extends MaterialRef {
+  um: string;
   updatedAt: string;
   utilizari: MaterialUsage[];
 }
@@ -389,6 +391,7 @@ export interface MaterialDetail extends MaterialRef {
 export interface MaterialCreateBody {
   nume: string;
   nrCart: string;
+  um: string;
 }
 
 export type MaterialUpdateBody = Partial<MaterialCreateBody>;
@@ -425,11 +428,14 @@ export interface FacturaLine {
   /**
    * The material's name, not its id — resolved and created on the server
    * exactly as for a bon line, so a delivery of something new can be recorded.
+   * Like `um` below, only used when `nrCart` doesn't match an existing
+   * material yet; ignored (not applied as a rename) when it does.
    */
   nume: string;
+  /** Unit of measure. Same rule as `nume`: seeds a brand-new material, ignored once `nrCart` is already catalogued. */
   um: string;
   cantitate: number;
-  /** Price for one `um`. */
+  /** Price for one unit of the material's `um`. */
   pretUnitar: number;
 }
 

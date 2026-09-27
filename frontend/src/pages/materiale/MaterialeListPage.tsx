@@ -20,8 +20,8 @@ import { fuzzySearch } from "../../lib/search.ts";
 import { sortRecords } from "../../lib/sort.ts";
 
 /**
- * The catalogue of materials a bon line can link to. `nume` and `nrCart` are
- * both editable in place here as well as on the detail page; either edit
+ * The catalogue of materials a bon line can link to. `nume`, `nrCart` and `um`
+ * are all editable in place here as well as on the detail page; any edit
  * shows up on every bon and factura line that points at the material.
  */
 export function MaterialeListPage() {
@@ -38,19 +38,22 @@ export function MaterialeListPage() {
 
   const [nume, setNume] = useState("");
   const [nrCart, setNrCart] = useState("");
+  const [um, setUm] = useState("");
   const create = useCreateMaterial();
 
   const submitNew = () => {
     const trimmedNume = nume.trim();
     const trimmedNrCart = nrCart.trim();
-    if (trimmedNume === "" || trimmedNrCart === "") return;
+    const trimmedUm = um.trim();
+    if (trimmedNume === "" || trimmedNrCart === "" || trimmedUm === "") return;
     create.mutate(
-      { nume: trimmedNume, nrCart: trimmedNrCart },
+      { nume: trimmedNume, nrCart: trimmedNrCart, um: trimmedUm },
       {
         onSuccess: () => {
           showSaved("Material adăugat");
           setNume("");
           setNrCart("");
+          setUm("");
         },
         onError: (err) => showError(err, "Adăugarea a eșuat"),
       },
@@ -91,10 +94,23 @@ export function MaterialeListPage() {
           }}
           w={360}
         />
+        <TextInput
+          label="UM"
+          placeholder="L"
+          value={um}
+          onChange={(e) => setUm(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submitNew();
+            }
+          }}
+          w={100}
+        />
         <Button
           leftSection={<IconPlus size={16} />}
           loading={create.isPending}
-          disabled={nume.trim() === "" || nrCart.trim() === ""}
+          disabled={nume.trim() === "" || nrCart.trim() === "" || um.trim() === ""}
           onClick={submitNew}
         >
           Adaugă
@@ -132,6 +148,13 @@ export function MaterialeListPage() {
                   value: numeFilter,
                   onChange: setNumeFilter,
                 }),
+              },
+              {
+                accessor: "um",
+                title: "UM",
+                width: 110,
+                sortable: true,
+                render: (m) => <MaterialUmCell material={m} />,
               },
               {
                 accessor: "nrLinii",
@@ -209,6 +232,71 @@ function MaterialNrCartCell({ material }: { material: MaterialListItem }) {
     <Group gap={4} wrap="nowrap" justify="space-between">
       <Text size="sm">{material.nrCart}</Text>
       <ActionIcon variant="subtle" aria-label="Modifică codul" onClick={startEditing}>
+        <IconPencil size={16} />
+      </ActionIcon>
+    </Group>
+  );
+}
+
+function MaterialUmCell({ material }: { material: MaterialListItem }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(material.um);
+  const update = useUpdateMaterial(material.id);
+
+  const startEditing = () => {
+    setDraft(material.um);
+    setEditing(true);
+  };
+
+  const save = () => {
+    const trimmed = draft.trim();
+    if (trimmed === "" || trimmed === material.um) {
+      setEditing(false);
+      return;
+    }
+    update.mutate(
+      { um: trimmed },
+      {
+        onSuccess: () => {
+          showSaved("Unitate de măsură modificată");
+          setEditing(false);
+        },
+        onError: (err) => showError(err, "Modificarea a eșuat"),
+      },
+    );
+  };
+
+  if (editing) {
+    return (
+      <Group gap={4} wrap="nowrap">
+        <TextInput
+          value={draft}
+          autoFocus
+          onChange={(e) => setDraft(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              save();
+            }
+            if (e.key === "Escape") setEditing(false);
+          }}
+          error={update.error instanceof ApiError ? update.error.message : undefined}
+          style={{ flex: 1 }}
+        />
+        <ActionIcon variant="subtle" aria-label="Salvează unitatea" loading={update.isPending} onClick={save}>
+          <IconCheck size={16} />
+        </ActionIcon>
+        <ActionIcon variant="subtle" color="gray" aria-label="Anulează" onClick={() => setEditing(false)}>
+          <IconX size={16} />
+        </ActionIcon>
+      </Group>
+    );
+  }
+
+  return (
+    <Group gap={4} wrap="nowrap" justify="space-between">
+      <Text size="sm">{material.um}</Text>
+      <ActionIcon variant="subtle" aria-label="Modifică unitatea" onClick={startEditing}>
         <IconPencil size={16} />
       </ActionIcon>
     </Group>
