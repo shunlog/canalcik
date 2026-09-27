@@ -42,6 +42,10 @@ export function DriverLink({ driver, ...rest }: { driver: DriverRef } & AnchorPr
 The reason for the label function is that sometimes entities need to be referenced
 in UI elements other than Anchor (e.g. a Multiselect input component).
 
+## UI: tooltips on icons
+
+Use `HelpTooltip` (in `components/HelpTooltip.tsx`) for any icon that needs an explanatory tooltip, rather than wrapping it in a plain Mantine `Tooltip`. It enables touch events so the tooltip is also reachable on mobile, where there's no hover.
+
 ## UI: set maximum widths
 
 Only `mantine-datatable`'s `DataTable` (used on `*ListPage`s) should stay full width. Everything else — form fields, plain Mantine `Table`s, standalone inputs like `MultiSelect`, and the `Fieldset` wrapping any of them — should get a `maw` sized to its content, the way `SoferFields.tsx` does, instead of stretching to fill the page. A `Fieldset`/`Stack` needs its own `maw` even when its contents already have one, since a block container doesn't shrink to fit its children.

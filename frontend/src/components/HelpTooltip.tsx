@@ -3,10 +3,21 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 
 /**
- * An info icon explaining `label`. With children, renders them followed by the
- * icon; without, just the icon.
+ * An info icon explaining `label` — or, with `icon`/`color`, some other small
+ * annotation icon that shares its tooltip behaviour (e.g. a warning). With
+ * children, renders them followed by the icon; without, just the icon.
  */
-export function HelpTooltip({ label, children }: { label: string; children?: ReactNode }) {
+export function HelpTooltip({
+  label,
+  children,
+  icon: Icon = IconInfoCircle,
+  color = "gray",
+}: {
+  label: string;
+  children?: ReactNode;
+  icon?: typeof IconInfoCircle;
+  color?: string;
+}) {
   const icon = (
     <Tooltip
       label={label}
@@ -16,8 +27,8 @@ export function HelpTooltip({ label, children }: { label: string; children?: Rea
       // Without touch, the tooltip is unreachable on a phone.
       events={{ hover: true, focus: true, touch: true }}
     >
-      <ActionIcon variant="subtle" color="gray" size="sm" aria-label={label}>
-        <IconInfoCircle size={14} />
+      <ActionIcon variant="subtle" color={color} size="sm" aria-label={label}>
+        <Icon size={14} />
       </ActionIcon>
     </Tooltip>
   );

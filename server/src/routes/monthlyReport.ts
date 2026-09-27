@@ -240,33 +240,10 @@ monthlyReport.post("/:month/generate", async (c) => {
     })),
   }));
 
-  // The factura is what the partner recorded and cannot be edited, so the month
-  // is only reportable once our bonuri add up to it. Enforced here and not only
-  // behind the disabled button: a page loaded before the last edit would
-  // otherwise still produce a wrong spreadsheet.
-  const diferente = liniiCuDiferente(
-    buildReconciliere({
-      bonuri: bonuriPentruLuna,
-      facturaLinii: facturaLinii.map((m) => ({
-        materialId: m.materialId,
-        materialNume: m.nume,
-        nrCart: m.nrCart,
-        um: m.um,
-        cantitate: m.cantitate,
-        ramas: m.ramas,
-      })),
-    }),
-  );
-  if (diferente.length > 0) {
-    const descriere = diferente
-      .map((l) => `${l.nume} (${l.diferenta > 0 ? "+" : "−"}${Math.abs(l.diferenta)} ${l.um})`)
-      .join(", ");
-    throw hasDependents(
-      `Datele din bonuri nu coincid cu datele din factura de expediție: ${descriere}. ` +
-        `Corectează bonurile lunii și încearcă din nou.`,
-    );
-  }
-
+  // The factura is what the partner recorded and cannot be edited, but a
+  // mismatch no longer blocks generation — it's only flagged as a warning in
+  // the UI (see GenerateMonthlyReportButton), and the document is produced
+  // with whatever the bonuri currently say.
   let sheets: ReturnType<typeof buildMonthlyReport>;
   try {
     sheets = buildMonthlyReport({
