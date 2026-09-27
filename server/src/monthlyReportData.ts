@@ -116,16 +116,13 @@ export class UnmatchedMaterialeError extends Error {
  * within a single factura); if two facturi in the same month both name the
  * material, the later one in `facturaLinii` silently wins.
  *
- * A line with no `materialId` is a scratchpad note — it was never linked to a
- * catalogue material, so it can never be priced and is always unmatched.
+ * Only called for lines that do have a `materialId` — a scratchpad note
+ * (`materialId === null`) is skipped before this, in buildMonthlyReport.
  */
 function resolveFacturaLine(
-  line: MonthlyReportBonLine,
+  line: MonthlyReportBonLine & { materialId: number },
   facturaByMaterial: Map<number, MonthlyReportFacturaLine>,
 ): { ok: true; line: MonthlyReportFacturaLine } | { ok: false; message: string } {
-  if (line.materialId === null) {
-    return { ok: false, message: line.materialNume };
-  }
   const match = facturaByMaterial.get(line.materialId);
   if (!match) {
     return { ok: false, message: line.materialNume };
@@ -135,8 +132,12 @@ function resolveFacturaLine(
 
 /**
  * Builds the per-vehicle-and-driver sheets for one month's monthly report from
- * that month's bonuri and the month's facturi. Throws UnmatchedMaterialeError,
- * naming every offending material at once, if any bon line cannot be priced.
+ * that month's bonuri and the month's facturi. A scratchpad-note line
+ * (`materialId === null`) was never linked to a catalogue material, so it is
+ * silently excluded rather than reported — only linked materials end up in
+ * the document. Throws UnmatchedMaterialeError, naming every offending
+ * material at once, if a *linked* line still cannot be priced (no matching
+ * factura line for its material).
  */
 export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimita {
   const facturaByMaterial = new Map<number, MonthlyReportFacturaLine>();
@@ -175,7 +176,11 @@ export function buildMonthlyReport(input: BuildMonthlyReportInput): DataFisaLimi
   for (const bon of input.bonuri) {
     const key = `${bon.vehiculId}|${bon.soferId}`;
     for (const line of bon.linii) {
-      const resolved = resolveFacturaLine(line, facturaByMaterial);
+      if (line.materialId === null) continue;
+      const resolved = resolveFacturaLine(
+        line as MonthlyReportBonLine & { materialId: number },
+        facturaByMaterial,
+      );
       if (!resolved.ok) {
         unmatched.push(resolved.message);
         continue;

@@ -194,6 +194,25 @@ describe("buildMonthlyReport", () => {
     expect(row.suma_bani).toBe("20");
   });
 
+  it("excludes a scratchpad-note line (no materialId) instead of erroring, keeping only linked materials", () => {
+    const input: BuildMonthlyReportInput = {
+      month: MONTH,
+      bonuri: [
+        bon({
+          linii: [
+            { id: 1, materialId: null, materialNume: "de verificat", um: "l", cantitate: 5 },
+            { id: 2, materialId: 1, materialNume: "A", um: "l", cantitate: 2 },
+          ],
+        }),
+      ],
+      facturaLinii: [{ materialId: 1, nrCart: "1", pretUnitar: 10 }],
+    };
+
+    const [sheet] = buildMonthlyReport(input);
+    expect(sheet.tbl).toHaveLength(1);
+    expect(sheet.tbl[0].nume).toBe("A");
+  });
+
   it("throws, naming every unmatched material, when a bon line's material has no factura line at all", () => {
     const input: BuildMonthlyReportInput = {
       month: MONTH,
