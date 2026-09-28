@@ -38,11 +38,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
   const [randNou, setRandNou] = useState<number | null>(null);
 
   const materialById = useMemo(
-    () => new Map((materiale.data ?? []).map((m) => [String(m.id), m])),
-    [materiale.data],
-  );
-  const materialByNrCart = useMemo(
-    () => new Map((materiale.data ?? []).map((m) => [m.nrCart, m])),
+    () => new Map((materiale.data ?? []).map((m) => [m.id, m])),
     [materiale.data],
   );
   const optiuniMateriale = useMemo(
@@ -55,10 +51,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
   );
 
   const alege = (i: number, id: string | null) => {
-    const material = id ? materialById.get(id) : undefined;
-    form.setFieldValue(`materiale.${i}.nrCart`, material?.nrCart ?? "");
-    form.setFieldValue(`materiale.${i}.nume`, material?.nume ?? "");
-    form.setFieldValue(`materiale.${i}.um`, material?.um ?? "");
+    form.setFieldValue(`materiale.${i}.materialId`, id ? Number(id) : null);
   };
 
   return (
@@ -78,7 +71,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
           </Table.Thead>
           <Table.Tbody>
             {rows.map((row, i) => {
-              const selectedId = materialByNrCart.get(row.nrCart.trim())?.id;
+              const material = row.materialId === null ? undefined : materialById.get(row.materialId);
 
               return (
                 <Table.Tr key={row.key}>
@@ -92,8 +85,9 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
                         filter={fuzzyOptionsFilter}
                         nothingFoundMessage="Niciun rezultat"
                         data={optiuniMateriale}
-                        value={selectedId ? String(selectedId) : null}
+                        value={row.materialId === null ? null : String(row.materialId)}
                         onChange={(value) => alege(i, value)}
+                        error={form.errors[`materiale.${i}.materialId`]}
                       />
                       <ActionIcon
                         variant="light"
@@ -105,13 +99,13 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
                     </Group>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" c={row.nrCart ? undefined : "dimmed"}>
-                      {row.nrCart || "—"}
+                    <Text size="sm" c={material ? undefined : "dimmed"}>
+                      {material?.nrCart || "—"}
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" c={row.um ? undefined : "dimmed"}>
-                      {row.um || "—"}
+                    <Text size="sm" c={material ? undefined : "dimmed"}>
+                      {material?.um || "—"}
                     </Text>
                   </Table.Td>
                   <Table.Td>
@@ -182,9 +176,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
         rand={randNou}
         onInchide={() => setRandNou(null)}
         onCreat={(material, i) => {
-          form.setFieldValue(`materiale.${i}.nrCart`, material.nrCart);
-          form.setFieldValue(`materiale.${i}.nume`, material.nume);
-          form.setFieldValue(`materiale.${i}.um`, material.um);
+          form.setFieldValue(`materiale.${i}.materialId`, material.id);
         }}
       />
     </Stack>

@@ -20,9 +20,6 @@ materiale.get("/", async (c) => {
   return c.json(rows.map(toMaterialListItem));
 });
 
-// Creating a material up front is optional: writing a bon that names something
-// new creates it too (see routes/bonuri.ts). This is for curating the
-// catalogue — adding what will be needed before the first bon asks for it.
 materiale.post("/", async (c) => {
   const data = await readJson(c, materialCreate);
   const row = await db.materialeIntretinere.create({ data, select: materialListSelect });

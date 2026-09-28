@@ -84,12 +84,6 @@ async function main() {
       materiale: {
         create: linii.map(({ nrCart, nume, um, ...line }) => ({
           ...line,
-          // Same connectOrCreate-by-nrCart pattern as routes/facturi.ts: the
-          // catalogue fills itself in as the factura names things, matched by
-          // nomenclature code rather than name — two lines can print the same
-          // name under different codes (different price, different physical
-          // item) without merging into one material. `nume`/`um` seed a
-          // brand-new material only; an existing one keeps its own.
           material: { connectOrCreate: { where: { nrCart }, create: { nrCart, nume, um } } },
         })),
       },

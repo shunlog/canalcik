@@ -3,18 +3,11 @@ import { db } from "../db.ts";
 import { bonDetailSelect, bonRefSelect, toBonDetail, toBonRef } from "../dto.ts";
 import { badRef, notFound } from "../http/errors.ts";
 import { parseIdParam, readJson } from "../http/read.ts";
-import { bonCreate, bonUpdate, type MaterialLineInput } from "../schemas/bon.ts";
+import { bonCreate, bonUpdate, type BonLineInput } from "../schemas/bon.ts";
 
 export const bonuri = new Hono();
 
-/**
- * A line either links an existing material by id, or is a scratchpad note
- * (free-typed text, no catalogue row) — a bon line never creates a
- * MaterialeIntretinere row itself; only a factura does that (see
- * routes/facturi.ts). schemas/bon.ts's refine guarantees exactly one of
- * `materialId`/`nota` is set.
- */
-const toLineCreate = (lines: MaterialLineInput[]) =>
+const toLineCreate = (lines: BonLineInput[]) =>
   lines.map(({ materialId, nota, ...line }) => ({
     ...line,
     materialId: materialId ?? null,

@@ -9,9 +9,7 @@ export interface FacturaMaterialRow {
    * makes inputs lose focus after a refetch.
    */
   key: string;
-  nrCart: string;
-  nume: string;
-  um: string;
+  materialId: number | null;
   cantitate: number | string;
   pretUnitar: number | string;
 }
@@ -24,9 +22,7 @@ export interface FacturaFormValues {
 
 export const newFacturaRow = (): FacturaMaterialRow => ({
   key: randomId(),
-  nrCart: "",
-  nume: "",
-  um: "",
+  materialId: null,
   cantitate: "",
   pretUnitar: "",
 });
@@ -42,9 +38,7 @@ export const toFacturaForm = (f: FacturaDetail): FacturaFormValues => ({
   ramas: f.ramas,
   materiale: f.materiale.map((m) => ({
     key: randomId(),
-    nrCart: m.nrCart,
-    nume: m.nume,
-    um: m.um,
+    materialId: m.materialId,
     cantitate: m.cantitate,
     pretUnitar: m.pretUnitar,
   })),
@@ -54,9 +48,7 @@ export const fromFacturaForm = (v: FacturaFormValues): FacturaCreateBody => ({
   data: v.data ?? todayLocalIso(),
   ramas: v.ramas,
   materiale: v.materiale.map((m) => ({
-    nrCart: m.nrCart.trim(),
-    nume: m.nume.trim(),
-    um: m.um.trim(),
+    materialId: m.materialId as number,
     cantitate: numOrZero(m.cantitate),
     pretUnitar: numOrZero(m.pretUnitar),
   })),
@@ -78,10 +70,7 @@ export const facturaTotal = (rows: Valued[]): number =>
 export const facturaValidation = {
   data: (v: string | null) => (v ? null : "Data este obligatorie"),
   materiale: {
-    // Required here, unlike on a bon: the factura is where the code comes from.
-    nrCart: (v: string) => (v.trim() === "" ? "Obligatoriu" : null),
-    nume: (v: string) => (v.trim() === "" ? "Obligatoriu" : null),
-    um: (v: string) => (v.trim() === "" ? "Obligatoriu" : null),
+    materialId: (v: number | null) => (v === null ? "Alegeți un material" : null),
     cantitate: (v: number | string) =>
       v === "" || Number(v) <= 0 || Number.isNaN(Number(v)) ? "Cantitate invalidă" : null,
     pretUnitar: (v: number | string) =>

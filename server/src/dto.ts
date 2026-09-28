@@ -426,8 +426,6 @@ export const facturaDetailSelect = {
 
 type FacturaDetailRow = Prisma.FacturaExpeditieGetPayload<{ select: typeof facturaDetailSelect }>;
 
-// Flattened the same way as a bon line, and for the same reason: the client
-// edits lines by name and never holds an id for a material that doesn't exist yet.
 export const toFacturaDetail = ({
   updatedAt,
   materiale,

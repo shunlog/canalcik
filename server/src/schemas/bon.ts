@@ -5,7 +5,7 @@ import { isoDate, requiredText, type Same } from "./common.ts";
 // A line either links an existing, invoiced material (`materialId`, picked
 // from the catalogue) or is a scratchpad note (`nota`, free-typed text for
 // something the catalogue doesn't have yet) — never both, never neither.
-export const materialLine = z
+export const bonLine = z
   .object({
     materialId: z.number().int().positive().optional(),
     nota: z.string().optional(),
@@ -17,13 +17,13 @@ export const materialLine = z
   });
 
 /** The routes map this to a nested Prisma create — see toLineCreate in routes/bonuri.ts. */
-export type MaterialLineInput = z.infer<typeof materialLine>;
+export type BonLineInput = z.infer<typeof bonLine>;
 
 export const bonCreate = z.object({
   data: isoDate,
   soferId: z.number().int().positive(),
   vehiculId: z.number().int().positive(),
-  materiale: z.array(materialLine),
+  materiale: z.array(bonLine),
 });
 
 // `materiale` stays optional on PATCH: absent means "leave the lines alone",
@@ -32,7 +32,7 @@ export const bonUpdate = z.object({
   data: isoDate.optional(),
   soferId: z.number().int().positive().optional(),
   vehiculId: z.number().int().positive().optional(),
-  materiale: z.array(materialLine).optional(),
+  materiale: z.array(bonLine).optional(),
 });
 
 const _createMatches: Same<z.infer<typeof bonCreate>, BonCreateBody> = true;

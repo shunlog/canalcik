@@ -307,10 +307,11 @@ export interface AcumulatorRef extends Acumulator {
  * One line on a bon, as sent by the client. Lines are owned by the bon.
  * Exactly one of `materialId`/`nota` is set: `materialId` links an existing,
  * invoiced material (picked from the catalogue); `nota` is a scratchpad
- * note — free-typed text for a material the catalogue doesn't have yet. A
- * bon line never creates a catalogue row itself; only a factura does that.
+ * note — free-typed text for a material the catalogue doesn't have yet.
+ * Neither a bon line nor a factura line creates a catalogue row; that is
+ * done only through routes/materiale.ts.
  */
-export interface MaterialLine {
+export interface BonLine {
   materialId?: number;
   nota?: string;
   cantitate: number;
@@ -323,7 +324,7 @@ export interface MaterialLine {
  * line — the unit of measure lives on the material, so an unlinked line has
  * none yet; `nota` is null on a linked line.
  */
-export interface MaterialLineOut {
+export interface BonLineOut {
   id: number;
   materialId: number | null;
   nrCart: string | null;
@@ -343,14 +344,14 @@ export interface BonDetail {
   vehiculId: number;
   sofer: SoferRef;
   vehicul: VehiculRef;
-  materiale: MaterialLineOut[];
+  materiale: BonLineOut[];
 }
 
 export interface BonCreateBody {
   data: IsoDate;
   soferId: number;
   vehiculId: number;
-  materiale: MaterialLine[];
+  materiale: BonLine[];
 }
 
 export interface BonUpdateBody {
@@ -358,7 +359,7 @@ export interface BonUpdateBody {
   soferId?: number;
   vehiculId?: number;
   /** If present, replaces every line on the bon. If absent, lines are untouched. */
-  materiale?: MaterialLine[];
+  materiale?: BonLine[];
 }
 
 // ------------------------------------------------------ materialeIntretinere
@@ -421,20 +422,9 @@ export interface CategorieProduse {
 
 /**
  * One line on a factura, as sent by the client. Lines are owned by the factura.
- * Unlike a bon line, `nrCart` is required: the factura is where the code comes
- * from, and matching a bon against it is the whole point of storing one.
  */
 export interface FacturaLine {
-  nrCart: string;
-  /**
-   * The material's name, not its id — resolved and created on the server
-   * exactly as for a bon line, so a delivery of something new can be recorded.
-   * Like `um` below, only used when `nrCart` doesn't match an existing
-   * material yet; ignored (not applied as a rename) when it does.
-   */
-  nume: string;
-  /** Unit of measure. Same rule as `nume`: seeds a brand-new material, ignored once `nrCart` is already catalogued. */
-  um: string;
+  materialId: number;
   cantitate: number;
   /** Price for one unit of the material's `um`. */
   pretUnitar: number;
@@ -442,11 +432,15 @@ export interface FacturaLine {
 
 /**
  * A line as stored. As on a bon, `id` is informational only: PATCH replaces the
- * whole set, so line ids are NOT stable across saves. `materialId` is stable.
+ * whole set, so line ids are NOT stable across saves. `materialId` is stable;
+ * `nume`/`nrCart`/`um` are the linked material's current values, read back for
+ * display only — the client never edits them through a factura.
  */
 export interface FacturaLineOut extends FacturaLine {
   id: number;
-  materialId: number;
+  nume: string;
+  nrCart: string;
+  um: string;
 }
 
 /** A factura as it appears in a list. `total` is Σ cantitate × pretUnitar. */

@@ -1,14 +1,13 @@
 import { z } from "zod";
 import type { FacturaCreateBody, FacturaUpdateBody } from "../api-types.ts";
-import { isoDate, requiredText, type Same, unitateMasura } from "./common.ts";
+import { isoDate, type Same } from "./common.ts";
 
-// Same shape as a bon line, with two deliberate differences: `nrCart` exists
-// at all (the factura is where the nomenclature code comes from — a bon line
-// only names the material) and the line carries the price it was delivered at.
+// A factura line links an existing catalogue material by id, like a bon line,
+// and carries the price it was delivered at. The material must already exist —
+// new materials are created through POST /materiale, so the factura's save
+// never touches the catalogue.
 export const facturaLine = z.object({
-  nrCart: requiredText("Codul nomenclator"),
-  nume: requiredText("Denumirea materialului"),
-  um: unitateMasura,
+  materialId: z.number().int().positive(),
   cantitate: z.number().positive("Cantitatea trebuie să fie mai mare decât 0"),
   // Zero is allowed: a delivery can carry a free item, and refusing it would
   // block recording the factura as it was actually issued.
