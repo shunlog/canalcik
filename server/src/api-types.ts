@@ -532,7 +532,10 @@ export interface MonthlyReportLine {
   /** null only on an orphan row — a bon group that matched no factura line. */
   nrCart: string | null;
   um: string;
-  /** null when no factura line matches at all — an orphan bon group. */
+  /**
+   * Total invoiced for the month, summed over every factura carrying this
+   * material; null when no factura line matches at all — an orphan bon group.
+   */
   cantitateFactura: number | null;
   /** The matched factura's `ramas`; false on an orphan row. */
   ramas: boolean;

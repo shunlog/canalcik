@@ -351,11 +351,8 @@ export function buildReconciliere(input: {
   for (const f of input.facturaLinii) {
     const key = rowKey(f.materialId, f.materialNume);
     const existing = rows.get(key);
-    // A material named by more than one factura in the month keeps the last
-    // one's quantity (the long-standing "later silently wins" rule) but lists
-    // every factura, so the row says where it was invoiced.
     if (existing) {
-      existing.cantitateFactura = roundQty(f.cantitate);
+      existing.cantitateFactura = roundQty((existing.cantitateFactura ?? 0) + f.cantitate);
       existing.ramas = f.ramas;
       existing.facturi.push({ id: f.facturaId, data: f.facturaData });
       continue;

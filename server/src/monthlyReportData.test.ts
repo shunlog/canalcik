@@ -482,7 +482,7 @@ describe("buildReconciliere", () => {
     ]);
   });
 
-  it("lists every factura naming the material, oldest first, keeping the last one's quantity", () => {
+  it("sums the quantity across every factura naming the material, listing them oldest first", () => {
     const [row] = buildReconciliere({
       bonuri: [bon({ linii: [bLine({ cantitate: 6 })] })],
       facturaLinii: [
@@ -495,7 +495,19 @@ describe("buildReconciliere", () => {
       { id: 1, data: "2026-05-04" },
       { id: 2, data: "2026-05-18" },
     ]);
-    expect(row.cantitateFactura).toBe(4);
+    expect(row.cantitateFactura).toBe(6);
+  });
+
+  it("computes the difference against the summed quantity of several facturi", () => {
+    const [row] = buildReconciliere({
+      bonuri: [bon({ linii: [bLine({ cantitate: 10 })] })],
+      facturaLinii: [
+        fLine({ facturaId: 1, facturaData: "2026-05-04", cantitate: 4 }),
+        fLine({ facturaId: 2, facturaData: "2026-05-18", cantitate: 2 }),
+      ],
+    });
+
+    expect(row).toMatchObject({ cantitateFactura: 6, cantitateBonuri: 10, diferenta: 4 });
   });
 
   it("gives an orphan row no facturi", () => {
