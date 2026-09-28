@@ -1,6 +1,7 @@
 import type { MonthlyReportDetail, MonthlyReportLine } from "@canalcik/server/api-types";
-import { Anchor, Badge, Button, Group, Stack, Table, Text, Title } from "@mantine/core";
-import { IconCheck } from "@tabler/icons-react";
+import { ActionIcon, Anchor, Badge, Button, Group, Stack, Table, Text, Title } from "@mantine/core";
+import { IconCheck, IconPlus } from "@tabler/icons-react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
 import { MaterialShortLink } from "../../components/MaterialLink.tsx";
@@ -12,6 +13,7 @@ import { formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
 import { bonLabel, facturaLabel } from "../../lib/labels.ts";
 import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
 import { HelpTooltip } from "../../components/HelpTooltip.tsx";
+import { BonCreateModal } from "./BonCreateModal.tsx";
 
 /**
  * One month's report: what the factura says against what our bonuri say, per
@@ -154,69 +156,87 @@ function LiniiTables({ linii }: { linii: MonthlyReportLine[] }) {
 }
 
 function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
+  const [linieNoua, setLinieNoua] = useState<MonthlyReportLine | null>(null);
+
   return (
-    <Table.ScrollContainer minWidth={1130} maw={1280}>
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th w={120}>Cod nomenclator</Table.Th>
-            <Table.Th>Denumire</Table.Th>
-            <Table.Th w={80}>Suma din facturi</Table.Th>
-            <Table.Th w={80}>Suma din bonuri</Table.Th>
-            <Table.Th w={150}>Diferență <HelpTooltip label="Cat nu ajunge in bonuri" /></Table.Th>
-            <Table.Th w={190}>Bonuri</Table.Th>
-            <Table.Th w={190}>Facturi</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {/* materialId is null for a scratchpad-note row (nrCart is then
-              always null too — see buildReconciliere), so nume disambiguates
-              those; a real materialId already disambiguates everything else,
-              even between two rows that happen to share the same nume. */}
-          {linii.map((l) => (
-            <Table.Tr key={`${l.materialId ?? "note"}|${l.nrCart ?? ""}|${l.nume}`}>
-              <Table.Td>{l.nrCart ?? "—"}</Table.Td>
-              <Table.Td>
-                {l.materialId === null ? (
-                  l.nume
-                ) : (
-                  <MaterialShortLink material={{ id: l.materialId, nume: l.nume }} />
-                )}
-              </Table.Td>
-              <Table.Td>
-                {l.cantitateFactura === null
-                  ? "—"
-                  : `${formatQty(l.cantitateFactura)} ${l.um}`}
-              </Table.Td>
-              <Table.Td>{`${formatQty(l.cantitateBonuri)} ${l.um}`}</Table.Td>
-              <Table.Td>
-                <DiferentaBadge linie={l} />
-              </Table.Td>
-              <Table.Td>
-                <RefLinkList
-                  items={l.bonuri.map((b) => ({
-                    id: b.id,
-                    label: bonLabel(b),
-                    to: `/bonuri/${b.id}`,
-                  }))}
-                  empty="—"
-                />
-              </Table.Td>
-              <Table.Td>
-                <RefLinkList
-                  items={l.facturi.map((f) => ({
-                    id: f.id,
-                    label: facturaLabel(f),
-                    to: `/facturi/${f.id}`,
-                  }))}
-                  empty="—"
-                />
-              </Table.Td>
+    <>
+      <Table.ScrollContainer minWidth={1130} maw={1280}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th w={120}>Cod nomenclator</Table.Th>
+              <Table.Th>Denumire</Table.Th>
+              <Table.Th w={80}>Suma din facturi</Table.Th>
+              <Table.Th w={80}>Suma din bonuri</Table.Th>
+              <Table.Th w={150}>Diferență <HelpTooltip label="Cat nu ajunge in bonuri" /></Table.Th>
+              <Table.Th w={190}>Bonuri</Table.Th>
+              <Table.Th w={190}>Facturi</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
+          </Table.Thead>
+          <Table.Tbody>
+            {/* materialId is null for a scratchpad-note row (nrCart is then
+                always null too — see buildReconciliere), so nume disambiguates
+                those; a real materialId already disambiguates everything else,
+                even between two rows that happen to share the same nume. */}
+            {linii.map((l) => (
+              <Table.Tr key={`${l.materialId ?? "note"}|${l.nrCart ?? ""}|${l.nume}`}>
+                <Table.Td>{l.nrCart ?? "—"}</Table.Td>
+                <Table.Td>
+                  {l.materialId === null ? (
+                    l.nume
+                  ) : (
+                    <MaterialShortLink material={{ id: l.materialId, nume: l.nume }} />
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  {l.cantitateFactura === null
+                    ? "—"
+                    : `${formatQty(l.cantitateFactura)} ${l.um}`}
+                </Table.Td>
+                <Table.Td>{`${formatQty(l.cantitateBonuri)} ${l.um}`}</Table.Td>
+                <Table.Td>
+                  <DiferentaBadge linie={l} />
+                </Table.Td>
+                <Table.Td>
+                  <Stack gap={4} align="flex-start">
+                    <RefLinkList
+                      items={l.bonuri.map((b) => ({
+                        id: b.id,
+                        label: bonLabel(b),
+                        to: `/bonuri/${b.id}`,
+                      }))}
+                      empty="—"
+                    />
+                    {/* Only a real material has a materialId to pre-fill; a
+                        scratchpad-note row has no catalogue material yet. */}
+                    {l.materialId !== null && (
+                      <ActionIcon
+                        variant="light"
+                        aria-label="Adaugă bon nou"
+                        onClick={() => setLinieNoua(l)}
+                      >
+                        <IconPlus size={16} />
+                      </ActionIcon>
+                    )}
+                  </Stack>
+                </Table.Td>
+                <Table.Td>
+                  <RefLinkList
+                    items={l.facturi.map((f) => ({
+                      id: f.id,
+                      label: facturaLabel(f),
+                      to: `/facturi/${f.id}`,
+                    }))}
+                    empty="—"
+                  />
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
+      <BonCreateModal linie={linieNoua} onInchide={() => setLinieNoua(null)} />
+    </>
   );
 }
 
