@@ -55,18 +55,11 @@ export function MonthlyReportListPage() {
                 render: (m) => m.nrBonuri,
               },
               {
-                accessor: "facturi",
-                title: "Factură",
-                render: (m) => (
-                  <RefLinkList
-                    items={m.facturi.map((f) => ({
-                      id: f.id,
-                      label: facturaLabel(f),
-                      to: `/facturi/${f.id}`,
-                    }))}
-                    empty="—"
-                  />
-                ),
+                accessor: "nrFacturi",
+                title: "Facturi",
+                width: 90,
+                sortable: true,
+                render: (m) => m.nrFacturi,
               },
               {
                 accessor: "document",

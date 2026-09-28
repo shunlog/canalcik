@@ -98,16 +98,9 @@ export function MonthlyReportDetailPage() {
               </Group>
               <Group gap="xs">
                 <Text size="sm" c="dimmed">
-                  Factură
+                  Facturi
                 </Text>
-                <RefLinkList
-                  items={m.facturi.map((f) => ({
-                    id: f.id,
-                    label: facturaLabel(f),
-                    to: `/facturi/${f.id}`,
-                  }))}
-                  empty="—"
-                />
+                <Text>{m.nrFacturi}</Text>
               </Group>
             </Group>
           </Stack>

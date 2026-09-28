@@ -141,7 +141,7 @@ function monthlyReportRow(month: string, data: MonthsData): MonthlyReport {
   return {
     month,
     nrBonuri: bonuri.length,
-    facturi: facturi.map((f) => ({ id: f.id, data: f.data })),
+    nrFacturi: facturi.length,
     document: data.docByMonth.get(month) ?? null,
     // null, not 0, when there is nothing to compare: the client shows "no
     // bonuri" / "no factura" rather than "inconsistent" for those months.

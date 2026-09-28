@@ -13,7 +13,7 @@ export const INCONSISTENT_MESSAGE =
  */
 export function generateBlock(m: MonthlyReport): { reason: string | null } {
   if (m.nrBonuri === 0) return { reason: "Luna nu are bonuri" };
-  if (m.facturi.length === 0) return { reason: "Luna nu are factură de expediție" };
+  if (m.nrFacturi === 0) return { reason: "Luna nu are factură de expediție" };
   return { reason: null };
 }
 
