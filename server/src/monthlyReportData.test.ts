@@ -392,25 +392,8 @@ describe("buildReconciliere", () => {
       nrCart: "2111017178",
       cantitateFactura: 6,
       cantitateBonuri: 6,
-      diferenta: 0,
     });
     expect(liniiCuDiferente(linii)).toEqual([]);
-  });
-
-  it("reports a positive difference when we recorded more than the factura", () => {
-    const [row] = buildReconciliere({
-      bonuri: [bon({ linii: [bLine({ cantitate: 8 })] })],
-      facturaLinii: [fLine({ cantitate: 6 })],
-    });
-    expect(row.diferenta).toBe(2);
-  });
-
-  it("reports a negative difference when we recorded less than the factura", () => {
-    const [row] = buildReconciliere({
-      bonuri: [bon({ linii: [bLine({ cantitate: 4 })] })],
-      facturaLinii: [fLine({ cantitate: 6 })],
-    });
-    expect(row.diferenta).toBe(-2);
   });
 
   it("treats a factura line with no bonuri at all as a full shortfall", () => {
@@ -418,7 +401,8 @@ describe("buildReconciliere", () => {
       bonuri: [],
       facturaLinii: [fLine({ cantitate: 6 })],
     });
-    expect(row).toMatchObject({ cantitateBonuri: 0, diferenta: -6, bonuri: [] });
+    expect(row).toMatchObject({ cantitateBonuri: 0, bonuri: [] });
+    expect(liniiCuDiferente([row])).toHaveLength(1);
   });
 
   it("gives a bon line whose material has no factura line its own row", () => {
@@ -428,21 +412,12 @@ describe("buildReconciliere", () => {
     });
 
     const orphan = rows.find((r) => r.nume === "MOTORINA");
-    expect(orphan).toMatchObject({ nrCart: null, cantitateFactura: null, diferenta: 6 });
-  });
-
-  it("attributes a bon line to the only factura line for that material", () => {
-    const rows = buildReconciliere({
-      bonuri: [bon({ linii: [bLine({ cantitate: 6 })] })],
-      facturaLinii: [fLine({ cantitate: 6 })],
-    });
-
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ nrCart: "2111017178", diferenta: 0 });
+    expect(orphan).toMatchObject({ nrCart: null, cantitateFactura: null });
+    expect(liniiCuDiferente([orphan!])).toHaveLength(1);
   });
 
   it("compares float sums exactly, so 0.1 three times matches 0.3", () => {
-    const [row] = buildReconciliere({
+    const linii = buildReconciliere({
       bonuri: [
         bon({
           linii: [
@@ -454,7 +429,8 @@ describe("buildReconciliere", () => {
       ],
       facturaLinii: [fLine({ cantitate: 0.3 })],
     });
-    expect(row.diferenta).toBe(0);
+    expect(linii[0].cantitateBonuri).toBe(0.3);
+    expect(liniiCuDiferente(linii)).toEqual([]);
   });
 
   it("links a bon once even when it carries two lines for the same material", () => {
@@ -498,7 +474,7 @@ describe("buildReconciliere", () => {
     expect(row.cantitateFactura).toBe(6);
   });
 
-  it("computes the difference against the summed quantity of several facturi", () => {
+  it("flags a difference against the summed quantity of several facturi", () => {
     const [row] = buildReconciliere({
       bonuri: [bon({ linii: [bLine({ cantitate: 10 })] })],
       facturaLinii: [
@@ -507,7 +483,8 @@ describe("buildReconciliere", () => {
       ],
     });
 
-    expect(row).toMatchObject({ cantitateFactura: 6, cantitateBonuri: 10, diferenta: 4 });
+    expect(row).toMatchObject({ cantitateFactura: 6, cantitateBonuri: 10 });
+    expect(liniiCuDiferente([row])).toHaveLength(1);
   });
 
   it("gives an orphan row no facturi", () => {

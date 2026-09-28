@@ -11,6 +11,7 @@ import { showError, showSaved } from "../../lib/feedback.ts";
 import { formatMonth, formatQty, formatTimestamp } from "../../lib/forms.ts";
 import { bonLabel, facturaLabel } from "../../lib/labels.ts";
 import { GenerateMonthlyReportButton } from "./GenerateMonthlyReportButton.tsx";
+import { HelpTooltip } from "../../components/HelpTooltip.tsx";
 
 /**
  * One month's report: what the factura says against what our bonuri say, per
@@ -154,16 +155,17 @@ function LiniiTables({ linii }: { linii: MonthlyReportLine[] }) {
 
 function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
   return (
-    <Table.ScrollContainer minWidth={1010} maw={1160}>
+    <Table.ScrollContainer minWidth={1130} maw={1280}>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
             <Table.Th w={120}>Cod nomenclator</Table.Th>
             <Table.Th>Denumire</Table.Th>
-            <Table.Th w={120}>Cantitatea din factură</Table.Th>
-            <Table.Th w={150}>Diferență</Table.Th>
-            <Table.Th w={200}>Bonuri</Table.Th>
-            <Table.Th w={200}>Facturi</Table.Th>
+            <Table.Th w={80}>Suma din facturi</Table.Th>
+            <Table.Th w={80}>Suma din bonuri</Table.Th>
+            <Table.Th w={150}>Diferență <HelpTooltip label="Cat nu ajunge in bonuri" /></Table.Th>
+            <Table.Th w={190}>Bonuri</Table.Th>
+            <Table.Th w={190}>Facturi</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -186,6 +188,7 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
                   ? "—"
                   : `${formatQty(l.cantitateFactura)} ${l.um}`}
               </Table.Td>
+              <Table.Td>{`${formatQty(l.cantitateBonuri)} ${l.um}`}</Table.Td>
               <Table.Td>
                 <DiferentaBadge linie={l} />
               </Table.Td>
@@ -217,24 +220,21 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
   );
 }
 
-/**
- * Zero is the goal, so it reads as a checkmark rather than as a number. A
- * difference is signed from our side: "+" means our bonuri claim more than was
- * delivered, "−" that they claim less.
- */
+// Zero is the goal, so it reads as a checkmark rather than as a number
 function DiferentaBadge({ linie }: { linie: MonthlyReportLine }) {
-  if (linie.diferenta === 0) {
+  const diferenta = (linie.cantitateFactura ?? 0) - linie.cantitateBonuri;
+  if (diferenta === 0) {
     return (
       <Badge color="green" variant="light" leftSection={<IconCheck size={12} />}>
         0
       </Badge>
     );
   }
-  const semn = linie.diferenta > 0 ? "+" : "−";
+  const suffix = diferenta > 0 ? 
+  (diferenta == 1 ? "nu ajunge" : "nu ajung") : "prea mult";
   return (
-    <Badge color="red" variant="light" leftSection={<IconX size={12} />}>
-        {semn}
-        {formatQty(Math.abs(linie.diferenta))} {linie.um}
+    <Badge color="red" variant="light">
+        {formatQty(Math.abs(diferenta))} {linie.um} {suffix}
       </Badge>
   );
 }

@@ -299,11 +299,6 @@ export type ReconcilereFacturaLine = {
   facturaData: string; // "YYYY-MM-DD"
 };
 
-/**
- * One material, as invoiced against as issued. `diferenta` is what the
- * operator acts on: the factura is authoritative and cannot be edited, so a
- * non-zero difference means the month's bonuri need correcting.
- */
 export type ReconcilereLinie = {
   /** null for a row built entirely from scratchpad notes — no real material. */
   materialId: number | null;
@@ -316,8 +311,6 @@ export type ReconcilereLinie = {
   /** The matched factura's `ramas`; false on an orphan row. */
   ramas: boolean;
   cantitateBonuri: number;
-  /** cantitateBonuri − (cantitateFactura ?? 0). */
-  diferenta: number;
   bonuri: Array<{ id: number; data: string }>;
   /** Every factura of the month carrying this material, oldest first. */
   facturi: Array<{ id: number; data: string }>;
@@ -365,7 +358,6 @@ export function buildReconciliere(input: {
       cantitateFactura: roundQty(f.cantitate),
       ramas: f.ramas,
       cantitateBonuri: 0,
-      diferenta: 0,
       bonuri: [],
       facturi: [{ id: f.facturaId, data: f.facturaData }],
     });
@@ -385,7 +377,6 @@ export function buildReconciliere(input: {
           cantitateFactura: null,
           ramas: false,
           cantitateBonuri: 0,
-          diferenta: 0,
           bonuri: [],
           facturi: [],
         };
@@ -404,7 +395,6 @@ export function buildReconciliere(input: {
 
   const out = [...rows.values()];
   for (const row of out) {
-    row.diferenta = roundQty(row.cantitateBonuri - (row.cantitateFactura ?? 0));
     row.bonuri.sort((a, b) => (a.data !== b.data ? a.data.localeCompare(b.data) : a.id - b.id));
     row.facturi.sort((a, b) => (a.data !== b.data ? a.data.localeCompare(b.data) : a.id - b.id));
   }
@@ -415,4 +405,4 @@ export function buildReconciliere(input: {
 
 /** The rows an operator must fix before the month can be generated. */
 export const liniiCuDiferente = (linii: ReconcilereLinie[]): ReconcilereLinie[] =>
-  linii.filter((l) => l.diferenta !== 0);
+  linii.filter((l) => roundQty((l.cantitateFactura ?? 0) - l.cantitateBonuri) !== 0);

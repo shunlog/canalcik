@@ -520,11 +520,6 @@ export interface MonthlyReport {
   nrDiferente: number | null;
 }
 
-/**
- * One reconciliation row: one material, as invoiced against as issued. The
- * factura is authoritative and cannot be edited, so a non-zero `diferenta`
- * means the month's bonuri need correcting.
- */
 export interface MonthlyReportLine {
   /** null for a row built entirely from scratchpad notes — no real material. */
   materialId: number | null;
@@ -540,8 +535,6 @@ export interface MonthlyReportLine {
   /** The matched factura's `ramas`; false on an orphan row. */
   ramas: boolean;
   cantitateBonuri: number;
-  /** cantitateBonuri − (cantitateFactura ?? 0). */
-  diferenta: number;
   /** Every bon of the month carrying this code, oldest first. */
   bonuri: Array<{ id: number; data: IsoDate }>;
   /** Every factura of the month carrying this material, oldest first. */
