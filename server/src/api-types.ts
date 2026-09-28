@@ -364,12 +364,13 @@ export interface BonUpdateBody {
 
 // ------------------------------------------------------ materialeIntretinere
 
-/** A material in the catalogue, with how many bon lines point at it. */
+/** A material in the catalogue, with how many bon and factura lines point at it. */
 export interface MaterialListItem extends MaterialRef {
   /** Unit of measure — the material's, and therefore every line's that links it. */
   um: string;
   updatedAt: string;
   nrLinii: number;
+  nrLiniiFactura: number;
 }
 
 /**
@@ -384,10 +385,23 @@ export interface MaterialUsage {
   cantitate: number;
 }
 
+/**
+ * One factura line that names a material, with the factura it sits on. Like
+ * MaterialUsage this is per line; a factura carries a material at most once
+ * (the (facturaId, materialId) constraint), so it is effectively per factura.
+ * `lineId` is a React key, nothing more.
+ */
+export interface MaterialFacturaUsage {
+  lineId: number;
+  factura: Pick<FacturaRef, "id" | "data">;
+  cantitate: number;
+}
+
 export interface MaterialDetail extends MaterialRef {
   um: string;
   updatedAt: string;
   utilizari: MaterialUsage[];
+  facturi: MaterialFacturaUsage[];
 }
 
 export interface MaterialCreateBody {
@@ -527,6 +541,8 @@ export interface MonthlyReportLine {
   diferenta: number;
   /** Every bon of the month carrying this code, oldest first. */
   bonuri: Array<{ id: number; data: IsoDate }>;
+  /** Every factura of the month carrying this material, oldest first. */
+  facturi: Array<{ id: number; data: IsoDate }>;
 }
 
 /** One month's report, with the row-by-row comparison behind `nrDiferente`. */

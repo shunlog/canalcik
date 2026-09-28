@@ -1,11 +1,12 @@
-import type { MaterialUsage } from "@canalcik/server/api-types";
-import { Anchor, Button, Group, Stack, Table, Text, TextInput, Title } from "@mantine/core";
+import type { MaterialFacturaUsage, MaterialUsage } from "@canalcik/server/api-types";
+import { Button, Group, Stack, Table, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useDeleteMaterial, useMaterial, useUpdateMaterial } from "../../api/materiale.ts";
 import { BonLink } from "../../components/BonLink.tsx";
 import { DeleteButton } from "../../components/DeleteButton.tsx";
+import { FacturaLink } from "../../components/FacturaLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { SoferLink } from "../../components/SoferLink.tsx";
@@ -15,9 +16,9 @@ import { showError, notifyIncomplete, showSaved } from "../../lib/feedback.ts";
 import { requiredText } from "../../lib/forms.ts";
 
 /**
- * One material, and every bon line that names it. The listing is per line
- * rather than per bon: the same material can appear twice on one bon under two
- * nomenclature codes, and both are worth seeing.
+ * One material, and every bon and factura line that names it. The bon listing
+ * is per line rather than per bon: the same material can appear twice on one
+ * bon under two nomenclature codes, and both are worth seeing.
  */
 export function MaterialDetailPage() {
   const id = Number(useParams().id);
@@ -125,6 +126,17 @@ export function MaterialDetailPage() {
               <UtilizariTable utilizari={m.utilizari} um={m.um} />
             )}
           </Stack>
+
+          <Stack gap="sm" mt="xl" maw={850}>
+            <Title order={3}>Facturi</Title>
+            {m.facturi.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                Acest material nu apare pe nicio factură.
+              </Text>
+            ) : (
+              <FacturiTable facturi={m.facturi} um={m.um} />
+            )}
+          </Stack>
         </>
       )}
     </QueryBoundary>
@@ -133,7 +145,7 @@ export function MaterialDetailPage() {
 
 function UtilizariTable({ utilizari, um }: { utilizari: MaterialUsage[]; um: string }) {
   return (
-    <Table.ScrollContainer minWidth={720} maw={850}>
+    <Table.ScrollContainer minWidth={600} maw={850}>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
@@ -141,7 +153,6 @@ function UtilizariTable({ utilizari, um }: { utilizari: MaterialUsage[]; um: str
             <Table.Th>Șofer</Table.Th>
             <Table.Th>Vehicul</Table.Th>
             <Table.Th>Cantitate</Table.Th>
-            <Table.Th />
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -159,10 +170,32 @@ function UtilizariTable({ utilizari, um }: { utilizari: MaterialUsage[]; um: str
               <Table.Td>
                 {u.cantitate} {um}
               </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
+  );
+}
+
+function FacturiTable({ facturi, um }: { facturi: MaterialFacturaUsage[]; um: string }) {
+  return (
+    <Table.ScrollContainer minWidth={400} maw={850}>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Data</Table.Th>
+            <Table.Th>Cantitate</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {facturi.map((f) => (
+            <Table.Tr key={f.lineId}>
               <Table.Td>
-                <Anchor component={Link} to={`/bonuri/${u.bon.id}`} size="sm">
-                  Deschide
-                </Anchor>
+                <FacturaLink factura={f.factura} />
+              </Table.Td>
+              <Table.Td>
+                {f.cantitate} {um}
               </Table.Td>
             </Table.Tr>
           ))}

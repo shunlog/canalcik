@@ -158,10 +158,17 @@ export function MaterialeListPage() {
               },
               {
                 accessor: "nrLinii",
-                title: "Linii de bon",
-                width: 130,
+                title: "Bonuri",
+                width: 120,
                 sortable: true,
                 render: (m) => m.nrLinii,
+              },
+              {
+                accessor: "nrLiniiFactura",
+                title: "Facturi",
+                width: 120,
+                sortable: true,
+                render: (m) => m.nrLiniiFactura,
               },
             ]}
           />

@@ -338,7 +338,7 @@ export const materialListSelect = {
   ...materialRefSelect,
   um: true,
   updatedAt: true,
-  _count: { select: { bonuri: true } },
+  _count: { select: { bonuri: true, facturi: true } },
 } satisfies Prisma.MaterialeIntretinereSelect;
 
 type MaterialListRow = Prisma.MaterialeIntretinereGetPayload<{
@@ -353,10 +353,12 @@ export const toMaterialListItem = ({
   ...m,
   updatedAt: updatedAt.toISOString(),
   nrLinii: _count.bonuri,
+  nrLiniiFactura: _count.facturi,
 });
 
-// `bonuri` here is the *lines* pointing at the material, each carrying the bon
-// it sits on — a material can appear twice on one bon, so the page lists lines.
+// `bonuri`/`facturi` here are the *lines* pointing at the material, each
+// carrying the bon or factura it sits on — a material can appear twice on one
+// bon, so the page lists lines. A factura carries it at most once.
 export const materialDetailSelect = {
   ...materialRefSelect,
   um: true,
@@ -364,6 +366,14 @@ export const materialDetailSelect = {
   bonuri: {
     select: { id: true, cantitate: true, bon: { select: bonRefSelect } },
     orderBy: [{ bon: { data: "desc" } }, { id: "desc" }],
+  },
+  facturi: {
+    select: {
+      id: true,
+      cantitate: true,
+      factura: { select: { id: true, data: true } },
+    },
+    orderBy: [{ factura: { data: "desc" } }, { id: "desc" }],
   },
 } satisfies Prisma.MaterialeIntretinereSelect;
 
@@ -373,12 +383,14 @@ type MaterialDetailRow = Prisma.MaterialeIntretinereGetPayload<{
 
 export const toMaterialDetail = ({
   bonuri,
+  facturi,
   updatedAt,
   ...m
 }: MaterialDetailRow): MaterialDetail => ({
   ...m,
   updatedAt: updatedAt.toISOString(),
   utilizari: bonuri.map(({ id, bon, ...line }) => ({ lineId: id, bon: toBonRef(bon), ...line })),
+  facturi: facturi.map(({ id, factura, ...line }) => ({ lineId: id, factura, ...line })),
 });
 
 // ----------------------------------------------------- facturaExpeditie

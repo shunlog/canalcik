@@ -294,6 +294,9 @@ export type ReconcilereFacturaLine = {
   cantitate: number;
   /** The line's factura's `ramas`. */
   ramas: boolean;
+  /** The line's factura, so a row can list where the material was invoiced. */
+  facturaId: number;
+  facturaData: string; // "YYYY-MM-DD"
 };
 
 /**
@@ -316,6 +319,8 @@ export type ReconcilereLinie = {
   /** cantitateBonuri − (cantitateFactura ?? 0). */
   diferenta: number;
   bonuri: Array<{ id: number; data: string }>;
+  /** Every factura of the month carrying this material, oldest first. */
+  facturi: Array<{ id: number; data: string }>;
 };
 
 /**
@@ -345,6 +350,16 @@ export function buildReconciliere(input: {
 
   for (const f of input.facturaLinii) {
     const key = rowKey(f.materialId, f.materialNume);
+    const existing = rows.get(key);
+    // A material named by more than one factura in the month keeps the last
+    // one's quantity (the long-standing "later silently wins" rule) but lists
+    // every factura, so the row says where it was invoiced.
+    if (existing) {
+      existing.cantitateFactura = roundQty(f.cantitate);
+      existing.ramas = f.ramas;
+      existing.facturi.push({ id: f.facturaId, data: f.facturaData });
+      continue;
+    }
     rows.set(key, {
       materialId: f.materialId,
       nume: f.materialNume,
@@ -355,6 +370,7 @@ export function buildReconciliere(input: {
       cantitateBonuri: 0,
       diferenta: 0,
       bonuri: [],
+      facturi: [{ id: f.facturaId, data: f.facturaData }],
     });
     bonuriSeen.set(key, new Set());
   }
@@ -374,6 +390,7 @@ export function buildReconciliere(input: {
           cantitateBonuri: 0,
           diferenta: 0,
           bonuri: [],
+          facturi: [],
         };
         rows.set(key, row);
         bonuriSeen.set(key, new Set());
@@ -392,6 +409,7 @@ export function buildReconciliere(input: {
   for (const row of out) {
     row.diferenta = roundQty(row.cantitateBonuri - (row.cantitateFactura ?? 0));
     row.bonuri.sort((a, b) => (a.data !== b.data ? a.data.localeCompare(b.data) : a.id - b.id));
+    row.facturi.sort((a, b) => (a.data !== b.data ? a.data.localeCompare(b.data) : a.id - b.id));
   }
   return out.sort((a, b) =>
     a.nume !== b.nume ? a.nume.localeCompare(b.nume) : (a.nrCart ?? "").localeCompare(b.nrCart ?? ""),

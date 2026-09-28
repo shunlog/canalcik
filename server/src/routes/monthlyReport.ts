@@ -128,6 +128,8 @@ function reconciliereFor(month: string, data: MonthsData): ReconcilereLinie[] {
         um: m.material.um,
         cantitate: m.cantitate,
         ramas: f.ramas,
+        facturaId: f.id,
+        facturaData: f.data,
       })),
     ),
   });

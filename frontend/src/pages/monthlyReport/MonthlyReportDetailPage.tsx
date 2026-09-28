@@ -154,15 +154,16 @@ function LiniiTables({ linii }: { linii: MonthlyReportLine[] }) {
 
 function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
   return (
-    <Table.ScrollContainer minWidth={860} maw={1000}>
+    <Table.ScrollContainer minWidth={1010} maw={1160}>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th w={150}>Cod nomenclator</Table.Th>
+            <Table.Th w={120}>Cod nomenclator</Table.Th>
             <Table.Th>Denumire</Table.Th>
-            <Table.Th w={170}>Cantitatea din factură</Table.Th>
+            <Table.Th w={120}>Cantitatea din factură</Table.Th>
             <Table.Th w={150}>Diferență</Table.Th>
-            <Table.Th>Bonuri</Table.Th>
+            <Table.Th w={200}>Bonuri</Table.Th>
+            <Table.Th w={200}>Facturi</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -194,6 +195,16 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
                     id: b.id,
                     label: bonLabel(b),
                     to: `/bonuri/${b.id}`,
+                  }))}
+                  empty="—"
+                />
+              </Table.Td>
+              <Table.Td>
+                <RefLinkList
+                  items={l.facturi.map((f) => ({
+                    id: f.id,
+                    label: facturaLabel(f),
+                    to: `/facturi/${f.id}`,
                   }))}
                   empty="—"
                 />

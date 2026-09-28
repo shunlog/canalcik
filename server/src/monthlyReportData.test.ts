@@ -367,6 +367,8 @@ describe("buildReconciliere", () => {
     um: "L",
     cantitate: 6,
     ramas: false,
+    facturaId: 100,
+    facturaData: "2026-05-10",
     ...over,
   });
 
@@ -478,6 +480,31 @@ describe("buildReconciliere", () => {
       { id: 1, data: "2026-05-04" },
       { id: 2, data: "2026-05-18" },
     ]);
+  });
+
+  it("lists every factura naming the material, oldest first, keeping the last one's quantity", () => {
+    const [row] = buildReconciliere({
+      bonuri: [bon({ linii: [bLine({ cantitate: 6 })] })],
+      facturaLinii: [
+        fLine({ facturaId: 2, facturaData: "2026-05-18", cantitate: 2 }),
+        fLine({ facturaId: 1, facturaData: "2026-05-04", cantitate: 4 }),
+      ],
+    });
+
+    expect(row.facturi).toEqual([
+      { id: 1, data: "2026-05-04" },
+      { id: 2, data: "2026-05-18" },
+    ]);
+    expect(row.cantitateFactura).toBe(4);
+  });
+
+  it("gives an orphan row no facturi", () => {
+    const rows = buildReconciliere({
+      bonuri: [bon({ linii: [bLine({ materialId: 9, materialNume: "MOTORINA" })] })],
+      facturaLinii: [fLine()],
+    });
+    const orphan = rows.find((r) => r.nume === "MOTORINA");
+    expect(orphan?.facturi).toEqual([]);
   });
 
   it("returns nothing for a month with neither bonuri nor a factura", () => {
