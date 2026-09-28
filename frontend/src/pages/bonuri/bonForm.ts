@@ -1,9 +1,7 @@
 import type { BonCreateBody, BonDetail } from "@canalcik/server/api-types";
 import { randomId } from "@mantine/hooks";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
-
-/** The picker's combobox format: code-first, so fuzzy search matches nrCart first. */
-export const materialPickerLabel = (m: { nume: string; nrCart: string }) => `${m.nrCart}, ${m.nume}`;
+import { materialPickerLabel } from "../../lib/labels.ts";
 
 export interface MaterialRow {
   /**

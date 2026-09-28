@@ -13,7 +13,7 @@ import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { useMateriale } from "../../api/materiale.ts";
 import { formatMoney } from "../../lib/forms.ts";
-import { materialLabel } from "../../lib/labels.ts";
+import { materialPickerLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import {
   facturaTotal,
@@ -45,7 +45,7 @@ export function MaterialeFacturaEditor({ form }: { form: UseFormReturnType<Factu
     () =>
       (materiale.data ?? []).map((m) => ({
         value: String(m.id),
-        label: `${materialLabel(m)} · ${m.um}`,
+        label: materialPickerLabel(m),
       })),
     [materiale.data],
   );

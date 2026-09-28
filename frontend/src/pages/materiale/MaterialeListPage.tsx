@@ -11,7 +11,7 @@ import {
   useUpdateMaterial,
 } from "../../api/materiale.ts";
 import { textFilterColumn } from "../../components/DataTableFilters.tsx";
-import { MaterialLink } from "../../components/MaterialLink.tsx";
+import { MaterialShortLink } from "../../components/MaterialLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { ApiError } from "../../lib/api.ts";
@@ -386,7 +386,7 @@ function MaterialNameCell({ material }: { material: MaterialListItem }) {
 
   return (
     <Group gap={4} wrap="nowrap" justify="space-between">
-      <MaterialLink material={material} />
+      <MaterialShortLink material={material} />
       <Group gap={4} wrap="nowrap">
         <ActionIcon variant="subtle" aria-label="Redenumește" onClick={startEditing}>
           <IconPencil size={16} />

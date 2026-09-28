@@ -1,9 +1,9 @@
 import type { MonthlyReportDetail, MonthlyReportLine } from "@canalcik/server/api-types";
 import { Anchor, Badge, Button, Group, Stack, Table, Text, Title } from "@mantine/core";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck } from "@tabler/icons-react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useGenerateMonthlyReport, useMonthlyReport } from "../../api/monthlyReport.ts";
-import { MaterialLink } from "../../components/MaterialLink.tsx";
+import { MaterialShortLink } from "../../components/MaterialLink.tsx";
 import { PageHeader } from "../../components/PageHeader.tsx";
 import { QueryBoundary } from "../../components/QueryBoundary.tsx";
 import { RefLinkList } from "../../components/RefLinkList.tsx";
@@ -180,7 +180,7 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
                 {l.materialId === null ? (
                   l.nume
                 ) : (
-                  <MaterialLink material={{ id: l.materialId, nume: l.nume, nrCart: l.nrCart ?? "" }} />
+                  <MaterialShortLink material={{ id: l.materialId, nume: l.nume }} />
                 )}
               </Table.Td>
               <Table.Td>

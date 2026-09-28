@@ -22,6 +22,13 @@ export const bonLabel = (b: Pick<BonRef, "data">) => formatIsoDate(b.data);
 
 export const materialLabel = (m: MaterialRef) => (m.nrCart ? `${m.nume} (${m.nrCart})` : m.nume);
 
+/** Just the name — for tables or forms that already show the nrCart separately. */
+export const materialShortLabel = (m: Pick<MaterialRef, "nume">) => m.nume;
+
+/** The picker's combobox format: code-first, so fuzzy search matches nrCart first. */
+export const materialPickerLabel = (m: Pick<MaterialRef, "nume" | "nrCart">) =>
+  `${m.nrCart}, ${m.nume}`;
+
 export const facturaLabel = (f: Pick<FacturaRef, "data">) => formatIsoDate(f.data);
 
 /** An act is identified by its date plus vehicul: several acts can share a date. */

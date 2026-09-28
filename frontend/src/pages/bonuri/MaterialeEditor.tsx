@@ -12,8 +12,9 @@ import type { UseFormReturnType } from "@mantine/form";
 import { IconAlertTriangle, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { useMateriale } from "../../api/materiale.ts";
+import { materialPickerLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
-import { materialPickerLabel, newMaterialRow, type BonFormValues } from "./bonForm.ts";
+import { newMaterialRow, type BonFormValues } from "./bonForm.ts";
 
 /**
  * The bon's material lines: quantities belong to the bon and are edited inline
