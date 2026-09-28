@@ -169,8 +169,9 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
               <Table.Th w={80}>Suma din facturi</Table.Th>
               <Table.Th w={80}>Suma din bonuri</Table.Th>
               <Table.Th w={150}>Diferență <HelpTooltip label="Cat nu ajunge in bonuri" /></Table.Th>
-              <Table.Th w={190}>Bonuri</Table.Th>
               <Table.Th w={190}>Facturi</Table.Th>
+              <Table.Th w={190}>Bonuri</Table.Th>
+              <Table.Th>Bon nou</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -198,29 +199,6 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
                   <DiferentaBadge linie={l} />
                 </Table.Td>
                 <Table.Td>
-                  <Stack gap={4} align="flex-start">
-                    <RefLinkList
-                      items={l.bonuri.map((b) => ({
-                        id: b.id,
-                        label: bonLabel(b),
-                        to: `/bonuri/${b.id}`,
-                      }))}
-                      empty="—"
-                    />
-                    {/* Only a real material has a materialId to pre-fill; a
-                        scratchpad-note row has no catalogue material yet. */}
-                    {l.materialId !== null && (
-                      <ActionIcon
-                        variant="light"
-                        aria-label="Adaugă bon nou"
-                        onClick={() => setLinieNoua(l)}
-                      >
-                        <IconPlus size={16} />
-                      </ActionIcon>
-                    )}
-                  </Stack>
-                </Table.Td>
-                <Table.Td>
                   <RefLinkList
                     items={l.facturi.map((f) => ({
                       id: f.id,
@@ -229,6 +207,29 @@ function LiniiTable({ linii }: { linii: MonthlyReportLine[] }) {
                     }))}
                     empty="—"
                   />
+                </Table.Td>
+                <Table.Td>
+                  <RefLinkList
+                    items={l.bonuri.map((b) => ({
+                      id: b.id,
+                      label: bonLabel(b),
+                      to: `/bonuri/${b.id}`,
+                    }))}
+                    empty="—"
+                  />
+                </Table.Td>
+                <Table.Td>
+                  {/* Only a real material has a materialId to pre-fill; a
+                        scratchpad-note row has no catalogue material yet. */}
+                  {l.materialId !== null && (
+                    <ActionIcon
+                      variant="light"
+                      aria-label="Adaugă bon nou"
+                      onClick={() => setLinieNoua(l)}
+                    >
+                      <IconPlus size={16} />
+                    </ActionIcon>
+                  )}
                 </Table.Td>
               </Table.Tr>
             ))}
@@ -250,12 +251,12 @@ function DiferentaBadge({ linie }: { linie: MonthlyReportLine }) {
       </Badge>
     );
   }
-  const suffix = diferenta > 0 ? 
-  (diferenta == 1 ? "nu ajunge" : "nu ajung") : "prea mult";
+  const suffix = diferenta > 0 ?
+    (diferenta == 1 ? "nu ajunge" : "nu ajung") : "prea mult";
   return (
     <Badge color="red" variant="light">
-        {formatQty(Math.abs(diferenta))} {linie.um} {suffix}
-      </Badge>
+      {formatQty(Math.abs(diferenta))} {linie.um} {suffix}
+    </Badge>
   );
 }
 
