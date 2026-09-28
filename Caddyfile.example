@@ -19,5 +19,15 @@ canalcik.example.com {
 		root * /srv/canalcik/deploy/www
 		try_files {path} /index.html
 		file_server
+
+		# The SPA shell (including every route that try_files falls back to it)
+		# keeps a stable filename, so it must revalidate on every load rather
+		# than being served from a heuristically-cached stale copy.
+		header Cache-Control "no-cache"
+
+		# Vite content-hashes these, so the URL changes whenever the content
+		# does and they can be cached indefinitely.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
 	}
 }
