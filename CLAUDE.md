@@ -42,6 +42,12 @@ export function DriverLink({ driver, ...rest }: { driver: DriverRef } & AnchorPr
 The reason for the label function is that sometimes entities need to be referenced
 in UI elements other than Anchor (e.g. a Multiselect input component).
 
+## Filter related inputs
+
+When two inputs in a single form pick entities that are linked in the data (e.g. Sofer and Vehicul, a many-to-many), picking one should narrow the other's options to the entities linked to it. Prefer to do this client-side.
+
+Give the user visual cues when the filtering is taking place: a dimmed `description` on the filtered field ("Filtrat după vehiculul selectat") plus a context-aware `nothingFoundMessage` ("Niciun șofer legat de acest vehicul").
+
 ## UI: tooltips on icons
 
 Use `HelpTooltip` (in `components/HelpTooltip.tsx`) for any icon that needs an explanatory tooltip, rather than wrapping it in a plain Mantine `Tooltip`. It enables touch events so the tooltip is also reachable on mobile, where there's no hover.

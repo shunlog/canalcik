@@ -3,11 +3,9 @@ import { Button, Group, Modal, NumberInput, Select, Stack, Text } from "@mantine
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useCreateBon } from "../../api/bonuri.ts";
-import { useSoferi } from "../../api/soferi.ts";
-import { useVehicule } from "../../api/vehicule.ts";
+import { useSoferVehiculCoupling } from "../../api/coupling.ts";
 import { showError, showSaved } from "../../lib/feedback.ts";
 import { numOrZero, todayLocalIso } from "../../lib/forms.ts";
-import { soferLabel, vehiculLabel } from "../../lib/labels.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 
 interface NouBonValues {
@@ -38,8 +36,6 @@ export function BonCreateModal({
   onInchide: () => void;
 }) {
   const create = useCreateBon();
-  const soferi = useSoferi();
-  const vehicule = useVehicule();
 
   const form = useForm<NouBonValues>({
     initialValues: emptyValues(),
@@ -51,6 +47,9 @@ export function BonCreateModal({
         v === "" || Number(v) <= 0 || Number.isNaN(Number(v)) ? "Cantitate invalidă" : null,
     },
   });
+
+  const { soferId, vehiculId } = form.getValues();
+  const { sofer, vehicul } = useSoferVehiculCoupling({ soferId, vehiculId });
 
   const inchide = () => {
     form.setValues(emptyValues());
@@ -101,8 +100,9 @@ export function BonCreateModal({
             withAsterisk
             searchable
             filter={fuzzyOptionsFilter}
-            nothingFoundMessage="Niciun rezultat"
-            data={(soferi.data ?? []).map((s) => ({ value: String(s.id), label: soferLabel(s) }))}
+            data={sofer.options}
+            description={sofer.description}
+            nothingFoundMessage={sofer.nothingFoundMessage}
             {...form.getInputProps("soferId")}
           />
           <Select
@@ -111,8 +111,9 @@ export function BonCreateModal({
             withAsterisk
             searchable
             filter={fuzzyOptionsFilter}
-            nothingFoundMessage="Niciun rezultat"
-            data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
+            data={vehicul.options}
+            description={vehicul.description}
+            nothingFoundMessage={vehicul.nothingFoundMessage}
             {...form.getInputProps("vehiculId")}
           />
           <NumberInput

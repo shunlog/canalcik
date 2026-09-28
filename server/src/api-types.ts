@@ -128,6 +128,8 @@ export interface SoferScalars {
 export interface SoferListItem extends SoferScalars {
   id: number;
   updatedAt: string;
+  // needed for the inputs that filter by selected Vehicul in related inputs
+  vehiculIds: number[];
   nrVehicule: number;
   nrBonuri: number;
 }
@@ -163,6 +165,8 @@ export interface VehiculScalars {
 export interface VehiculListItem extends VehiculScalars {
   id: number;
   updatedAt: string;
+  // needed for the inputs that filter by selected Sofer in related inputs
+  soferIds: number[];
   nrSoferi: number;
   nrBonuri: number;
 }

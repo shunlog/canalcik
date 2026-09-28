@@ -2,8 +2,7 @@ import { Select, Stack, Title } from "@mantine/core";
 import type { InfoVehicul } from "@canalcik/server/api-types";
 import { infoVehicul } from "@canalcik/server/derived";
 import type { UseFormReturnType } from "@mantine/form";
-import { useVehicule } from "../../api/vehicule.ts";
-import { vehiculLabel } from "../../lib/labels.ts";
+import { useSoferVehiculCoupling } from "../../api/coupling.ts";
 import { fuzzyOptionsFilter } from "../../lib/search.ts";
 import { RezumatCampuri } from "./RezumatCampuri.tsx";
 import type { ActFormValues } from "./actForm.ts";
@@ -17,9 +16,9 @@ const CAMPURI_VEHICUL: { key: keyof InfoVehicul; label: string }[] = [
 ];
 
 export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues> }) {
-  const vehicule = useVehicule();
-  const { vehiculId } = form.getValues();
-  const ales = (vehicule.data ?? []).find((v) => String(v.id) === vehiculId);
+  const { soferId, vehiculId } = form.getValues();
+  const { vehicule, vehicul } = useSoferVehiculCoupling({ soferId, vehiculId });
+  const ales = vehicule.find((v) => String(v.id) === vehiculId);
   const info = ales && infoVehicul(ales);
 
   return (
@@ -30,9 +29,10 @@ export function VehiculSection({ form }: { form: UseFormReturnType<ActFormValues
         searchable
         clearable
         filter={fuzzyOptionsFilter}
-        nothingFoundMessage="Niciun rezultat"
+        data={vehicul.options}
+        description={vehicul.description}
+        nothingFoundMessage={vehicul.nothingFoundMessage}
         maw={480}
-        data={(vehicule.data ?? []).map((v) => ({ value: String(v.id), label: vehiculLabel(v) }))}
         value={vehiculId}
         error={form.errors.vehiculId}
         onChange={(id) => form.setFieldValue("vehiculId", id)}

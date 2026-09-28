@@ -96,6 +96,9 @@ const soferScalarSelect = {
 
 export const soferListSelect = {
   ...soferScalarSelect,
+  // The linked ids (not just the count) ride along so the pairing form inputs
+  // can narrow one side by the other without fetching every detail.
+  vehicule: { select: { id: true } },
   _count: { select: { vehicule: true, bonuri: true } },
 } satisfies Prisma.SoferSelect;
 
@@ -111,9 +114,15 @@ type SoferDetailRow = Prisma.SoferGetPayload<{ select: typeof soferDetailSelect 
 // updatedAt is a Date in Prisma but a string on the wire. Converting it here
 // rather than leaning on JSON.stringify's implicit toJSON is what keeps
 // api-types.ts an honest description of the response.
-export const toSoferListItem = ({ _count, updatedAt, ...s }: SoferListRow): SoferListItem => ({
+export const toSoferListItem = ({
+  _count,
+  updatedAt,
+  vehicule,
+  ...s
+}: SoferListRow): SoferListItem => ({
   ...s,
   updatedAt: updatedAt.toISOString(),
+  vehiculIds: vehicule.map((v) => v.id),
   nrVehicule: _count.vehicule,
   nrBonuri: _count.bonuri,
 });
@@ -149,6 +158,8 @@ const vehiculScalarSelect = {
 
 export const vehiculListSelect = {
   ...vehiculScalarSelect,
+  // Same reasoning as soferListSelect: the linked ids feed the paired inputs.
+  soferi: { select: { id: true } },
   _count: { select: { soferi: true, bonuri: true } },
 } satisfies Prisma.VehiculSelect;
 
@@ -264,10 +275,12 @@ type VehiculDetailRow = Prisma.VehiculGetPayload<{ select: typeof vehiculDetailS
 export const toVehiculListItem = ({
   _count,
   updatedAt,
+  soferi,
   ...v
 }: VehiculListRow): VehiculListItem => ({
   ...v,
   updatedAt: updatedAt.toISOString(),
+  soferIds: soferi.map((s) => s.id),
   nrSoferi: _count.soferi,
   nrBonuri: _count.bonuri,
 });
